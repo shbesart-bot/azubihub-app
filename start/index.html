@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AzubiHub – Ausbildung im Hotel an einem Ort</title>
+<meta name="description" content="AzubiHub ist die App für Ausbildung in Hotellerie und Gastronomie: digitales Berichtsheft mit Rahmenplan-Abgleich, Unterweisungen mit Unterschrift, Einarbeitung, Team-Chat und Karriereseite. 30 Tage kostenlos testen.">
+<meta name="theme-color" content="#0f5c5f">
+<link rel="canonical" href="https://azubihub-app.de/start/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AzubiHub">
+<meta property="og:locale" content="de_DE">
+<meta property="og:url" content="https://azubihub-app.de/start/">
+<meta property="og:title" content="AzubiHub – Ausbildung im Hotel an einem Ort">
+<meta property="og:description" content="Digitales Berichtsheft mit Rahmenplan-Abgleich, Unterweisungen mit Unterschrift, Einarbeitung und Team-Chat für Hotellerie und Gastronomie. 30 Tage kostenlos testen.">
+<meta property="og:image" content="https://azubihub-app.de/start/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="AzubiHub – Ausbildung im Hotel, endlich an einem Ort.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"AzubiHub","applicationCategory":"BusinessApplication","operatingSystem":"Web, iOS, Android","url":"https://azubihub-app.de/start/","description":"Ausbildungs-App für Hotellerie und Gastronomie: digitales Berichtsheft, Rahmenplan, Unterweisungen, Einarbeitung und Team-Chat.","offers":{"@type":"Offer","price":"49","priceCurrency":"EUR"},"publisher":{"@type":"Organization","name":"NovaWorks","email":"info@novaworks-it.de","address":{"@type":"PostalAddress","streetAddress":"Am Hang 2","postalCode":"34414","addressLocality":"Warburg","addressCountry":"DE"}}}</script>
+<link rel="icon" href="../favicon-32.png">
+<link rel="stylesheet" href="./start.css">
+<style>
+.hero{padding:56px 0 72px;position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(42px,7vw,78px);margin:16px 0 22px}
+.hero h1 em{font-style:normal;color:var(--accent);background:linear-gradient(transparent 62%,var(--brass-soft) 62%);padding:0 .06em}
+.hero .lead{margin-bottom:30px}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+.fine{font-size:14px;color:var(--muted);margin-top:14px}
+.hero::before{content:"";position:absolute;right:-12vw;top:-18vw;width:58vw;height:58vw;border-radius:50%;background:radial-gradient(circle,var(--accent-soft) 0,transparent 66%);z-index:-1}
+/* phone */
+.phone{justify-self:center;width:min(330px,86vw);border-radius:42px;padding:12px;background:var(--fg);box-shadow:0 40px 80px -30px rgba(10,40,42,.45),0 0 0 1px var(--line);transform:rotate(2.5deg)}
+.screen{border-radius:31px;background:#eef2f2;color:#142426;padding:18px 14px 20px;font-size:13px;line-height:1.35;overflow:hidden}
+.scr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.scr-top b{font:700 18px 'Bricolage Grotesque',sans-serif}
+.pill{display:inline-block;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:700}
+.p-ok{background:#d6ebdd;color:#1d5a36}.p-warn{background:#f5e3c4;color:#6d4209}.p-acc{background:#d3e5e5;color:#0f5c5f}
+.card{background:#fff;border-radius:16px;padding:12px;margin-bottom:9px;box-shadow:0 1px 0 #d3dcdc}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.bar{height:6px;border-radius:9px;background:#e3eaea;margin-top:7px;overflow:hidden}.bar i{display:block;height:100%;background:#0f5c5f;border-radius:9px}
+.mut{color:#4d6264;font-size:11.5px}
+.kw{font:700 15px 'Bricolage Grotesque',sans-serif}
+.sig{font-family:'Bricolage Grotesque',cursive;font-size:17px;color:#0f5c5f;transform:rotate(-4deg);display:inline-block}
+/* strip */
+.strip{border-block:1px solid var(--line);background:var(--paper);padding:22px 0}
+.strip .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:center;font-weight:600;color:var(--muted);font-size:15px}
+.strip span::before{content:"✓ ";color:var(--ok);font-weight:700}
+/* roles */
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:40px}
+@media (max-width:900px){.roles{grid-template-columns:1fr}}
+.role{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:28px}
+.role h3{font-size:24px;margin:10px 0 12px}
+.role ul{margin:0;padding:0;list-style:none}
+.role li{padding:9px 0 9px 28px;position:relative;border-top:1px solid var(--line);font-size:16px}
+.role li:first-child{border-top:0}
+.role li::before{content:"";position:absolute;left:2px;top:15px;width:12px;height:12px;border-radius:4px;background:var(--brass-bright);transform:rotate(45deg)}
+.num{font:700 15px 'Bricolage Grotesque',sans-serif;color:var(--brass)}
+/* features */
+.feat{background:var(--accent-deep);color:#eef3f2}
+.feat .eyebrow{color:#e4c486}
+.feat .lead{color:#bcd1d0}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.14);border-radius:24px;overflow:hidden;margin-top:44px}
+@media (max-width:900px){.fgrid{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.fgrid{grid-template-columns:1fr}}
+.fi{background:var(--accent-deep);padding:26px}
+.fi h3{font-size:20px;margin-bottom:8px;color:#fff}
+.fi p{color:#c3d6d5;font-size:15.5px}
+.fi .ic{width:40px;height:40px;border-radius:12px;background:rgba(228,196,134,.16);display:grid;place-items:center;margin-bottom:16px;color:#e4c486}
+.fi svg{width:22px;height:22px}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:40px;counter-reset:s}
+@media (max-width:800px){.steps{grid-template-columns:1fr}}
+.step{counter-increment:s;padding-top:20px;border-top:3px solid var(--fg)}
+.step::before{content:"0" counter(s);font:700 44px/1 'Bricolage Grotesque',sans-serif;color:var(--brass-bright);display:block;margin-bottom:14px}
+.step h3{font-size:22px;margin-bottom:8px}
+.step p{color:var(--muted)}
+/* trust */
+.trust{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start}
+@media (max-width:860px){.trust{grid-template-columns:1fr}}
+.tlist{display:grid;gap:12px}
+.tl{display:flex;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+.tl b{display:block;margin-bottom:2px}
+.tl p{color:var(--muted);font-size:15.5px}
+.tl .dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--ok);margin-top:9px}
+/* price */
+.price{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:40px;align-items:stretch}
+@media (max-width:860px){.price{grid-template-columns:1fr}}
+.pc{border-radius:28px;padding:34px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column}
+.pc.main{background:var(--fg);color:var(--bg);border:0}
+.pc.main .lead,.pc.main .pm{color:color-mix(in srgb,var(--bg) 72%,var(--fg))}
+.pc .big{font:700 clamp(48px,7vw,64px)/1 'Bricolage Grotesque',sans-serif;margin:16px 0 4px}
+.pc .pm{color:var(--muted);font-size:15px}
+.pc ul{list-style:none;padding:0;margin:22px 0 28px;display:grid;gap:9px}
+.pc li::before{content:"✓";font-weight:700;color:var(--brass-bright);margin-right:10px}
+.pc .btn{margin-top:auto}
+.pc.main .btn{background:var(--brass-bright);color:#1b1305}
+.pc.main .eyebrow{color:var(--brass-on-ink)}
+/* demo */
+.demo{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:32px}
+@media (max-width:760px){.demo{grid-template-columns:1fr}}
+.dm{display:block;text-decoration:none;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;transition:border-color .15s,transform .15s}
+.dm:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dm b{font:700 20px 'Bricolage Grotesque',sans-serif;display:block;margin-bottom:4px}
+.dm span{color:var(--muted);font-size:15px}
+.dm i{font-style:normal;color:var(--accent);font-weight:700;display:block;margin-top:12px}
+/* faq */
+.faq{max-width:780px;margin-top:28px}
+details{border-top:1px solid var(--line);padding:4px 0}
+details:last-child{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;list-style:none;padding:16px 36px 16px 0;font-weight:700;font-size:18px;position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";position:absolute;right:4px;top:12px;font:500 26px 'Bricolage Grotesque',sans-serif;color:var(--brass)}
+details[open] summary::after{content:"–"}
+details p{color:var(--muted);padding:0 0 18px;max-width:66ch}
+/* contact */
+.contact{background:var(--brass-soft);border-radius:32px;padding:clamp(28px,5vw,56px);display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:center}
+@media (max-width:800px){.contact{grid-template-columns:1fr}}
+.contact .h2{margin-top:8px}
+.addr{font-size:16px;line-height:1.7}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="./"><img src="../icon-192.png" alt="" width="32" height="32">AzubiHub</a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a class="hide-sm" href="#funktionen">Funktionen</a>
+      <a class="hide-sm" href="#preis">Preis</a>
+      <a class="hide-sm" href="#demo">Demo</a>
+      <a href="../?login">Anmelden</a>
+      <a class="btn small" href="../?start=betrieb">Kostenlos testen</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" aria-labelledby="h1">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Für Hotellerie &amp; Gastronomie</div>
+      <h1 id="h1">Ausbildung im Hotel, endlich an <em>einem</em> Ort.</h1>
+      <p class="lead">Berichtsheft, Rahmenplan, Unterweisungen, Einarbeitung und Team-Chat in einer App. Azubis tippen ihre Woche aufs Handy, Ausbilder zeichnen mit einem Fingertipp ab, die Leitung sieht auf einen Blick, wo es hakt.</p>
+      <div class="ctas">
+        <a class="btn" href="../?start=betrieb">30 Tage kostenlos testen</a>
+        <a class="btn ghost" href="#demo">Demo ansehen</a>
+      </div>
+      <p class="fine">Ohne Zahlungsdaten. Endet automatisch. Läuft im Browser, nichts zu installieren.</p>
+    </div>
+    <div class="phone" role="img" aria-label="Beispielansicht der App: Wochenbericht KW 41 abgezeichnet, Rahmenplan zu 64 Prozent abgedeckt, offene Unterweisung Brandschutz">
+      <div class="screen" aria-hidden="true">
+        <div class="scr-top"><b>Hallo Lena</b><span class="pill p-acc">1. Lehrjahr</span></div>
+        <div class="card">
+          <div class="row"><span class="kw">KW 41</span><span class="pill p-ok">abgezeichnet</span></div>
+          <div class="mut" style="margin-top:4px">Rezeption · 38 Std 30 Min</div>
+          <div style="margin-top:8px">Check-in Gruppe 14 Pers., Kassenabschluss, Beschwerde Zi. 212 gelöst</div>
+          <div class="row" style="margin-top:8px"><span class="mut">J. Weber, 11.10.</span><span class="sig">J. Weber</span></div>
+        </div>
+        <div class="card">
+          <div class="row"><b>Ausbildungsrahmenplan</b><span class="mut">64 %</span></div>
+          <div class="bar"><i style="width:64%"></i></div>
+          <div class="row mut" style="margin-top:8px"><span>H6 Empfang</span><span>99 Std</span></div>
+          <div class="bar"><i style="width:92%"></i></div>
+          <div class="row mut" style="margin-top:8px"><span>H4 Bankett</span><span style="color:#a83232">noch offen</span></div>
+          <div class="bar"><i style="width:4%"></i></div>
+        </div>
+        <div class="card row"><div><b>Brandschutz 2026</b><div class="mut">Unterweisung · bitte unterschreiben</div></div><span class="pill p-warn">offen</span></div>
+        <div class="card row"><div><b>Prüfungssimulation</b><div class="mut">Letzte Runde 78 von 100 Punkten</div></div><span class="pill p-acc">gut</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strip"><div class="wrap"><span>Server in Frankfurt</span><span>Ohne Tracking</span><span>Deutsch, Englisch, Ukrainisch, Arabisch</span><span>Barrierefrei nach WCAG 2.1 AA</span><span>Als App aufs Handy</span></div></div>
+
+<section aria-labelledby="h-rollen">
+  <div class="wrap">
+    <div class="eyebrow">Für alle, die ausbilden</div>
+    <h2 class="h2" id="h-rollen">Weniger Zettel, weniger Nachfragen.</h2>
+    <p class="lead">Jede Rolle sieht genau das, was sie braucht. Die Leitung vergibt Rechte einzeln, auch nur für eine Abteilung.</p>
+    <div class="roles">
+      <article class="role"><span class="num">Azubis</span><h3>Woche eintragen, fertig.</h3><ul>
+        <li>Berichtsheft pro Tag mit Stunden, Abteilung und Rahmenplan-Position</li>
+        <li>Wiki, Checklisten und Wochen-Quiz für die Prüfung</li>
+        <li>Fortschritt, Beurteilungen und Prüfungs-Countdown im Blick</li></ul></article>
+      <article class="role"><span class="num">Ausbilder</span><h3>Abzeichnen statt hinterherlaufen.</h3><ul>
+        <li>Berichte prüfen, zurückgeben oder mit einem Tipp abzeichnen</li>
+        <li>Gespräche und Beurteilungsbögen je Station festhalten</li>
+        <li>Sehen, welche Rahmenplan-Positionen noch fehlen</li></ul></article>
+      <article class="role"><span class="num">Leitung</span><h3>Alles nachweisbar.</h3><ul>
+        <li>Ampel über alle Azubis und Häuser</li>
+        <li>Unterweisungen mit Unterschrift und Fälligkeit</li>
+        <li>Ausbildungsnachweis als PDF für die IHK, kompletter Export als ZIP</li></ul></article>
+    </div>
+  </div>
+</section>
+
+<section class="feat" id="funktionen" aria-labelledby="h-feat">
+  <div class="wrap">
+    <div class="eyebrow">Funktionen</div>
+    <h2 class="h2" id="h-feat">Alles, was eine Ausbildung im Betrieb braucht.</h2>
+    <p class="lead">Kein Baukasten. Fertige Inhalte für Hotelfach, Hotelkaufleute, Köche, Restaurantfachleute, Fachkraft Gastronomie und Systemgastronomie, die ihr anpassen könnt.</p>
+    <div class="fgrid">
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5"/></svg></div><h3>Digitales Berichtsheft</h3><p>Täglich oder wöchentlich, mit Stundenkonto, Vorlagen und Abzeichnung. Offline-Entwurf inklusive.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19V5M4 19h16"/><path d="M8 15l4-5 3 3 4-6"/></svg></div><h3>Rahmenplan-Abgleich</h3><p>Die App zeigt je Position, wie viel schon vermittelt wurde, und was bis zur Prüfung noch offen ist.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Unterweisungen</h3><p>Brandschutz, Hygiene, IfSG, Arbeitsschutz: lesen, unterschreiben, Erinnerung bei Fälligkeit.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></div><h3>Einarbeitung &amp; Buddy</h3><p>Die ersten 30 Tage als Checkliste, Ansprechpartner und ein Hotel-Wiki mit euren Abläufen.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg></div><h3>Team-Chat &amp; Pinnwand</h3><p>Direktnachrichten, Gruppen, Ankündigungen mit Lesebestätigung und Schichtübergabe.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.4 9.3l6-.7z"/></svg></div><h3>Prüfungsvorbereitung</h3><p>Quiz je Beruf und Rahmenplan-Position, Prüfungssimulation mit Zeit und Auswertung in IHK-Punkten.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><h3>Abwesenheit &amp; Schule</h3><p>Urlaubsanträge, Krankmeldung ohne Diagnose, Berufsschultage und ein Zugang für die Lehrkraft.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M10 21v-6h4v6"/></svg></div><h3>Karriereseite</h3><p>Eigene Bewerbungsseite mit Upload für Lebenslauf und Zeugnisse. Löscht sich nach 6 Monaten selbst.</p></div>
+      <div class="fi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg></div><h3>Erinnerungen</h3><p>Push aufs Handy freitags fürs Berichtsheft, bei fälligen Unterweisungen und neuen Nachrichten. Sonst per E-Mail.</p></div>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-start">
+  <div class="wrap">
+    <div class="eyebrow">In einer Viertelstunde startklar</div>
+    <h2 class="h2" id="h-start">So startet euer Betrieb.</h2>
+    <div class="steps">
+      <div class="step"><h3>Betrieb anmelden</h3><p>Name, Logo und Farben eintragen. Der Einrichtungsassistent führt durch Abteilungen, Berufe und Texte.</p></div>
+      <div class="step"><h3>Team einladen</h3><p>Ein Einladungscode oder QR-Code genügt. Azubis und Ausbilder registrieren sich selbst mit ihrem Handy.</p></div>
+      <div class="step"><h3>Loslegen</h3><p>Die Vorlagen für Unterweisungen, Wiki und Rahmenplan sind schon da. Anpassen, was bei euch anders läuft.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--paper);border-block:1px solid var(--line)" aria-labelledby="h-trust">
+  <div class="wrap trust">
+    <div>
+      <div class="eyebrow">Datenschutz</div>
+      <h2 class="h2" id="h-trust">Die Daten eurer Azubis bleiben in Deutschland.</h2>
+      <p class="lead">Ihr bleibt Herr über eure Daten. Den Vertrag zur Auftragsverarbeitung schließt ihr bei der Anmeldung gleich mit ab.</p>
+    </div>
+    <div class="tlist">
+      <div class="tl"><span class="dot" aria-hidden="true"></span><div><b>Server in Frankfurt am Main</b><p>Datenbank und Dateien liegen in der EU, verschlüsselt übertragen und gespeichert.</p></div></div>
+      <div class="tl"><span class="dot" aria-hidden="true"></span><div><b>Strikt getrennte Betriebe</b><p>Jeder Betrieb sieht nur seine eigenen Daten. Rechte vergebt ihr einzeln.</p></div></div>
+      <div class="tl"><span class="dot" aria-hidden="true"></span><div><b>Kein Tracking, keine Werbung</b><p>Keine Analyse-Dienste, keine fremden Schriften oder Skripte.</p></div></div>
+      <div class="tl"><span class="dot" aria-hidden="true"></span><div><b>Eure Daten gehören euch</b><p>Jederzeit alles als ZIP exportieren. Unterschriften und Abzeichnungen sind fälschungssicher gespeichert.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="preis" aria-labelledby="h-preis">
+  <div class="wrap">
+    <div class="eyebrow">Preis</div>
+    <h2 class="h2" id="h-preis">Ein Preis pro Betrieb. Alle Funktionen.</h2>
+    <p class="lead">Keine Kosten pro Azubi, keine Einrichtungsgebühr. Monatlich kündbar.</p>
+    <div class="price">
+      <div class="pc main">
+        <div class="eyebrow">AzubiHub</div>
+        <!-- PREIS: hier anpassen -->
+        <div class="big">49 €</div>
+        <div class="pm">pro Betrieb und Monat, zzgl. USt.</div>
+        <ul><li>Unbegrenzt viele Azubis und Mitarbeitende</li><li>Alle Funktionen und Vorlagen</li><li>Push- und E-Mail-Erinnerungen</li><li>Support per E-Mail</li></ul>
+        <a class="btn" href="../?start=betrieb">30 Tage kostenlos testen</a>
+      </div>
+      <div class="pc">
+        <div class="eyebrow">Hotelgruppen</div>
+        <div class="big" style="font-size:clamp(34px,5vw,44px)">Auf Anfrage</div>
+        <div class="pm">für mehrere Häuser mit gemeinsamer Leitung</div>
+        <ul><li>Häuser verwalten und Azubis versetzen</li><li>Gemeinsame Vorlagen für alle Häuser</li><li>Übersicht über alle Standorte</li><li>Persönliche Einrichtung</li></ul>
+        <a class="btn ghost" href="mailto:info@novaworks-it.de?subject=AzubiHub%20f%C3%BCr%20unsere%20Hotelgruppe">Anfrage senden</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demo" style="padding-top:0" aria-labelledby="h-demo">
+  <div class="wrap">
+    <div class="eyebrow">Demo</div>
+    <h2 class="h2" id="h-demo">Einfach reinklicken.</h2>
+    <p class="lead">Ein Beispielhotel mit Azubis, Berichten und Unterweisungen. Ohne Anmeldung, nichts wird gespeichert.</p>
+    <div class="demo">
+      <a class="dm" href="../?demo=azubi"><b>Als Azubi</b><span>Lena, 1. Lehrjahr Hotelfach</span><i>Demo öffnen →</i></a>
+      <a class="dm" href="../?demo=ausbilder"><b>Als Ausbilder</b><span>Küchenchef mit Zuständigkeit Küche</span><i>Demo öffnen →</i></a>
+      <a class="dm" href="../?demo=leitung"><b>Als Leitung</b><span>Ausbildungsleitung mit allen Rechten</span><i>Demo öffnen →</i></a>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0" aria-labelledby="h-faq">
+  <div class="wrap">
+    <div class="eyebrow">Fragen</div>
+    <h2 class="h2" id="h-faq">Was Hotels oft fragen.</h2>
+    <div class="faq">
+      <details><summary>Erkennt die IHK das digitale Berichtsheft an?</summary><p>Seit 2020 dürfen Ausbildungsnachweise elektronisch geführt werden (§§ 11, 13 BBiG), wenn es im Ausbildungsvertrag vermerkt ist. AzubiHub erzeugt den Nachweis als PDF mit Abzeichnungen, so wie ihn die Kammer zur Prüfungsanmeldung sehen will. Fragt im Zweifel bei eurer IHK nach.</p></details>
+      <details><summary>Müssen die Azubis eine App installieren?</summary><p>Nein. AzubiHub läuft im Browser auf jedem Handy. Wer mag, legt es mit „Zum Home-Bildschirm“ wie eine App ab, dann gibt es auch Push-Benachrichtigungen, auf dem iPhone ab iOS 16.4.</p></details>
+      <details><summary>Was passiert nach den 30 Testtagen?</summary><p>Die Testphase endet von selbst, es entstehen keine Kosten. Wollt ihr weitermachen, schaltet ihr in der App frei. Sonst werden die Daten nach weiteren 30 Tagen gelöscht.</p></details>
+      <details><summary>Können wir eigene Inhalte einpflegen?</summary><p>Ja. Wiki-Artikel, Checklisten, Quizfragen, Unterweisungen, Lernziele, Abteilungen, Logo und Farben passt die Leitung selbst an.</p></details>
+      <details><summary>Wie kommen wir wieder an unsere Daten?</summary><p>Unter Verwaltung › Einstellungen exportiert die Leitung jederzeit alle Daten als ZIP, Berichtshefte zusätzlich als PDF.</p></details>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0" aria-labelledby="h-kontakt">
+  <div class="wrap">
+    <div class="contact">
+      <div>
+        <div class="eyebrow">Kontakt</div>
+        <h2 class="h2" id="h-kontakt">Lieber erst mal reden?</h2>
+        <p class="lead">Schreibt uns. Wir zeigen euch AzubiHub gern in 20 Minuten am Bildschirm und richten auf Wunsch alles mit euch ein.</p>
+        <div class="ctas" style="margin-top:22px"><a class="btn" href="mailto:info@novaworks-it.de?subject=AzubiHub">info@novaworks-it.de</a></div>
+      </div>
+      <address class="addr" style="font-style:normal">
+        <b>NovaWorks</b><br>Besart Shehu<br>Am Hang 2<br>34414 Warburg
+      </address>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 NovaWorks</span>
+    <a href="./impressum.html">Impressum &amp; Datenschutz</a>
+    <a href="./agb.html">AGB</a>
+    <a href="./avv.html">Auftragsverarbeitung</a>
+    <a href="../?login">Zur App</a>
+  </div>
+</footer>
+</body>
+</html>
