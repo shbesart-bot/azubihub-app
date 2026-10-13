@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /start/
+Sitemap: https://azubihub-app.de/sitemap.xml
