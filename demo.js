@@ -104,17 +104,47 @@
       { id: 'demo-bew-mia', betrieb_id: B, name: 'Mia Hoffmann', email: 'mia@example.com', telefon: '0151 2345678', beruf: 'Hotelfachmann/-frau', start: 'August 2027', nachricht: 'Ich habe schon ein Praktikum an einer Rezeption gemacht und möchte gern bei Ihnen lernen.', status: 'neu', notiz: '', created_at: iso(day(-1, 18)) },
       { id: uuid(), betrieb_id: B, name: 'Jonas Becker', email: 'jonas@example.com', telefon: '', beruf: 'Koch/Köchin', start: 'sofort', nachricht: 'Kochen ist meine Leidenschaft.', status: 'gespraech', notiz: 'Probearbeiten am Freitag', created_at: iso(day(-6, 12)) }
     ],
-    schul_freigaben: [{ id: 'demo-sf1', betrieb_id: B, azubi_id: P.lena.id, token: 'demo', schule: 'Berufsbildende Schulen Warburg', lehrkraft: 'Frau Lehmann', email: 'lehmann@bbs.example', gueltig_bis: ymd(day(300)), widerrufen: false, created_at: iso(day(-30)), last_access: iso(day(-2, 10)) }],
-    schul_eintraege: [{ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, freigabe_id: 'demo-sf1', von: 'Frau Lehmann', typ: 'lob', datum: ymd(day(-9)), text: 'Sehr gute Präsentation zum Thema Gästekommunikation.', created_at: iso(day(-9, 14)) }, { id: uuid(), betrieb_id: B, azubi_id: P.tom.id, freigabe_id: null, von: 'Herr Kaya', typ: 'fehltag', datum: ymd(day(-3)), text: 'Unentschuldigt gefehlt.', created_at: iso(day(-3, 9)) }],
+    schul_freigaben: [{ id: 'demo-sf1', betrieb_id: B, azubi_id: P.lena.id, token: 'demo', schule: 'Berufsbildende Schulen Warburg', lehrkraft: 'Frau Lehmann', email: 'lehmann@bbs.example', gueltig_bis: ymd(day(300)), widerrufen: false, created_at: iso(day(-30)), last_access: iso(day(-2, 10)) },
+      { id: 'demo-sf2', betrieb_id: B, azubi_id: P.tom.id, token: 'demo-tom', schule: 'Berufsbildende Schulen Warburg', lehrkraft: 'Frau Lehmann', email: 'lehmann@bbs.example', gueltig_bis: ymd(day(300)), widerrufen: false, created_at: iso(day(-30)), last_access: iso(day(-2, 10)) },
+      { id: 'demo-sf3', betrieb_id: B, azubi_id: P.aylin.id, token: 'demo-aylin', schule: 'Berufsbildende Schulen Warburg', lehrkraft: 'Frau Lehmann', email: 'lehmann@bbs.example', gueltig_bis: ymd(day(300)), widerrufen: false, created_at: iso(day(-30)), last_access: iso(day(-5, 10)) }],
+    schul_eintraege: [{ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, freigabe_id: 'demo-sf1', von: 'Frau Lehmann', typ: 'lob', datum: ymd(day(-9)), text: 'Sehr gute Präsentation zum Thema Gästekommunikation.', created_at: iso(day(-9, 14)) }, { id: uuid(), betrieb_id: B, azubi_id: P.tom.id, freigabe_id: 'demo-sf2', von: 'Frau Lehmann', typ: 'fehltag', datum: ymd(day(-3)), text: 'Unentschuldigt gefehlt.', created_at: iso(day(-3, 9)) }],
     messages_dummy: []
   };
+  // Persönlicher Ausbildungsplan (Stationen)
+  const st = (u, abteilung, a, b, notiz = '', author = P.fom.id) => ({ id: uuid(), betrieb_id: B, azubi_id: u, abteilung, von: ymd(day(a)), bis: ymd(day(b)), notiz, author_id: author, created_at: iso(day(-70)) });
+  DB.plan_stationen = [
+    st(P.lena.id, 'Rezeption', -66, 18, 'Ansprechperson: Julia Weber'), st(P.lena.id, 'Housekeeping', 19, 74, 'Etagenkontrolle mit der Hausdame'), st(P.lena.id, 'Service', 75, 158),
+    st(P.tom.id, 'Küche', -430, -40, 'Posten Garde-manger und Saucier', P.koch.id), st(P.tom.id, 'Service', -39, -12, 'Einblick Restaurant', P.koch.id), st(P.tom.id, 'Küche', -11, 300, 'Posten Entremetier', P.koch.id),
+    st(P.aylin.id, 'Rezeption', -790, -600), st(P.aylin.id, 'Housekeeping', -599, -520), st(P.aylin.id, 'Service', -519, -300), st(P.aylin.id, 'Küche', -299, -270), st(P.aylin.id, 'Rezeption', -269, -60), st(P.aylin.id, 'Service', -59, 220)];
+  // Ergebnisse der Prüfungssimulation (Lena: zwei Durchgänge mit Schwächen bei Rezeption und Gästekommunikation)
+  DB.exam_results = [
+    { id: uuid(), betrieb_id: B, user_id: P.lena.id, teil: 'teil1', punkte: 55, fragen: 20, richtig: 11, by_rp: { I5: [1, 3], H6: [0, 2], I1: [2, 2], H5: [1, 2], I2: [2, 2], '–': [5, 9] }, created_at: iso(day(-12, 18)) },
+    { id: uuid(), betrieb_id: B, user_id: P.lena.id, teil: 'teil1', punkte: 65, fragen: 20, richtig: 13, by_rp: { I5: [1, 2], H6: [1, 2], I3: [1, 1], H7: [2, 2], '–': [8, 13] }, created_at: iso(day(-4, 19)) },
+    { id: uuid(), betrieb_id: B, user_id: P.tom.id, teil: 'teil2', punkte: 45, fragen: 20, richtig: 9, by_rp: { K8: [0, 2], K3: [1, 2], I5: [2, 3], '–': [6, 13] }, created_at: iso(day(-6, 20)) }];
+  // Verlauf der Berichte (in echt schreibt das ein Datenbank-Trigger)
+  DB.report_log = [];
+  const addLog = (r, aktion, user, at) => DB.report_log.push({ id: DB.report_log.length + 1, report_id: r.id, betrieb_id: B, azubi_id: r.user_id, user_id: user, aktion, at: at || iso(new Date()) });
+  reports.forEach(r => {
+    const sub = r.signed_at ? new Date(+new Date(r.signed_at) - 2 * 864e5) : new Date(r.updated_at);
+    addLog(r, 'erstellt', r.user_id, iso(new Date(+sub - 3 * 864e5)));
+    if (r.status === 'entwurf') return;
+    addLog(r, 'eingereicht', r.user_id, iso(sub));
+    if (r.status === 'zurueck') addLog(r, 'zurueckgegeben', P.koch.id, iso(new Date(+sub + 864e5)));
+    if (r.status === 'abgezeichnet') addLog(r, 'abgezeichnet', r.signed_by, r.signed_at);
+  });
   const lastMonday = day(-7);
   ['lena', 'tom', 'aylin', 'koch', 'fom', 'lei'].forEach(k => (P[k].role === 'azubi') && [8, 9, 10, 11, 12, 13, 14].forEach(g => DB.goal_progress.push({ user_id: P[k].id, goal_id: g, prozent: Math.min(100, ((g * 13 + k.length * 17) % 70) + (P[k].lehrjahr - 1) * 25), updated_at: iso(now) })));
   [19, 20, 21, 22, 23, 24, 25, 28, 29, 30].forEach(t => DB.onboarding_done.push({ user_id: P.lena.id, task_id: t }));
 
   async function loadContent() {
     let c = null;
-    try { const r = await window.__realSb.rpc('demo_content'); c = r.data; } catch {}
+    // Inhalte aus dem Netz holen (max. 6 s). Ohne Netz: letzte geladene Kopie aus diesem Browser, damit die Demo auch am Beamer ohne WLAN läuft.
+    const KEY = 'azubihub-demo-content';
+    try {
+      const r = await Promise.race([window.__realSb.rpc('demo_content'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 6000))]);
+      if (r && r.data && r.data.rp) { c = r.data; try { localStorage.setItem(KEY, JSON.stringify(c)); } catch {} }
+    } catch {}
+    if (!c) { try { c = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {} }
     c = c || {};
     DB.learning_goals = c.goals || []; DB.sops = c.sops || []; DB.checklists = c.checklists || []; DB.onboarding_tasks = c.tasks || []; DB.bot_faq = c.faq || [];
     DB.unterweisungen = (c.uw || []).map(u => ({ ...u, betrieb_id: B }));
@@ -122,7 +152,7 @@
     DB.beurteilungen = [{ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, abteilung: 'Rezeption', von: ymd(day(-110)), bis: ymd(day(-20)), kriterien: { 'Fachkenntnisse': 4, 'Arbeitsqualität': 4, 'Arbeitstempo': 3, 'Zuverlässigkeit & Pünktlichkeit': 5, 'Teamarbeit': 5, 'Umgang mit Gästen': 5, 'Selbstständigkeit': 3, 'Lernbereitschaft': 5, 'Auftreten & Erscheinungsbild': 4, 'Hygiene & Arbeitssicherheit': 4 }, staerken: 'Sehr herzlich im Gästekontakt, immer pünktlich, fragt nach, wenn etwas unklar ist.', ziele: 'Am Telefon sicherer werden, Check-ins in Stoßzeiten selbstständig übernehmen.', sichtbar: true, author_id: P.fom.id, created_at: iso(day(-19)), gelesen_at: null }];
     DB.rp_vermittelt = [];
     const rpN = n => DB.rahmenplan.find(r => r.nr === n);
-    if (rpN('I1')) DB.rp_vermittelt.push({ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, rp_id: rpN('I1').id, datum: ymd(day(-120)), notiz: 'Einführungstag: Ausbildungsvertrag, Arbeitszeiten, Betriebsrat', von: P.lei.id, created_at: iso(day(-120)) });
+    if (rpN('I1')) DB.rp_vermittelt.push({ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, rp_id: rpN('I1').id, datum: ymd(day(-66)), notiz: 'Einführungstag: Ausbildungsvertrag, Arbeitszeiten, Betriebsrat', von: P.lei.id, created_at: iso(day(-66)) });
     if (rpN('I2')) DB.rp_vermittelt.push({ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, rp_id: rpN('I2').id, datum: ymd(day(-60)), notiz: 'Unterweisung Arbeits- und Brandschutz', von: P.fom.id, created_at: iso(day(-60)) });
     const h6 = rpN('H6'), h8 = rpN('H8');
     DB.reports.filter(r => r.user_id === P.lena.id).forEach((r, k) => (r.tage || []).forEach(d => (d.eintraege || []).forEach((e, j) => { if (d.bereich === 'Rezeption' && j === 0 && h6) e.rp = h6.id; if (d.bereich === 'Rezeption' && j === 1 && h8 && k % 2) e.rp = h8.id; })));
@@ -158,8 +188,8 @@
       then(res, rej) { return Promise.resolve().then(run).then(res, rej); }
     };
     const defaults = () => ({ id: uuid(), created_at: iso(new Date()), betrieb_id: B,
-      ...(['reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions'].includes(table) ? { user_id: me } : {}),
-      ...(table === 'shift_notes' || table === 'ankuendigungen' || table === 'talks' ? { author_id: me } : {}),
+      ...(['reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions', 'exam_results'].includes(table) ? { user_id: me } : {}),
+      ...(table === 'shift_notes' || table === 'ankuendigungen' || table === 'talks' || table === 'plan_stationen' ? { author_id: me } : {}),
       ...(table === 'open_items' || table === 'absences' || table === 'chat_gruppen' ? { created_by: me } : {}),
       ...(table === 'messages' ? { sender_id: me, read_at: null } : {}) });
     function fix(row) {
@@ -184,9 +214,13 @@
       } else if (op === 'insert') {
         const arr = (Array.isArray(payload) ? payload : [payload]).map(p => fix({ ...defaults(), ...p }));
         rows().push(...arr); data = arr;
+        if (table === 'reports') arr.forEach(r => { addLog(r, 'erstellt', me); if (r.status === 'eingereicht') addLog(r, 'eingereicht', me); });
       } else if (op === 'update') {
         data = rows().filter(r => filters.every(f => f(r)));
-        data.forEach(r => { Object.assign(r, payload); if (table === 'absences' && 'status' in payload) { r.entschieden_von = me; r.entschieden_at = iso(new Date()); } });
+        data.forEach(r => { const prev = table === 'reports' ? { ...r } : null; Object.assign(r, payload); if (prev) {
+          if ('status' in payload && payload.status !== prev.status) addLog(r, { eingereicht: 'eingereicht', zurueck: 'zurueckgegeben', abgezeichnet: 'abgezeichnet', entwurf: 'wieder_geoeffnet' }[r.status], me);
+          else if (JSON.stringify([prev.tage, prev.inhalt, prev.abteilung]) !== JSON.stringify([r.tage, r.inhalt, r.abteilung]) && (prev.status === 'abgezeichnet' || !DB.report_log.some(l => l.report_id === r.id && l.aktion === 'geaendert' && l.user_id === me && Date.now() - new Date(l.at) < 36e5))) addLog(r, 'geaendert', me);
+        } if (table === 'absences' && 'status' in payload) { r.entschieden_von = me; r.entschieden_at = iso(new Date()); } });
       } else if (op === 'upsert') {
         const cols = (opts.onConflict || 'id').split(',');
         data = (Array.isArray(payload) ? payload : [payload]).map(p => {
@@ -196,6 +230,7 @@
         });
       } else if (op === 'delete') {
         const keep = rows().filter(r => !filters.every(f => f(r))); data = rows().filter(r => filters.every(f => f(r))); DB[table] = keep;
+        if (table === 'reports') data.forEach(r => addLog(r, 'geloescht', me));
       }
       if (single || maybe) data = (data || [])[0] || null;
       if (single && !data) return { data: null, error: { message: 'Nicht gefunden' } };
@@ -228,7 +263,25 @@
       my_quiz_results: a => DB.quiz_answers.filter(x => x.user_id === meId && a.p_ids.includes(x.question_id)).map(x => ({ question_id: x.question_id, wahl: x.wahl, richtig: DB.quiz_questions.find(q => q.id === x.question_id)?.richtig, erklaerung: DB.quiz_questions.find(q => q.id === x.question_id)?.erklaerung })),
       answer_quiz: a => { const q = DB.quiz_questions.find(x => x.id === a.p_question); DB.quiz_answers.push({ user_id: meId, question_id: a.p_question, wahl: a.p_choice, korrekt: q?.richtig === a.p_choice }); return { wahl: a.p_choice, richtig: q?.richtig, erklaerung: q?.erklaerung, korrekt: q?.richtig === a.p_choice }; },
       practice_questions: a => DB.quiz_questions.filter(q => q.nur_training).slice(0, a.p_limit || 10),
+      exam_questions2: a => { const me = DB.profiles.find(p => p.id === meId), ok = q => !q.berufe?.length || q.berufe.includes(me?.beruf);
+        const lj = q => { const r = DB.rahmenplan.filter(x => x.nr === q.rp_nr && (x.beruf === me?.beruf || x.beruf === 'alle')).map(x => x.lehrjahr || 1); return r.length ? Math.min(...r) : (q.lehrjahr || 1); };
+        const pool = DB.quiz_questions.filter(q => ok(q) && (!a.p_nrs || a.p_nrs.includes(q.rp_nr)) && (a.p_max_lj == null || lj(q) <= a.p_max_lj)), mix = l => l.slice().sort(() => Math.random() - .5);
+        return [...mix(pool.filter(q => q.rp_nr)), ...mix(pool.filter(q => !q.rp_nr))].slice(0, Math.min(a.p_limit || 20, 40)).map(q => ({ id: q.id, frage: q.frage, optionen: q.optionen, richtig: q.richtig, erklaerung: q.erklaerung, rp_nr: q.rp_nr || null })); },
       exam_questions: a => { const me = DB.profiles.find(p => p.id === meId), ok = q => !q.berufe?.length || q.berufe.includes(me?.beruf); const pool = DB.quiz_questions.filter(ok), tag = pool.filter(q => q.rp_nr), rest = pool.filter(q => !q.rp_nr), mix = l => l.slice().sort(() => Math.random() - .5); return [...mix(tag), ...mix(rest)].slice(0, a.p_limit || 20).sort(() => Math.random() - .5).map(q => ({ id: q.id, frage: q.frage, optionen: q.optionen, richtig: q.richtig, erklaerung: q.erklaerung, rp_nr: q.rp_nr || null })); },
+      schule_view: a => {
+        const f = DB.schul_freigaben.find(x => x.token === a.p_token && !x.widerrufen); if (!f) return null;
+        const az = DB.profiles.find(x => x.id === f.azubi_id), be = DB.profiles.find(x => x.id === az.betreuer_id), bt = DB.betriebe.find(x => x.id === f.betrieb_id);
+        f.last_access = iso(new Date());
+        return {
+          azubi: { name: az.full_name, beruf: az.beruf, lehrjahr: az.lehrjahr, abteilung: az.abteilung, start: az.start_datum, zp: az.zp_datum, ap: az.ap_datum || null },
+          betrieb: bt?.name || 'Hotel Seeblick', schule: f.schule, lehrkraft: f.lehrkraft, gueltig_bis: f.gueltig_bis,
+          ausbilder: be ? { name: be.full_name, position: be.position, email: be.kontakt_email, telefon: be.telefon } : null,
+          berichte: DB.reports.filter(r => r.user_id === az.id && ['eingereicht', 'abgezeichnet'].includes(r.status)).sort((x, y) => y.jahr - x.jahr || y.kw - x.kw).map(r => ({ jahr: r.jahr, kw: r.kw, abteilung: r.abteilung, status: r.status, tage: r.tage, inhalt: r.inhalt, signed_at: r.signed_at })),
+          abwesenheiten: DB.absences.filter(x => x.user_id === az.id && x.status === 'genehmigt' && ['Berufsschule', 'Krank', 'Urlaub'].includes(x.typ)).sort((x, y) => y.von.localeCompare(x.von)).map(x => ({ typ: x.typ, von: x.von, bis: x.bis })),
+          eintraege: DB.schul_eintraege.filter(e => e.azubi_id === az.id && e.freigabe_id === f.id).sort((x, y) => y.created_at.localeCompare(x.created_at)).map(e => ({ typ: e.typ, datum: e.datum, text: e.text, von: e.von, created_at: e.created_at }))
+        };
+      },
+      schule_add: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null; DB.schul_eintraege.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, freigabe_id: f.id, von: a.p_von || f.lehrkraft, typ: a.p_typ, datum: a.p_datum, text: a.p_text, created_at: iso(new Date()) }); return true; },
       beurteilung_gelesen: a => { const b = DB.beurteilungen.find(x => x.id === a.p_id); if (b) b.gelesen_at = iso(new Date()); return null; },
       admin_users: () => DB.profiles.map(p => ({ id: p.id, email: p.full_name.split(' ')[0].toLowerCase() + '@seeblick.example', last_sign_in_at: iso(day(-1)), created_at: p.created_at })),
       get_invite_code: () => 'SEEB-DEMO', admin_quiz: () => DB.quiz_questions,

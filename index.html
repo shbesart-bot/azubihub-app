@@ -15,7 +15,7 @@
 <title>AzubiHub</title>
 <script src="./vendor/supabase.js"></script>
 <style>@font-face{font-family:Figtree;font-style:normal;font-weight:400;font-display:swap;src:url(./vendor/figtree-latin-400-normal.woff2) format('woff2')}@font-face{font-family:Figtree;font-style:normal;font-weight:500;font-display:swap;src:url(./vendor/figtree-latin-500-normal.woff2) format('woff2')}@font-face{font-family:Figtree;font-style:normal;font-weight:600;font-display:swap;src:url(./vendor/figtree-latin-600-normal.woff2) format('woff2')}@font-face{font-family:Figtree;font-style:normal;font-weight:700;font-display:swap;src:url(./vendor/figtree-latin-700-normal.woff2) format('woff2')}@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:500;font-display:swap;src:url(./vendor/bricolage-grotesque-latin-500-normal.woff2) format('woff2')}@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:700;font-display:swap;src:url(./vendor/bricolage-grotesque-latin-700-normal.woff2) format('woff2')}</style>
-<style id="tw">*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:Figtree,system-ui,-apple-system,Segoe UI,sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}.\!visible{visibility:visible!important}.visible{visibility:visible}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.start-3{inset-inline-start:.75rem}.top-1\/2{top:50%}.col-span-2{grid-column:span 2/span 2}.mx-1{margin-left:.25rem;margin-right:.25rem}.mx-auto{margin-left:auto;margin-right:auto}.my-2{margin-top:.5rem;margin-bottom:.5rem}.my-3{margin-top:.75rem;margin-bottom:.75rem}.-mt-1{margin-top:-.25rem}.-mt-2{margin-top:-.5rem}.mb-0{margin-bottom:0}.mb-0\.5{margin-bottom:.125rem}.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-10{margin-bottom:2.5rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-1{margin-left:.25rem}.ms-auto{margin-inline-start:auto}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.block{display:block}.inline{display:inline}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-12{height:3rem}.h-2{height:.5rem}.h-20{height:5rem}.h-28{height:7rem}.h-3\.5{height:.875rem}.h-4{height:1rem}.h-40{height:10rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-full{height:100%}.max-h-56{max-height:14rem}.max-h-64{max-height:16rem}.max-h-72{max-height:18rem}.max-h-80{max-height:20rem}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-12{width:3rem}.w-16{width:4rem}.w-2\/3{width:66.666667%}.w-20{width:5rem}.w-3\.5{width:.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-7{width:1.75rem}.w-9{width:2.25rem}.w-\[82px\]{width:82px}.w-full{width:100%}.min-w-0{min-width:0}.max-w-\[40\%\]{max-width:40%}.max-w-full{max-width:100%}.flex-1{flex:1 1 0%}.flex-none{flex:none}.grow{flex-grow:1}.-translate-y-1\/2{--tw-translate-y:-50%}.-translate-y-1\/2,.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.select-all{-webkit-user-select:all;-moz-user-select:all;user-select:all}.resize{resize:both}.list-decimal{list-style-type:decimal}.list-disc{list-style-type:disc}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.place-items-center{place-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-end{justify-content:flex-end}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-x-3{-moz-column-gap:.75rem;column-gap:.75rem}.gap-y-1{row-gap:.25rem}.gap-y-2{row-gap:.5rem}.self-start{align-self:flex-start}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-pre-line{white-space:pre-line}.text-wrap{text-wrap:wrap}.break-words{overflow-wrap:break-word}.break-all{word-break:break-all}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-line{border-color:var(--line)}.bg-surface{background-color:var(--surface)}.object-cover{-o-object-fit:cover;object-fit:cover}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pb-3{padding-bottom:.75rem}.pb-3\.5{padding-bottom:.875rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.ps-5{padding-inline-start:1.25rem}.pt-0\.5{padding-top:.125rem}.pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-display{font-family:Bricolage Grotesque,Figtree,system-ui,sans-serif}.text-\[11px\]{font-size:11px}.text-\[12px\]{font-size:12px}.text-\[13px\]{font-size:13px}.text-\[14px\]{font-size:14px}.text-\[15px\]{font-size:15px}.text-\[16px\]{font-size:16px}.text-\[17px\]{font-size:17px}.text-\[18px\]{font-size:18px}.text-\[19px\]{font-size:19px}.text-\[20px\]{font-size:20px}.text-\[22px\]{font-size:22px}.text-\[24px\]{font-size:24px}.text-\[26px\]{font-size:26px}.text-\[28px\]{font-size:28px}.text-\[30px\]{font-size:30px}.font-bold{font-weight:700}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-wide{letter-spacing:.025em}.tracking-wider{letter-spacing:.05em}.text-accent{color:var(--accent)}.text-muted{color:var(--muted)}.underline{text-decoration-line:underline}.line-through{text-decoration-line:line-through}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.outline{outline-style:solid}.ring{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.blur{--tw-blur:blur(8px)}.blur,.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.ease-in-out{transition-timing-function:cubic-bezier(.4,0,.2,1)}@media (max-width:360px){.max-\[360px\]\:hidden{display:none}}</style>
+<style id="tw">*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.19 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:Figtree,system-ui,-apple-system,Segoe UI,sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}.\!visible{visibility:visible!important}.visible{visibility:visible}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.start-3{inset-inline-start:.75rem}.top-1\/2{top:50%}.col-span-2{grid-column:span 2/span 2}.mx-1{margin-left:.25rem;margin-right:.25rem}.mx-auto{margin-left:auto;margin-right:auto}.my-2{margin-top:.5rem;margin-bottom:.5rem}.my-3{margin-top:.75rem;margin-bottom:.75rem}.-mt-1{margin-top:-.25rem}.-mt-2{margin-top:-.5rem}.mb-0{margin-bottom:0}.mb-0\.5{margin-bottom:.125rem}.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-10{margin-bottom:2.5rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-1{margin-left:.25rem}.ms-auto{margin-inline-start:auto}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}.block{display:block}.inline{display:inline}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-12{height:3rem}.h-2{height:.5rem}.h-2\.5{height:.625rem}.h-20{height:5rem}.h-28{height:7rem}.h-3\.5{height:.875rem}.h-4{height:1rem}.h-40{height:10rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-full{height:100%}.max-h-56{max-height:14rem}.max-h-64{max-height:16rem}.max-h-72{max-height:18rem}.max-h-80{max-height:20rem}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-12{width:3rem}.w-16{width:4rem}.w-2\.5{width:.625rem}.w-2\/3{width:66.666667%}.w-20{width:5rem}.w-3\.5{width:.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-7{width:1.75rem}.w-9{width:2.25rem}.w-\[82px\]{width:82px}.w-full{width:100%}.min-w-0{min-width:0}.max-w-\[40\%\]{max-width:40%}.max-w-full{max-width:100%}.flex-1{flex:1 1 0%}.flex-none{flex:none}.grow{flex-grow:1}.-translate-y-1\/2{--tw-translate-y:-50%}.-translate-y-1\/2,.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.select-all{-webkit-user-select:all;-moz-user-select:all;user-select:all}.resize{resize:both}.list-decimal{list-style-type:decimal}.list-disc{list-style-type:disc}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.place-items-center{place-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-end{justify-content:flex-end}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-x-3{-moz-column-gap:.75rem;column-gap:.75rem}.gap-y-1{row-gap:.25rem}.gap-y-2{row-gap:.5rem}.self-start{align-self:flex-start}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-pre-line{white-space:pre-line}.text-wrap{text-wrap:wrap}.break-words{overflow-wrap:break-word}.break-all{word-break:break-all}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-line{border-color:var(--line)}.bg-surface{background-color:var(--surface)}.object-cover{-o-object-fit:cover;object-fit:cover}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pb-3{padding-bottom:.75rem}.pb-3\.5{padding-bottom:.875rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.ps-5{padding-inline-start:1.25rem}.pt-0\.5{padding-top:.125rem}.pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-display{font-family:Bricolage Grotesque,Figtree,system-ui,sans-serif}.text-\[11px\]{font-size:11px}.text-\[12px\]{font-size:12px}.text-\[13px\]{font-size:13px}.text-\[14px\]{font-size:14px}.text-\[15px\]{font-size:15px}.text-\[16px\]{font-size:16px}.text-\[17px\]{font-size:17px}.text-\[18px\]{font-size:18px}.text-\[19px\]{font-size:19px}.text-\[20px\]{font-size:20px}.text-\[22px\]{font-size:22px}.text-\[24px\]{font-size:24px}.text-\[26px\]{font-size:26px}.text-\[28px\]{font-size:28px}.text-\[30px\]{font-size:30px}.font-bold{font-weight:700}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-wide{letter-spacing:.025em}.tracking-wider{letter-spacing:.05em}.text-accent{color:var(--accent)}.text-muted{color:var(--muted)}.underline{text-decoration-line:underline}.line-through{text-decoration-line:line-through}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.outline{outline-style:solid}.ring{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.blur{--tw-blur:blur(8px)}.blur,.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.ease-in-out{transition-timing-function:cubic-bezier(.4,0,.2,1)}@media (max-width:360px){.max-\[360px\]\:hidden{display:none}}</style>
 <style>
   /* Einspaltige Mobile-App (max. 30rem), feste Tab-Leiste unten. Petrol wie Hoteluniform, Messing wie Zimmerschlüssel. */
   :root {
@@ -109,6 +109,22 @@
   .tabbar button { display:flex; flex-direction:column; align-items:center; gap:2px; padding: 9px 2px 10px; font-size: 11px; font-weight: 600; color: var(--muted); background: none; border: 0; }
   .tabbar button svg { width: 22px; height: 22px; }
   .tabbar button[aria-current="page"] { color: var(--accent); }
+  /* Laptop/Beamer: Navigation als Seitenleiste, breiterer Inhalt */
+  @media (min-width: 1024px) {
+    body { font-size: 16px; }
+    #appScreen { padding-left: 232px; }
+    #appScreen .wrap { max-width: 58rem; padding-inline: 32px; padding-block: 20px 48px; }
+    .tabbar { top: 0; bottom: 0; right: auto; width: 232px; border-top: 0; border-right: 1px solid var(--line); padding: 92px 12px 20px; }
+    .tabbar nav { display: flex; flex-direction: column; gap: 4px; max-width: none; margin: 0; }
+    .tabbar button { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; font-size: 15px; border-radius: 12px; text-align: left; }
+    .tabbar button:hover { background: var(--sunk); color: var(--fg); }
+    .tabbar button[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+    .toast { bottom: 32px; left: calc(50% + 116px); }
+    .sheet-scrim { align-items: center; }
+    .sheet { max-width: 40rem; border-radius: 20px; max-height: 86vh; padding-bottom: 24px; }
+    .modgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    #careerScreen.wrap { max-width: 52rem; padding-inline: 32px; }
+  }
   .modtile { display:flex; flex-direction:column; gap:10px; padding:14px; text-align:left; min-width:0; color: inherit; font: inherit; }
   .modtile:active { transform: scale(.985); }
   .ico { width: 38px; height: 38px; border-radius: 11px; display:grid; place-items:center; background: var(--accent-soft); color: var(--accent); flex: none; }
@@ -194,7 +210,7 @@
 
 <!-- ============ App ============ -->
 <div id="appScreen" hidden>
-  <div id="demoBar" hidden class="text-center text-[12px] font-semibold py-1.5 px-3" style="background:var(--brass-soft);color:var(--brass)">Demo mit Beispieldaten · nichts wird gespeichert · <button type="button" id="demoRole" class="underline font-semibold">Rolle wechseln</button> · <a href="./" class="underline">Beenden</a></div>
+  <div id="demoBar" hidden class="text-center text-[12px] font-semibold py-1.5 px-3" style="background:var(--brass-soft);color:var(--brass)">Demo mit Beispieldaten · nichts wird gespeichert · <button type="button" id="demoRole" class="underline font-semibold">Rolle wechseln</button> · <button type="button" id="demoReset" class="underline font-semibold">Zurücksetzen</button> · <a href="./" class="underline">Beenden</a></div>
   <div class="wrap">
     <header class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pb-3">
       <div class="flex items-center gap-2 min-w-0 flex-1" style="flex-basis:7rem">
@@ -242,7 +258,7 @@ const DEFAULT_BRANDING = {
   appName: 'AzubiHub',
   loginText: 'Berichtsheft, Hotel-Wiki, Onboarding und Schichtübergabe für unsere Auszubildenden.',
   brand: '#0f5c5f', brand2: '#a8792a',
-  berufe: ['Hotelfachmann/-frau', 'Hotelkaufmann/-frau', 'Koch/Köchin', 'Fachkraft Gastronomie', 'Fachmann/-frau Restaurants und Veranstaltungsgastronomie', 'Fachmann/-frau für Systemgastronomie'],
+  berufe: ['Hotelfachmann/-frau', 'Kaufmann/-frau für Hotelmanagement', 'Koch/Köchin', 'Fachkraft Küche', 'Fachkraft für Gastronomie', 'Fachmann/-frau für Restaurants und Veranstaltungsgastronomie', 'Fachmann/-frau für Systemgastronomie'],
   datenschutz: `VORLAGE – bitte vor dem Einsatz prüfen und die Angaben in [eckigen Klammern] ergänzen. Keine Rechtsberatung.
 
 ## Wer ist verantwortlich?
@@ -256,12 +272,14 @@ Profilfoto und Push-Benachrichtigungen nur mit deiner Einwilligung (Art. 6 Abs. 
 
 ## Welche Daten werden gespeichert?
 Name, E-Mail-Adresse, Ausbildungsberuf, Lehrjahr, Abteilung, erster Arbeitstag, Prüfungstermine, gewählte Sprache, freiwillig ein Profilfoto; deine Wochenberichte mit Rückmeldungen und Abzeichnung; Lernziel-Fortschritt; Quiz-Antworten; abgehakte Checklisten und Einarbeitungsaufgaben; Abwesenheiten und Urlaubsanträge (Berufsschule, Urlaub, Krankheit ohne Diagnose); Gesprächsnotizen der Ausbildungsleitung; Einträge und Fotos im Übergabebuch; Nachrichten im Team- und Gruppen-Chat; Lesebestätigungen von Ankündigungen; falls aktiviert: technische Daten für Benachrichtigungen.
+Außerdem der Verlauf deiner Wochenberichte (wer einen Bericht wann angelegt, eingereicht, zurückgegeben oder abgezeichnet hat), dein persönlicher Ausbildungsplan und die Ergebnisse der Prüfungssimulation.
 
 ## Unterschriften bei Unterweisungen
 Wenn du eine Unterweisung bestätigst, speichern wir den Zeitpunkt und deine Unterschrift als Bild. Das ist der Nachweis, dass die gesetzlich vorgeschriebene Unterweisung stattgefunden hat. Die Bestätigung kann nachträglich weder geändert noch zurückdatiert werden.
 
 ## Berufsschule
 Nur wenn wir für dich einen Zugang für deine Berufsschule einrichten: Deine Lehrkraft sieht über einen persönlichen, befristeten Link deine eingereichten Wochenberichte und Abwesenheiten und kann Fehlzeiten, Notizen oder Lob eintragen. Du siehst in der App, welche Schule Zugang hat. Wir können den Zugang jederzeit beenden.
+Für ihre Klassenübersicht speichert die Lehrkraft die Links nur in ihrem eigenen Browser.
 Rechtsgrundlage: [Zusammenarbeit von Betrieb und Berufsschule, § 2 Abs. 2 BBiG, Art. 6 Abs. 1 lit. f DSGVO – oder deine Einwilligung, Art. 6 Abs. 1 lit. a DSGVO]
 
 ## Wer hat Zugriff?
@@ -654,7 +672,24 @@ function render() {
   try { const t = VIEW_TITLES[S.view] || (S.view === 'home' ? 'Start' : mod(S.view)?.tab) || ''; document.title = (t ? t + ' – ' : '') + (BR.appName || 'AzubiHub'); } catch {}
   $('#app').innerHTML = `<div class="view">${V.html()}</div>`;
   V.bind?.();
+  bindRepLog();
   hydrateImgs($('#app'));
+}
+/* Verlauf eines Wochenberichts (wird in der Datenbank automatisch geschrieben, nicht änderbar) */
+const LOG_TXT = { erstellt: 'angelegt', geaendert: 'bearbeitet', eingereicht: 'eingereicht', zurueckgegeben: 'zur Überarbeitung zurückgegeben', abgezeichnet: 'abgezeichnet', wieder_geoeffnet: 'zur Bearbeitung zurückgezogen', geloescht: 'gelöscht' };
+const logWho = id => id ? (S.profiles[id]?.full_name || 'ehemaliges Teammitglied') : 'automatisch';
+const logTime = ts => new Date(ts).toLocaleString(LOCALE(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const repLogHTML = id => `<details class="mt-4 border-t border-line pt-3" data-replog="${id}"><summary class="text-[13px] font-semibold text-accent cursor-pointer">Verlauf anzeigen</summary><div class="text-[13px] text-muted mt-2">Wird geladen …</div></details>`;
+function bindRepLog() {
+  $$('[data-replog]').forEach(d => d.addEventListener('toggle', async () => {
+    if (!d.open || d.dataset.done) return; d.dataset.done = '1';
+    const box = d.querySelector('div');
+    try {
+      const rows = await q(sb.from('report_log').select('aktion,user_id,at').eq('report_id', d.dataset.replog).order('at'));
+      box.innerHTML = rows.length ? `<ol class="flex flex-col gap-1.5">${rows.map(r => `<li class="flex gap-3"><span class="tnum flex-none">${esc(logTime(r.at))}</span><span><span class="font-semibold text-fg">${esc(LOG_TXT[r.aktion] || r.aktion)}</span> · ${esc(logWho(r.user_id))}</span></li>`).join('')}</ol><p class="mt-2 text-[12px]">Der Verlauf wird automatisch gespeichert und kann von niemandem geändert werden.</p>`
+        : 'Noch keine Einträge. Der Verlauf wird für alle Änderungen ab Oktober 2026 gespeichert.';
+    } catch { d.dataset.done = ''; box.textContent = 'Der Verlauf konnte nicht geladen werden.'; }
+  }));
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); if (b.closest('.tabbar')) S.rev.open = null; if (b.dataset.go === 'chat') { S.msg.open = null; S.msg.group = null; } S.navByUser = true; go(b.dataset.go); } });
 
@@ -770,7 +805,7 @@ const Home = {
     ${team}
 
     ${secTitle(isAusbilder() ? 'Module' : 'Deine Module')}
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-3 modgrid">
       ${mod('bericht').on !== false && !isMA() ? `<button class="card modtile" data-go="bericht">
         <div class="flex items-center justify-between gap-2"><span class="ico">${svg('book')}</span>${isAusbilder() ? `<span class="chip ${H.pending.length ? 'brass' : 'ok'}">${H.pending.length} offen</span>` : `<span class="chip ${repChip[0]}">${repChip[1]}</span>`}</div>
         <div><div class="font-display font-bold text-[16px] leading-snug">${esc(mod('bericht').title)}</div><div class="text-[13px] text-muted mt-0.5">${isAusbilder() ? 'Berichte prüfen, Lernziele pflegen' : `Lernziele ${H.goalsAvg}% erreicht`}</div></div>
@@ -853,8 +888,8 @@ function exportIcs() {
   const me = S.me, ev = [], d8 = d => String(d).slice(0, 10).replace(/-/g, ''), next = d => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + 1); return localDate(x); };
   const esc2 = t => String(t).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
   (S.rep.abs || []).filter(a => (a.status || 'genehmigt') === 'genehmigt').forEach(a => ev.push([a.id, a.von, next(a.bis), a.typ === 'Berufsschule' ? 'Berufsschule' : a.typ + (a.notiz ? ': ' + a.notiz : '')]));
-  if (me.zp_datum) ev.push(['zp', me.zp_datum, next(me.zp_datum), 'Zwischenprüfung']);
-  if (me.ap_datum) ev.push(['ap', me.ap_datum, next(me.ap_datum), 'Abschlussprüfung']);
+  if (me.zp_datum) ev.push(['zp', me.zp_datum, next(me.zp_datum), EXN(me.beruf)[0]]);
+  if (me.ap_datum) ev.push(['ap', me.ap_datum, next(me.ap_datum), EXN(me.beruf)[1]]);
   (S.home?.uwMine || []).filter(x => x.st?.bis).forEach(x => { const d = localDate(x.st.bis); ev.push(['uw-' + x.w.id, d, next(d), 'Unterweisung fällig: ' + x.w.titel]); });
   if (!ev.length) return toast('Noch keine Termine zum Übernehmen.');
   const now = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
@@ -937,7 +972,8 @@ const Bericht = {
       q(sb.from('absences').select('*').eq('user_id', S.me.id).order('von', { ascending: false }).limit(30)),
       q(sb.from('talks').select('*').eq('user_id', S.me.id).order('datum', { ascending: false }))
     ]);
-    S.rep.beu = await q(sb.from('beurteilungen').select('*').eq('azubi_id', S.me.id).eq('sichtbar', true).order('bis', { ascending: false })).catch(() => []);
+    [S.rep.beu, S.rep.plan] = await Promise.all([q(sb.from('beurteilungen').select('*').eq('azubi_id', S.me.id).eq('sichtbar', true).order('bis', { ascending: false })).catch(() => []),
+      q(sb.from('plan_stationen').select('*').eq('azubi_id', S.me.id).order('von')).catch(() => [])]);
     S.rep.draftText = null;
     await loadSchool(S.me.id).catch(() => { S.school = null; });
   },
@@ -974,6 +1010,7 @@ const Bericht = {
       ${locked ? `<p class="text-[13px] text-muted mt-2">${r.status === 'eingereicht' ? 'Eingereicht und wartet auf Abzeichnung.' : 'Abgezeichnet und gesperrt.'}</p>${r.status === 'eingereicht' ? '<button id="repWithdraw" class="btn ghost w-full mt-2">Zurückziehen und bearbeiten</button>' : ''}` : `
       <div class="grid grid-cols-2 gap-2 mt-3"><button id="repSave" class="btn ghost">Entwurf speichern</button><button id="repSubmit" class="btn">Einreichen</button></div>
       ${r?.status === 'entwurf' ? '<button id="repDel" class="text-[13px] font-semibold text-muted mt-3">Entwurf löschen</button>' : ''}`}
+      ${r?.id ? repLogHTML(r.id) : ''}
     </div>
 
     ${locked ? '' : `
@@ -992,7 +1029,7 @@ const Bericht = {
     </div>`}
 
     ${secTitle('Ausbildungsplan', `<span class="text-[12px] text-muted">${me.lehrjahr}. Lehrjahr</span>`)}
-    <div class="card">${(PLAN_JAHRE[me.lehrjahr] || []).map(([a, z], i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex-1 min-w-0 text-[14px] font-semibold">${a}</div><div class="text-[12px] text-muted tnum">${z}</div></div>`).join('')}</div>
+    ${planHTML(S.rep.plan, me, false)}
 
     ${secTitle('Wochen je Abteilung')}
     <div class="grid grid-cols-2 gap-3">${perAbt.map(([a, n, mins]) => `<div class="card p-3.5"><div class="text-[14px] font-semibold">${a}</div><div class="text-[12px] text-muted tnum mb-2">${n} von ${ABT_SOLL[a] || 0} Wochen${mins ? ' · ' + Math.round(mins / 60) + ' Std' : ''}</div><div class="bar"><i style="width:${Math.min(100, pct(n, ABT_SOLL[a] || 0))}%"></i></div></div>`).join('')}</div>
@@ -1123,7 +1160,8 @@ const Review = {
       q(sb.from('absences').select('*').order('von', { ascending: false }).limit(300)),
       q(sb.from('talks').select('*').order('datum', { ascending: false }))
     ]);
-    S.rev.beu = can('gespraeche') ? await q(sb.from('beurteilungen').select('*').order('bis', { ascending: false })).catch(() => []) : [];
+    [S.rev.beu, S.rev.plan] = await Promise.all([can('gespraeche') ? q(sb.from('beurteilungen').select('*').order('bis', { ascending: false })).catch(() => []) : [],
+      q(sb.from('plan_stationen').select('*').order('von')).catch(() => [])]);
     if (!S.rev.selUser || !S.profiles[S.rev.selUser]) { const az = azubis(); S.rev.selUser = (az.find(a => a.betreuer_id === S.me.id) || az.find(a => inScope(a.abteilung)) || az[0])?.id || null; }
     if (S.rev.selUser && S.profiles[S.rev.selUser] && canSchool(S.profiles[S.rev.selUser])) await loadSchool(S.rev.selUser).catch(() => {});
   },
@@ -1146,6 +1184,7 @@ const Review = {
         ${open.feedback ? `<div class="mt-4 p-3 rounded-xl text-[14px]" style="background:var(--sunk)"><div class="eyebrow mb-1">Rückmeldung</div>${esc(open.feedback)}</div>` : ''}
         <p class="text-[13px] text-muted mt-4">Diese Woche lief überwiegend in „${esc(open.abteilung)}“. Abzeichnen dürfen hier: ${esc(reviewersFor(open.abteilung, open.user_id).map(p => p.full_name).join(', ') || 'die Leitung')}.</p>`}
         <button class="btn ghost w-full mt-3" data-chat="${open.user_id}">Nachricht an ${esc(firstName(nameOf(open.user_id)))}</button>
+        ${repLogHTML(open.id)}
       </div>
       ${isAdmin() ? '<button id="revDel" class="btn ghost w-full mt-4">Bericht löschen</button>' : ''}`;
     }
@@ -1167,6 +1206,10 @@ const Review = {
     ${userReps.length ? `<div class="card">${userReps.map((r, i) => `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-rev="${r.id}"><div class="font-display font-bold text-[17px] w-16 tnum">KW ${r.kw}</div><div class="flex-1 min-w-0 text-[14px] truncate">${esc(r.abteilung)}${r.tage?.length ? ` <span class="text-muted tnum">· ${fmtMin(weekMin(r.tage))}</span>` : ''}</div><span class="chip ${STATUS[r.status][0]}">${STATUS[r.status][1]}</span></button>`).join('')}</div>` : empty('Noch keine eingereichten Berichte.')}
     ${userReps.length ? `<button id="revPdf" class="btn ghost w-full mt-2">${svg('book', 'w-4 h-4')} Ausbildungsnachweis als PDF</button>` : ''}
     ${rpHTML(userReps, S.profiles[sel])}
+    ${secTitle('Ausbildungsplan', can('lernziele') ? '<button id="planNew" class="text-[13px] font-semibold text-accent">+ Station</button>' : '')}
+    ${planHTML((S.rev.plan || []).filter(x => x.azubi_id === sel), S.profiles[sel], can('lernziele'))}
+    ${secTitle('Prüfungstraining')}
+    <div data-examstats="${sel}"><div class="card p-4 text-[14px] text-muted">Wird geladen …</div></div>
     ${can('gespraeche') ? `${secTitle('Gespräche', '<button id="talkNew" class="text-[13px] font-semibold text-accent">+ Neu</button>')}
     ${talkList(S.rev.talks.filter(t => t.user_id === sel), true)}
     ${secTitle('Beurteilungen', '<button id="beuNew" class="text-[13px] font-semibold text-accent">+ Neu</button>')}
@@ -1179,6 +1222,7 @@ const Review = {
     $$('[data-rev]').forEach(b => b.onclick = () => { S.rev.open = b.dataset.rev; render(); scrollTo({ top: 0 }); });
     $$('[data-sel]').forEach(b => b.onclick = () => { S.rev.selUser = b.dataset.sel; go('bericht'); });
     if (S.rev.selUser && S.profiles[S.rev.selUser]) bindSchool(S.profiles[S.rev.selUser], () => go('bericht'));
+    if ($('[data-examstats]')) fillExamStats();
     if ($('#revBack')) $('#revBack').onclick = () => { S.rev.open = null; render(); };
     const decide = async status => {
       const fb = $('#revFb').value.trim();
@@ -1198,6 +1242,8 @@ const Review = {
     if ($('#talkNew')) $('#talkNew').onclick = () => openTalkSheet(null, sel, reload);
     $$('[data-talk]').forEach(b => b.onclick = () => openTalkSheet(S.rev.talks.find(t => t.id === b.dataset.talk), sel, reload));
     if ($('#beuNew')) $('#beuNew').onclick = () => openBeuSheet(null, sel, reload);
+    if ($('#planNew')) $('#planNew').onclick = () => openPlanSheet(null, sel, reload);
+    $$('[data-plan]').forEach(b => b.onclick = () => openPlanSheet(S.rev.plan.find(x => x.id === b.dataset.plan), sel, reload));
     $$('[data-beu]').forEach(b => b.onclick = () => openBeuSheet(S.rev.beu.find(x => x.id === b.dataset.beu), sel, reload));
     if ($('#absNew')) $('#absNew').onclick = () => openAbsenceSheet(null, sel, reload);
     if (can('abwesenheiten')) $$('[data-abs]').forEach(b => b.onclick = () => { const a = S.rev.abs.find(x => x.id === b.dataset.abs); openAbsenceSheet(a, a.user_id, reload); });
@@ -1275,13 +1321,15 @@ const Wiki = {
     ${quiz.length ? `<div class="flex flex-col gap-3">${quiz.map((x, i) => { const a = qr[x.id]; return `<div class="card p-4"><div class="eyebrow mb-1">Frage ${i + 1} von ${quiz.length}</div><div class="font-semibold text-[15px] mb-3">${esc(x.frage)}</div><div class="flex flex-col gap-2">${x.optionen.map((o, j) => { let c = ''; if (a) { if (j === a.richtig) c = 'right'; else if (j === a.wahl) c = 'wrong'; } return `<button class="quizopt ${c}" data-quiz="${x.id}-${j}" ${a ? 'disabled' : ''}>${esc(o)}</button>`; }).join('')}</div>${a ? `<p class="text-[13px] mt-3"><b style="color:var(--${a.wahl === a.richtig ? 'ok' : 'crit'})">${a.wahl === a.richtig ? 'Richtig.' : 'Leider falsch.'}</b> <span class="text-muted">${esc(a.erklaerung)}</span></p>` : ''}</div>`; }).join('')}</div>` : empty('Diese Woche gibt es noch kein Quiz.')}
     ${secTitle('Prüfungstraining')}
     <div class="card p-4 flex items-center gap-4"><span class="ico brass">${svg('spark')}</span><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">10 zufällige Fragen</div><div class="text-[13px] text-muted">Aus allen bisherigen Quizfragen und dem Trainingspool, sofort mit Auflösung.</div></div><button id="trainBtn" class="btn py-2 flex-none">Start</button></div>
-    <div class="card p-4 flex items-center gap-4 mt-3"><span class="ico">${svg('book')}</span><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">Prüfungssimulation</div><div class="text-[13px] text-muted">20 Fragen zu deinem Beruf, 20 Minuten, Auswertung in IHK-Punkten und nach Rahmenplan-Positionen.</div></div><button id="examBtn" class="btn ghost py-2 flex-none">Start</button></div>`;
+    <div class="card p-4 flex items-center gap-4 mt-3"><span class="ico">${svg('book')}</span><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">Prüfungssimulation</div><div class="text-[13px] text-muted">${ZWEIJ(S.me?.beruf) ? 'Zwischen- oder Abschlussprüfung' : 'Teil 1 oder Teil 2 der Abschlussprüfung'}: 20 Fragen, 20 Minuten, Auswertung in IHK-Punkten und nach Rahmenplan-Positionen.</div></div><button id="examBtn" class="btn ghost py-2 flex-none">Start</button></div>
+    <div data-examweak="${S.me?.id || ''}"></div>`;
   },
   bind() {
     const inp = $('#wikiQ');
     inp.oninput = () => { S.wiki.q = inp.value; $('#sopBox').innerHTML = sopList(); hydrateImgs($('#sopBox')); };
     $('#trainBtn').onclick = openTraining;
-    $('#examBtn').onclick = openExam;
+    $('#examBtn').onclick = openExamPicker;
+    fillExamStats();
     $$('[data-q]').forEach(b => b.onclick = () => { S.wiki.q = b.dataset.q; inp.value = S.wiki.q; $('#sopBox').innerHTML = sopList(); const d = $('#sopBox details'); if (d) d.open = true; });
     $$('[data-list]').forEach(b => b.onclick = () => { S.wiki.cl = +b.dataset.list; render(); });
     const cl = S.content.checklists.find(c => c.id === S.wiki.cl) || S.content.checklists[0];
@@ -1877,7 +1925,7 @@ function openUserSheet(id) {
         <p class="text-[12px] text-muted mt-1">Der Azubi sieht diese Person auf der Startseite und kann ihr direkt schreiben.</p></div>
       <div><label class="lbl" for="uBeruf">Ausbildung</label><input id="uBeruf" class="field" value="${esc(p.beruf)}" maxlength="60"></div>
       <div><label class="lbl" for="uStart">Erster Arbeitstag</label><input id="uStart" type="date" class="field" value="${p.start_datum}"></div>
-      <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="uZp">Zwischenprüfung</label><input id="uZp" type="date" class="field" value="${p.zp_datum || ''}"></div><div><label class="lbl" for="uAp">Abschlussprüfung</label><input id="uAp" type="date" class="field" value="${p.ap_datum || ''}"></div></div>
+      <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="uZp">${EXN(p.beruf)[0]}</label><input id="uZp" type="date" class="field" value="${p.zp_datum || ''}"></div><div><label class="lbl" for="uAp">${EXN(p.beruf)[1]}</label><input id="uAp" type="date" class="field" value="${p.ap_datum || ''}"></div></div>
       <label class="flex items-start gap-2 text-[14px]"><input type="checkbox" id="uU18" ${p.unter18 ? 'checked' : ''} style="accent-color:var(--accent);width:20px;height:20px;margin-top:1px"><span>Unter 18 Jahre <span class="block text-[12px] text-muted">Berichtsheft warnt dann ab 8 Std am Tag und 40 Std in der Woche (Jugendarbeitsschutz).</span></span></label>
       </div>
       <button class="btn">Speichern</button>
@@ -2082,7 +2130,7 @@ const scriptCache = {};
 /* Vollständiger Datenexport des Betriebs (Art. 20 DSGVO, Vertragsende laut AVV) */
 const EXPORT_TABLES = ['profiles', 'reports', 'absences', 'goal_progress', 'talks', 'beurteilungen', 'rp_vermittelt', 'unterweisungen', 'unterweisung_bestaetigungen', 'ankuendigungen', 'ankuendigung_gelesen',
   'chat_gruppen', 'chat_mitglieder', 'messages', 'shift_notes', 'open_items', 'checklists', 'checklist_checks', 'onboarding_tasks', 'onboarding_done', 'learning_goals', 'quiz_questions', 'quiz_answers',
-  'sops', 'contacts', 'bot_faq', 'rahmenplan', 'schul_freigaben', 'schul_eintraege', 'karriere', 'bewerbungen', 'app_config', 'zahlungen'];
+  'sops', 'contacts', 'bot_faq', 'rahmenplan', 'schul_freigaben', 'schul_eintraege', 'karriere', 'bewerbungen', 'app_config', 'zahlungen', 'report_log', 'exam_results', 'plan_stationen'];
 const csvOf = rows => {
   if (!rows.length) return '';
   const cols = [...new Set(rows.flatMap(r => Object.keys(r)))];
@@ -2138,7 +2186,22 @@ async function exportAll(btn) {
 function loadScript(src) {
   return scriptCache[src] ||= new Promise((res, rej) => { const t = document.createElement('script'); t.src = src; t.onload = res; t.onerror = () => { delete scriptCache[src]; rej(new Error('Keine Verbindung zum Laden des PDF-Moduls.')); }; document.head.appendChild(t); });
 }
-const pdfSafe = t => String(t ?? '').replace(/[„“”]/g, '"').replace(/[‚‘’]/g, "'").replace(/[–—]/g, '-').replace(/…/g, '...').replace(/·/g, '-').replace(/[^\x00-\xFF€]/g, c => c.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x00-\xFF]/g, '')).replace(/ı/g, 'i');
+/* PDF-Schrift: Noto Sans mit erweitertem Latein, Griechisch und Kyrillisch (ć, ş, ğ, ł, Ж …). Ohne Netz: Helvetica mit Ersatzzeichen. */
+let PDF_UNI = false, PDF_FONTDATA = null;
+const PDF_NOGLYPH = /[^\u0000-ɏəʻ-˜̀́Ͱ-ӿḀ-ỿ‐-‧‰‹›€™←-↓−✓]/g;
+async function pdfFont(doc) {
+  try {
+    PDF_FONTDATA ||= Promise.all(['400Regular', '700Bold'].map(w => fetch(`./vendor/notosans-${w}.ttf`).then(r => { if (!r.ok) throw new Error('font'); return r.arrayBuffer(); })
+      .then(buf => { let bin = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(bin); })));
+    const [reg, bold] = await PDF_FONTDATA;
+    doc.addFileToVFS('NotoSans-Regular.ttf', reg); doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+    doc.addFileToVFS('NotoSans-Bold.ttf', bold); doc.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
+    PDF_UNI = true; return 'NotoSans';
+  } catch { PDF_FONTDATA = null; PDF_UNI = false; return 'helvetica'; }
+}
+const pdfSafe = t => PDF_UNI
+  ? String(t ?? '').normalize('NFC').replace(PDF_NOGLYPH, c => c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(PDF_NOGLYPH, ''))
+  : String(t ?? '').replace(/[„“”]/g, '"').replace(/[‚‘’]/g, "'").replace(/[–—]/g, '-').replace(/…/g, '...').replace(/·/g, '-').replace(/[^\x00-\xFF€]/g, c => c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\x00-\xFF]/g, '')).replace(/ı/g, 'i');
 async function printNachweis(userId, opts = {}) {
   const p = S.profiles[userId]; if (!p) return;
   const w = window.open('', '_blank'); if (!w) return toast('Bitte Pop-ups für diese Seite erlauben.');
@@ -2185,76 +2248,91 @@ async function exportPDF(userId, btn, opts = {}) {
     if (opts.jahr) reps = reps.filter(r => mon(r) >= opts.jahr.von && mon(r) <= opts.jahr.bis);
     if (opts.signed) reps = reps.filter(r => r.status === 'abgezeichnet');
     if (!reps.length) { toast('Für diesen Zeitraum gibt es keine Berichte.'); return; }
+    const LOGS = {};
+    try {
+      const ids = reps.map(r => r.id);
+      for (let i = 0; i < ids.length; i += 80) (await q(sb.from('report_log').select('report_id,aktion,user_id,at').in('report_id', ids.slice(i, i + 80)).order('at'))).forEach(l => (LOGS[l.report_id] ||= []).push(l));
+    } catch {}
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const FONT = await pdfFont(doc);
     const W = 210, M = 18, CW = W - 2 * M;
     const betreuer = betreuerOf(p);
     if (opts.cover) {
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.text('Ausbildungsnachweis', M, 40);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(90);
+      doc.setFont(FONT, 'bold'); doc.setFontSize(22); doc.text('Ausbildungsnachweis', M, 40);
+      doc.setFont(FONT, 'normal'); doc.setFontSize(11); doc.setTextColor(90);
       doc.text(pdfSafe('Elektronisch geführt nach dem Berufsbildungsgesetz (BBiG)'), M, 48); doc.setTextColor(0);
       const signed = reps.filter(r => r.status === 'abgezeichnet').length, minutes = reps.reduce((s, r) => s + weekMin(r.tage), 0);
       const rows = [['Name', p.full_name], ['Ausbildungsberuf', p.beruf], ['Ausbildungsbetrieb', S.hotel], ['Ausbildungsbeginn', fmtDate(p.start_datum)],
         ['Zeitraum', opts.jahr ? `${opts.jahr.n}. Ausbildungsjahr (${fmtDate(opts.jahr.von)} - ${fmtDate(opts.jahr.bis)})` : `${fmtDate(mon(reps[0]))} - ${fmtDate(localDate(weekDates(reps[reps.length - 1])[6]))}`],
         ['Ausbildende/r', betreuer ? `${betreuer.full_name}${betreuer.position ? ', ' + betreuer.position : ''}` : '-'],
         ['Wochenberichte', `${reps.length} (davon ${signed} abgezeichnet)`], ['Dokumentierte Zeit', `${Math.round(minutes / 60)} Stunden`]];
-      if (p.zp_datum) rows.push(['Zwischenprüfung', fmtDate(p.zp_datum)]);
-      if (p.ap_datum) rows.push(['Abschlussprüfung', fmtDate(p.ap_datum)]);
+      if (p.zp_datum) rows.push([EXN(p.beruf)[0], fmtDate(p.zp_datum)]);
+      if (p.ap_datum) rows.push([EXN(p.beruf)[1], fmtDate(p.ap_datum)]);
       let y = 66; doc.setFontSize(11);
-      rows.forEach(([k, v]) => { doc.setFont('helvetica', 'bold'); doc.text(k, M, y); doc.setFont('helvetica', 'normal'); doc.splitTextToSize(pdfSafe(v), CW - 55).forEach((l, i) => doc.text(l, M + 55, y + i * 5.5)); y += 9; });
+      rows.forEach(([k, v]) => { doc.setFont(FONT, 'bold'); doc.text(k, M, y); doc.setFont(FONT, 'normal'); doc.splitTextToSize(pdfSafe(v), CW - 55).forEach((l, i) => doc.text(l, M + 55, y + i * 5.5)); y += 9; });
       y += 6; doc.setFontSize(9); doc.setTextColor(90);
-      doc.splitTextToSize(pdfSafe(`Die Wochenberichte wurden von der/dem Auszubildenden in ${BR.appName} erfasst und von der Ausbildungsleitung elektronisch geprüft und abgezeichnet. Datum und Name der Abzeichnung stehen auf jeder Seite.`), CW).forEach(l => { doc.text(l, M, y); y += 4.5; });
+      doc.splitTextToSize(pdfSafe(`Erklärung: Die Ausbildungsnachweise wurden von der/dem Auszubildenden selbst in ${BR.appName} erstellt und von der/dem Ausbildenden geprüft und elektronisch abgezeichnet. Name und Datum der Abzeichnung stehen auf jeder Seite, abgezeichnete Nachweise können nicht mehr geändert werden. Mit ihrer Unterschrift bestätigen beide die Richtigkeit und Vollständigkeit der Nachweise.`), CW).forEach(l => { doc.text(l, M, y); y += 4.5; });
       doc.setTextColor(0); doc.setDrawColor(120);
       doc.line(M, 262, M + 70, 262); doc.line(W - M - 70, 262, W - M, 262);
       doc.setFontSize(8); doc.text('Datum, Unterschrift Auszubildende/r', M, 266); doc.text('Datum, Unterschrift Ausbildende/r', W - M - 70, 266);
       doc.addPage();
     }
+    const nrOf = r => all.slice().sort((x, y) => x.jahr - y.jahr || x.kw - y.kw).findIndex(x => x.id === r.id) + 1;
     reps.forEach((r, i) => {
       if (i) doc.addPage();
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('Ausbildungsnachweis', M, 22);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(110);
+      doc.setFont(FONT, 'bold'); doc.setFontSize(16); doc.text('Ausbildungsnachweis', M, 22);
+      doc.setFont(FONT, 'normal'); doc.setFontSize(9); doc.setTextColor(110);
       doc.text(pdfSafe(`${BR.appName} - ${S.hotel}`), W - M, 22, { align: 'right' });
       doc.setTextColor(0); doc.setDrawColor(200); doc.line(M, 26, W - M, 26);
       const rows = [['Name', p.full_name], ['Ausbildungsberuf', p.beruf], ['Ausbildungsbetrieb', S.hotel], ['Ausbildungsjahr', `${p.lehrjahr}.`],
-        ['Woche', `KW ${r.kw} / ${r.jahr} (${weekRange(r)}${r.jahr})`], ['Schwerpunkt', r.abteilung]];
+        ['Nachweis Nr.', String(nrOf(r))], ['Woche', `KW ${r.kw} / ${r.jahr} (${weekRange(r)}${r.jahr})`], ['Schwerpunkt', r.abteilung]];
       let y = 34;
       doc.setFontSize(10);
-      rows.forEach(([k, v]) => { doc.setFont('helvetica', 'bold'); doc.text(k, M, y); doc.setFont('helvetica', 'normal'); doc.text(pdfSafe(v), M + 45, y); y += 6; });
+      rows.forEach(([k, v]) => { doc.setFont(FONT, 'bold'); doc.text(k, M, y); doc.setFont(FONT, 'normal'); doc.text(pdfSafe(v), M + 45, y); y += 6; });
       const maxY = 240;
       if (r.tage?.length) {
         const dts = weekDates(r);
-        y += 4; doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text('Tätigkeiten der Woche', M, y); y += 7; doc.setFontSize(10);
+        y += 4; doc.setFont(FONT, 'bold'); doc.setFontSize(11); doc.text('Tätigkeiten der Woche', M, y); y += 7; doc.setFontSize(10);
         r.tage.forEach((d, di) => {
           if (y > maxY) { doc.addPage(); y = 22; }
           doc.setFillColor(236, 241, 241); doc.rect(M, y - 4.2, CW, 6, 'F');
-          doc.setFont('helvetica', 'bold'); doc.text(pdfSafe(`${DAYS[di]}, ${ddmm(dts[di])}`), M + 1.5, y);
-          doc.setFont('helvetica', 'normal'); doc.text(pdfSafe(OFF.includes(d.bereich) ? d.bereich : `${d.bereich}   ${fmtMin(dayMin(d))}`), W - M - 1.5, y, { align: 'right' }); y += 6;
+          doc.setFont(FONT, 'bold'); doc.text(pdfSafe(`${DAYS[di]}, ${ddmm(dts[di])}`), M + 1.5, y);
+          doc.setFont(FONT, 'normal'); doc.text(pdfSafe(OFF.includes(d.bereich) ? d.bereich : `${d.bereich}   ${fmtMin(dayMin(d))}`), W - M - 1.5, y, { align: 'right' }); y += 6;
           (d.eintraege || []).forEach(e => {
             doc.splitTextToSize(pdfSafe(e.text || '-'), CW - 32).forEach((l, li) => { if (y > maxY) { doc.addPage(); y = 22; } doc.text(l, M + 4, y); if (!li) doc.text(pdfSafe(fmtMin(+e.min || 0)), W - M - 1.5, y, { align: 'right' }); y += 5; });
           });
           y += 1.5;
         });
         doc.setDrawColor(160); doc.line(M, y - 2, W - M, y - 2);
-        doc.setFont('helvetica', 'bold'); doc.text('Summe der Woche', M + 1.5, y + 2.5); doc.text(pdfSafe(fmtMin(weekMin(r.tage))), W - M - 1.5, y + 2.5, { align: 'right' }); y += 10;
+        doc.setFont(FONT, 'bold'); doc.text('Summe der Woche', M + 1.5, y + 2.5); doc.text(pdfSafe(fmtMin(weekMin(r.tage))), W - M - 1.5, y + 2.5, { align: 'right' }); y += 10;
       }
       if (r.inhalt || !r.tage?.length) {
         if (y > maxY) { doc.addPage(); y = 22; }
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text(r.tage?.length ? 'Zusammenfassung und Gelerntes' : 'Ausgeführte Tätigkeiten und Lerninhalte', M, y); y += 6;
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+        doc.setFont(FONT, 'bold'); doc.setFontSize(11); doc.text(r.tage?.length ? 'Zusammenfassung und Gelerntes' : 'Ausgeführte Tätigkeiten und Lerninhalte', M, y); y += 6;
+        doc.setFont(FONT, 'normal'); doc.setFontSize(10);
         doc.splitTextToSize(pdfSafe(r.inhalt || '-'), CW).forEach(l => { if (y > maxY) { doc.addPage(); y = 22; } doc.text(l, M, y); y += 5; });
       }
       if (r.feedback) {
         y += 4; if (y > maxY) { doc.addPage(); y = 22; }
-        doc.setFont('helvetica', 'bold'); doc.text('Rückmeldung der Ausbildungsleitung', M, y); y += 5; doc.setFont('helvetica', 'normal');
+        doc.setFont(FONT, 'bold'); doc.text('Rückmeldung der Ausbildungsleitung', M, y); y += 5; doc.setFont(FONT, 'normal');
         doc.splitTextToSize(pdfSafe(r.feedback), CW).forEach(l => { if (y > maxY) { doc.addPage(); y = 22; } doc.text(l, M, y); y += 5; });
       }
       const fy = 252;
       doc.setDrawColor(200); doc.line(M, fy, W - M, fy);
       doc.setFontSize(9); doc.setTextColor(80);
       const st = r.status === 'abgezeichnet'
-        ? `Eingereicht von ${p.full_name}. Elektronisch abgezeichnet am ${new Date(r.signed_at).toLocaleDateString('de-DE')} von ${nameOf(r.signed_by)} in ${BR.appName}.`
+        ? `Eingereicht von ${p.full_name}. Elektronisch abgezeichnet am ${new Date(r.signed_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })} von ${nameOf(r.signed_by)} in ${BR.appName}.`
         : r.status === 'zurueck' ? 'Zur Überarbeitung zurückgegeben.' : 'Eingereicht, noch nicht abgezeichnet.';
-      doc.text(doc.splitTextToSize(pdfSafe(st), CW), M, fy + 6);
+      const stL = doc.splitTextToSize(pdfSafe(st), CW);
+      doc.text(stL, M, fy + 6);
+      let signedSeen = false;
+      const vl = (LOGS[r.id] || []).filter(l => { if (l.aktion === 'abgezeichnet') signedSeen = true; return ['eingereicht', 'zurueckgegeben', 'abgezeichnet', 'wieder_geoeffnet'].includes(l.aktion) || (l.aktion === 'geaendert' && signedSeen); }).slice(-6);
+      if (vl.length) {
+        const dshort = ts => new Date(ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const vt = 'Verlauf (automatisch protokolliert): ' + vl.map(l => `${l.aktion === 'geaendert' ? 'nach Abzeichnung geändert' : LOG_TXT[l.aktion]} ${dshort(l.at)} (${logWho(l.user_id)})`).join(' · ');
+        doc.setFontSize(8); doc.text(doc.splitTextToSize(pdfSafe(vt), CW).slice(0, 3), M, fy + 6 + stL.length * 4 + 1); doc.setFontSize(9);
+      }
       doc.setTextColor(0); doc.setDrawColor(120);
       doc.line(M, 280, M + 70, 280); doc.line(W - M - 70, 280, W - M, 280);
       doc.setFontSize(8); doc.text('Datum, Unterschrift Auszubildende/r', M, 284); doc.text('Datum, Unterschrift Ausbildende/r', W - M - 70, 284);
@@ -2264,17 +2342,17 @@ async function exportPDF(userId, btn, opts = {}) {
       const { pos, cov } = rpCoverage(reps, p, vm || []);
       if (pos.length) {
         doc.addPage();
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('Abgleich mit dem Ausbildungsrahmenplan', M, 22);
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(100);
+        doc.setFont(FONT, 'bold'); doc.setFontSize(16); doc.text('Abgleich mit dem Ausbildungsrahmenplan', M, 22);
+        doc.setFont(FONT, 'normal'); doc.setFontSize(9); doc.setTextColor(100);
         doc.text(pdfSafe('Aus den Tätigkeiten der Wochenberichte (zugeordnete Position oder Stichwortabgleich) und den Vermerken der Ausbilder/innen.'), M, 28); doc.setTextColor(0);
         let y = 38; doc.setFontSize(10);
         pos.forEach(x => {
           if (y > 275) { doc.addPage(); y = 22; }
           const c = cov[x.id];
-          doc.setFont('helvetica', 'normal');
+          doc.setFont(FONT, 'normal');
           const lines = doc.splitTextToSize(pdfSafe(`${x.nr} ${x.titel}`), CW - 62);
           lines.forEach((l, li) => doc.text(l, M, y + li * 5));
-          doc.setFont('helvetica', 'bold'); doc.text(pdfSafe(c.verm ? `vermittelt ${fmtDate(c.verm.datum)}` + (c.min ? ` · ${Math.round(c.min / 6) / 10} Std` : '') : c.hits ? (c.min ? `${Math.round(c.min / 6) / 10} Std` : 'erwähnt') : 'offen'), W - M, y, { align: 'right' });
+          doc.setFont(FONT, 'bold'); doc.text(pdfSafe(c.verm ? `vermittelt ${fmtDate(c.verm.datum)}` + (c.min ? ` · ${Math.round(c.min / 6) / 10} Std` : '') : c.hits ? (c.min ? `${Math.round(c.min / 6) / 10} Std` : 'erwähnt') : 'offen'), W - M, y, { align: 'right' });
           y += lines.length * 5 + 2; doc.setDrawColor(230); doc.line(M, y - 3, W - M, y - 3);
         });
       }
@@ -2284,7 +2362,7 @@ async function exportPDF(userId, btn, opts = {}) {
     doc.save(`Ausbildungsnachweis_${pdfSafe(p.full_name).replace(/\s+/g, '_')}${opts.jahr ? '_' + opts.jahr.n + '_Jahr' : ''}.pdf`);
     closeSheet(); toast('PDF erstellt');
   } catch (e) { if (!e.code) toast(errText(e)); }
-  finally { PDF_DE = false; if (btn && btn.isConnected) { btn.disabled = false; btn.innerHTML = btn.dataset.t; } }
+  finally { PDF_DE = false; PDF_UNI = false; if (btn && btn.isConnected) { btn.disabled = false; btn.innerHTML = btn.dataset.t; } }
 }
 
 /* =====================================================================
@@ -2326,7 +2404,7 @@ function openNewPassword() {
 }
 function openPrivacy() {
   const html = esc(BR.datenschutz).split(/\n\s*\n/).map(b => b.startsWith('## ') ? `<h3 class="text-[16px] font-bold mt-4 mb-1">${b.slice(3).split('\n')[0]}</h3>${b.split('\n').slice(1).map(l => `<p class="text-[14px]">${l}</p>`).join('')}` : `<p class="text-[14px] mt-2">${b.replace(/\n/g, '<br>')}</p>`).join('');
-  sheetShell('Datenschutz', `<div class="card p-4">${html}</div>`);
+  sheetShell('Datenschutz', `<div class="card p-4">${html}</div><a class="btn ghost w-full mt-3" href="./start/sicherheit.html" target="_blank" rel="noopener">Datenschutz &amp; Sicherheit auf einen Blick</a>`);
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-goto-groups]')) { S.msg.open = null; S.msg.group = null; go('chat'); setTimeout(() => openGroupSheet(null), 50); return; } if (e.target.closest('[data-privacy]')) openPrivacy(); if (e.target.closest('[data-impressum]')) openImpressum(); if (e.target.closest('[data-a11y]')) openA11y(); });
 /* Erklärung zur Barrierefreiheit */
@@ -2487,10 +2565,54 @@ function bindPushSection() {
 /* ---------- Prüfungssimulation ---------- */
 const IHK_NOTE = p => p >= 92 ? ['sehr gut', 1] : p >= 81 ? ['gut', 2] : p >= 67 ? ['befriedigend', 3] : p >= 50 ? ['ausreichend', 4] : p >= 30 ? ['mangelhaft', 5] : ['ungenügend', 6];
 let examTimer = null;
-async function openExam() {
-  const qs = await q(sb.rpc('exam_questions', { p_limit: 20 })).catch(() => []);
-  if (!qs?.length) return toast('Für deinen Beruf gibt es noch keine Prüfungsfragen.');
-  const E = { qs, i: 0, ans: {}, end: Date.now() + Math.max(5, qs.length) * 60000, done: false, review: false };
+/* Prüfungsteile: dreijährige Gastro-Berufe haben seit 2022 eine gestreckte Abschlussprüfung (Teil 1 Ende 2. Jahr, Teil 2 Ende 3. Jahr),
+   die zweijährigen (Fachkraft Küche, Fachkraft für Gastronomie) Zwischen- und Abschlussprüfung. */
+const ZWEIJ = b => /^Fachkraft (Küche|für Gastronomie)/.test(b || '');
+/* Bezeichnung der beiden Prüfungstermine (Feld zp_datum / ap_datum) je nach Beruf */
+const EXN = b => ZWEIJ(b) ? ['Zwischenprüfung', 'Abschlussprüfung'] : ['Abschlussprüfung Teil 1', 'Abschlussprüfung Teil 2'];
+const EXAM_LABEL = { teil1: 'Abschlussprüfung Teil 1', teil2: 'Abschlussprüfung Teil 2', zp: 'Zwischenprüfung', ap: 'Abschlussprüfung', schwaechen: 'Schwächen üben' };
+const examModes = p => ZWEIJ(p?.beruf)
+  ? [['zp', 'Inhalte des 1. Ausbildungsjahres', 1], ['ap', 'Alle Inhalte der Ausbildung', null]]
+  : [['teil1', 'Inhalte der ersten beiden Ausbildungsjahre', 2], ['teil2', 'Alle Inhalte, auch das 3. Ausbildungsjahr', null]];
+function examWeak(results) {
+  const by = {};
+  (results || []).forEach(r => Object.entries(r.by_rp || {}).forEach(([nr, v]) => { if (!nr || nr === '–' || !Array.isArray(v)) return; by[nr] ||= [0, 0]; by[nr][0] += +v[0] || 0; by[nr][1] += +v[1] || 0; }));
+  return Object.entries(by).filter(([, [, t]]) => t >= 2).map(([nr, [a, t]]) => ({ nr, a, t, q: a / t })).sort((x, y) => x.q - y.q || y.t - x.t);
+}
+const examResults = uid => q(sb.from('exam_results').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(10)).catch(() => []);
+const rpTitleOf = nr => { const r = (S.content.rp || []).find(x => x.nr === nr); return r ? rpShort(r.titel) : ''; };
+function examStatsHTML(res, own) {
+  if (!res.length) return own ? '' : `<div class="card p-4 text-[14px] text-muted">Noch keine Prüfungssimulation gemacht.</div>`;
+  const weak = examWeak(res).filter(w => w.q < .6).slice(0, 4);
+  return `<div class="card p-4 ${own ? 'mt-3' : ''}">
+    <div class="flex items-baseline justify-between gap-3"><div class="font-semibold text-[15px]">${own ? 'Deine Auswertung' : 'Letzte Ergebnisse'}</div><span class="text-[12px] text-muted">aus ${res.length} Simulation${res.length === 1 ? '' : 'en'}</span></div>
+    <div class="flex flex-wrap gap-2 mt-2">${res.slice(0, 4).map(r => `<span class="chip ${r.punkte >= 50 ? 'ok' : 'crit'} tnum">${esc(EXAM_LABEL[r.teil] || r.teil)} · ${r.punkte} P. · ${fmtDate(r.created_at)}</span>`).join('')}</div>
+    ${weak.length ? `<div class="eyebrow mt-4 mb-1">Hier lohnt sich Wiederholen</div><div class="flex flex-col gap-2">${weak.map(w => `<div><div class="flex justify-between gap-3 text-[13px]"><span class="min-w-0"><b>${esc(w.nr)}</b> ${esc(rpTitleOf(w.nr))}</span><span class="tnum flex-none">${w.a}/${w.t} richtig</span></div><div class="bar brass mt-1"><i style="width:${pct(w.a, w.t)}%"></i></div></div>`).join('')}</div>
+      ${own ? `<button class="btn w-full mt-3" id="exWeak" data-nrs="${esc(weak.map(w => w.nr).join(','))}">Schwächen üben (10 Fragen)</button>` : ''}` : `<p class="text-[13px] text-muted mt-3">Keine Rahmenplan-Position unter 60 % richtig. Weiter so.</p>`}
+  </div>`;
+}
+async function fillExamStats() {
+  for (const el of $$('[data-examweak],[data-examstats]')) {
+    const uid = el.dataset.examweak || el.dataset.examstats, own = 'examweak' in el.dataset;
+    if (!uid) continue;
+    el.innerHTML = examStatsHTML(await examResults(uid), own);
+    const b = el.querySelector('#exWeak'); if (b) b.onclick = () => openExam('schwaechen', null, b.dataset.nrs.split(','));
+  }
+}
+function openExamPicker() {
+  const modes = examModes(S.me);
+  sheetShell('Prüfungssimulation', `<p class="text-[14px] text-muted -mt-1 mb-3">${ZWEIJ(S.me?.beruf) ? 'Dein Beruf hat eine Zwischenprüfung und eine Abschlussprüfung.' : 'Seit 2022 ist die Abschlussprüfung in zwei Teile gestreckt: Teil 1 am Ende des 2., Teil 2 am Ende des 3. Ausbildungsjahres.'}</p>
+    <div class="card">${modes.map(([k, d], i) => `<button class="w-full flex items-center gap-3 p-4 text-left ${i ? 'border-t border-line' : ''}" data-exmode="${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${EXAM_LABEL[k]}</div><div class="text-[13px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted flex-none')}</button>`).join('')}</div>
+    <p class="text-[12px] text-muted mt-3">Übungsfragen aus deinem Betrieb, keine echten IHK-Prüfungsaufgaben. Bestanden ab 50 Punkten, wie bei der IHK.</p>`);
+  $$('[data-exmode]').forEach(b => b.onclick = () => { const m = modes.find(x => x[0] === b.dataset.exmode); openExam(m[0], m[2]); });
+}
+async function openExam(mode = 'teil2', maxLj = null, nrs = null) {
+  const n = mode === 'schwaechen' ? 10 : 20;
+  let qs = await q(sb.rpc('exam_questions2', { p_limit: n, p_max_lj: maxLj, p_nrs: nrs })).catch(() => null);
+  if (!qs) qs = await q(sb.rpc('exam_questions', { p_limit: n })).catch(() => []);
+  if (!qs?.length) return toast(mode === 'schwaechen' ? 'Zu diesen Positionen gibt es noch keine weiteren Fragen.' : 'Für deinen Beruf gibt es noch keine Prüfungsfragen.');
+  qs = qs.slice().sort(() => Math.random() - .5);
+  const E = { qs, mode, i: 0, ans: {}, end: Date.now() + Math.max(5, qs.length) * 60000, done: false, review: false, saved: false };
   const left = () => Math.max(0, E.end - Date.now());
   const mmss = ms => `${String(Math.floor(ms / 60000)).padStart(2, '0')}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}`;
   const stop = () => { clearInterval(examTimer); examTimer = null; };
@@ -2501,8 +2623,8 @@ async function openExam() {
       const right = E.qs.filter(x => E.ans[x.id] === x.richtig).length, pts = Math.round(right / E.qs.length * 100), [note, n] = IHK_NOTE(pts);
       const by = {}; E.qs.forEach(x => { const k = x.rp_nr || '–'; by[k] = by[k] || [0, 0]; by[k][1]++; if (E.ans[x.id] === x.richtig) by[k][0]++; });
       const rows = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
-      try { const h = JSON.parse(localStorage.getItem('azubihub.examHist') || '[]'); h.unshift({ d: localDate(), pts }); localStorage.setItem('azubihub.examHist', JSON.stringify(h.slice(0, 10))); } catch {}
-      sheetShell('Prüfungssimulation', `<div class="card p-5 flex flex-col items-center gap-2 text-center">${ring(pts, 96, 10)}
+      if (!E.saved) { E.saved = true; sb.from('exam_results').insert({ teil: E.mode, punkte: pts, fragen: E.qs.length, richtig: right, by_rp: by }).then(() => { if (S.view === 'wiki') fillExamStats(); }, () => {}); }
+      sheetShell(EXAM_LABEL[E.mode] || 'Prüfungssimulation', `<div class="card p-5 flex flex-col items-center gap-2 text-center">${ring(pts, 96, 10)}
         <div class="font-display font-bold text-[22px] tnum">${pts} von 100 Punkten</div>
         <div><span class="chip ${pts >= 50 ? 'ok' : 'crit'}">${pts >= 50 ? 'bestanden' : 'nicht bestanden'}</span> <span class="chip">Note ${n} · ${note}</span></div>
         <p class="text-[13px] text-muted">${right} von ${E.qs.length} Fragen richtig. Bestanden ab 50 Punkten, wie bei der IHK.</p></div>
@@ -2510,7 +2632,7 @@ async function openExam() {
         <div class="card">${rows.map(([nr, [r, t]], i) => `<div class="p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex justify-between gap-3 text-[13px]"><span class="min-w-0"><b>${esc(nr)}</b> ${esc(rpTitle(nr))}</span><span class="tnum flex-none">${r}/${t}</span></div><div class="bar mt-1.5 ${r / t < .5 ? 'brass' : ''}"><i style="width:${pct(r, t)}%"></i></div></div>`).join('')}</div>
         <p class="text-[12px] text-muted mt-2">Oben stehen deine schwächsten Positionen. Die lohnt es sich zu wiederholen, z. B. im Wiki oder mit deiner Ausbildungsleitung.</p>
         <div class="grid grid-cols-2 gap-2 mt-4"><button id="exReview" class="btn ghost">Antworten ansehen</button><button id="exAgain" class="btn">Neue Prüfung</button></div>`);
-      $('#exReview').onclick = () => { E.review = true; draw(); }; $('#exAgain').onclick = openExam; return;
+      $('#exReview').onclick = () => { E.review = true; draw(); }; $('#exAgain').onclick = () => E.mode === 'schwaechen' ? openExam('schwaechen', null, nrs) : openExamPicker(); return;
     }
     if (E.review) {
       sheetShell('Prüfungssimulation', `<div class="flex flex-col gap-3">${E.qs.map((x, i) => { const a = E.ans[x.id]; return `<div class="card p-4"><div class="eyebrow mb-1">Frage ${i + 1}${x.rp_nr ? ' · ' + esc(x.rp_nr) : ''}</div><div class="font-semibold text-[15px] mb-3">${esc(x.frage)}</div><div class="flex flex-col gap-2">${x.optionen.map((o, j) => `<div class="quizopt ${j === x.richtig ? 'right' : j === a ? 'wrong' : ''}">${esc(o)}</div>`).join('')}</div>${a == null ? '<p class="text-[13px] mt-2" style="color:var(--crit)">Nicht beantwortet.</p>' : ''}${x.erklaerung ? `<p class="text-[13px] text-muted mt-3">${esc(x.erklaerung)}</p>` : ''}</div>`; }).join('')}
@@ -2627,6 +2749,60 @@ function beuList(rows, editable) {
       ${b.ziele ? `<div class="mt-2 p-3 rounded-xl text-[14px]" style="background:var(--sunk)"><div class="eyebrow mb-1">Entwicklungsziele</div><div class="whitespace-pre-line">${esc(b.ziele)}</div></div>` : ''}
       <div class="flex items-center justify-between gap-3 mt-3"><span class="text-[12px] text-muted">${esc(nameOf(b.author_id))}</span>${b.gelesen_at ? `<span class="chip ok">gelesen ${fmtD(b.gelesen_at.slice(0, 10))}</span>` : `<button class="btn py-2 text-[13px]" data-beuread="${b.id}">Gelesen</button>`}</div></div>`;
   }).join('')}</div>`;
+}
+/* ---------- Persönlicher Ausbildungsplan: welche Abteilung wann, abgeglichen mit Rahmenplan und Soll-Wochen ---------- */
+const planWeeks = s => Math.max(1, Math.round((new Date(s.bis) - new Date(s.von)) / (7 * 864e5)));
+const fmtMon = d => new Date(d + 'T12:00:00').toLocaleDateString(LOCALE(), { month: 'short', year: 'numeric' });
+function planHTML(stations, prof, editable) {
+  const rows = (stations || []).slice().sort((a, b) => a.von.localeCompare(b.von)), today = localDate();
+  if (!rows.length) return editable
+    ? empty('Noch kein persönlicher Plan. Lege fest, wann ' + esc(firstName(prof?.full_name || '')) + ' in welcher Abteilung ist. Die App gleicht das mit dem Rahmenplan ab.')
+    : (PLAN_JAHRE[prof?.lehrjahr] || []).length ? `<div class="card">${(PLAN_JAHRE[prof.lehrjahr] || []).map(([a, z], i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex-1 min-w-0 text-[14px] font-semibold">${esc(a)}</div><div class="text-[12px] text-muted tnum">${esc(z)}</div></div>`).join('')}</div><p class="text-[12px] text-muted mt-2">Allgemeiner Plan für das ${prof.lehrjahr}. Lehrjahr. Deinen persönlichen Plan legt die Ausbildungsleitung an.</p>` : empty('Noch kein Ausbildungsplan.');
+  const rp = rpPositions(prof).filter(r => (r.abteilungen || []).length);
+  const planned = new Set(rows.map(s => s.abteilung));
+  const open = rp.filter(r => !r.abteilungen.some(a => planned.has(a)));
+  const weeksBy = {}; rows.forEach(s => weeksBy[s.abteilung] = (weeksBy[s.abteilung] || 0) + planWeeks(s));
+  const short = Object.entries(ABT_SOLL).filter(([a, soll]) => soll && (weeksBy[a] || 0) < soll);
+  const overlap = rows.some((s, i) => i && s.von <= rows[i - 1].bis);
+  const now = rows.find(s => s.von <= today && s.bis >= today), next = rows.find(s => s.von > today);
+  return `${!editable && (now || next) ? `<div class="grid grid-cols-2 gap-3 mb-3">${[['Jetzt', now], ['Als Nächstes', next]].map(([l, s]) => `<div class="card p-3.5"><div class="eyebrow">${l}</div><div class="text-[15px] font-semibold mt-0.5">${s ? esc(s.abteilung) : '–'}</div><div class="text-[12px] text-muted tnum">${s ? `${l === 'Jetzt' ? 'bis' : 'ab'} <span>${fmtD(l === 'Jetzt' ? s.bis : s.von)}</span>` : ''}</div></div>`).join('')}</div>` : ''}
+  <ol class="card" aria-label="Stationen">${rows.map((s, i) => {
+    const st = s.bis < today ? 'done' : s.von <= today ? 'now' : 'next', pos = rp.filter(r => r.abteilungen.includes(s.abteilung)).length;
+    const inner = `<span class="w-2.5 h-2.5 rounded-full flex-none mt-1.5" style="background:${st === 'now' ? 'var(--accent)' : st === 'done' ? 'var(--muted)' : 'var(--line)'}" aria-hidden="true"></span>
+      <div class="flex-1 min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="text-[14px] font-semibold">${esc(s.abteilung)}</span>${st === 'now' ? '<span class="chip accent">jetzt</span>' : st === 'done' ? '<span class="chip">abgeschlossen</span>' : ''}</div>
+      <div class="text-[12px] text-muted tnum">${fmtMon(s.von)} – ${fmtMon(s.bis)} · ${planWeeks(s)} Wochen${pos ? ` · ${pos} Rahmenplan-Position${pos === 1 ? '' : 'en'}` : ''}</div>${s.notiz ? `<div class="text-[13px] mt-1">${esc(s.notiz)}</div>` : ''}</div>`;
+    return `<li class="${i ? 'border-t border-line' : ''}">${editable ? `<button class="w-full flex items-start gap-3 p-3.5 text-left" data-plan="${s.id}">${inner}${svg('arrow', 'w-4 h-4 text-muted flex-none mt-1')}</button>` : `<div class="flex items-start gap-3 p-3.5">${inner}</div>`}</li>`;
+  }).join('')}</ol>
+  ${editable ? `<div class="card p-4 mt-3 flex flex-col gap-2 text-[13px]">
+    <div class="font-semibold text-[14px]">Abgleich</div>
+    ${overlap ? `<p style="color:var(--crit)">Zwei Stationen überschneiden sich.</p>` : ''}
+    ${rp.length ? (open.length ? `<p>${rp.length - open.length} von ${rp.length} Rahmenplan-Positionen mit fester Abteilung sind eingeplant. Noch ohne passende Station:</p><ul class="flex flex-col gap-1">${open.slice(0, 6).map(r => `<li><b>${esc(r.nr)}</b> ${esc(r.titel)} <span class="text-muted">(${esc(r.abteilungen.join(', '))})</span></li>`).join('')}${open.length > 6 ? `<li class="text-muted">und ${open.length - 6} weitere</li>` : ''}</ul>` : `<p>Alle ${rp.length} Rahmenplan-Positionen mit fester Abteilung haben eine passende Station.</p>`) : ''}
+    ${short.length ? `<p>Weniger Wochen als im Betrieb vorgesehen: ${short.map(([a, soll]) => `${esc(a)} ${weeksBy[a] || 0}/${soll}`).join(' · ')}</p>` : `<p>Die Soll-Wochen je Abteilung sind erfüllt.</p>`}
+  </div>` : ''}`;
+}
+function openPlanSheet(row, forUser, onDone) {
+  const isNew = !row, prof = S.profiles[forUser];
+  const last = (S.rev.plan || []).filter(s => s.azubi_id === forUser).sort((a, b) => b.bis.localeCompare(a.bis))[0];
+  const von = row?.von || (last ? localDate(new Date(new Date(last.bis + 'T12:00:00').getTime() + 864e5)) : prof?.start_datum || localDate());
+  const bis = row?.bis || localDate(new Date(new Date(von + 'T12:00:00').getTime() + 12 * 7 * 864e5 - 864e5));
+  sheetShell(isNew ? 'Station einplanen' : 'Station bearbeiten', `
+    <form id="plForm" class="card p-4 flex flex-col gap-3">
+      <div class="text-[14px]">Für <b>${esc(nameOf(forUser))}</b></div>
+      <div><label class="lbl" for="plAbt">Abteilung</label><select id="plAbt" class="field">${[...new Set([...ABTEILUNGEN, row?.abteilung].filter(Boolean))].map(a => `<option ${row?.abteilung === a ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
+      <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="plVon">Von</label><input id="plVon" type="date" class="field" value="${von}" required></div><div><label class="lbl" for="plBis">Bis</label><input id="plBis" type="date" class="field" value="${bis}" required></div></div>
+      <div><label class="lbl" for="plNotiz">Notiz <span class="font-normal text-muted">(optional, z. B. Ansprechperson oder Schwerpunkt)</span></label><input id="plNotiz" class="field" maxlength="500" value="${esc(row?.notiz || '')}"></div>
+      <p class="text-[12px] text-muted">${esc(firstName(nameOf(forUser)))} sieht den Plan im Berichtsheft.</p>
+      <button class="btn">${isNew ? 'Einplanen' : 'Speichern'}</button>
+    </form>${isNew ? '' : '<button id="plDel" class="btn danger w-full mt-4">Löschen</button>'}`);
+  $('#plVon').onchange = () => { if ($('#plBis').value < $('#plVon').value) $('#plBis').value = $('#plVon').value; };
+  $('#plForm').onsubmit = async e => {
+    e.preventDefault();
+    const out = { azubi_id: forUser, abteilung: $('#plAbt').value, von: $('#plVon').value, bis: $('#plBis').value, notiz: $('#plNotiz').value.trim() };
+    if (!out.von || !out.bis || out.bis < out.von) return toast('Bitte einen gültigen Zeitraum angeben.');
+    if (isNew) await q(sb.from('plan_stationen').insert(out)); else await q(sb.from('plan_stationen').update(out).eq('id', row.id));
+    closeSheet(); toast('Gespeichert'); onDone();
+  };
+  if ($('#plDel')) $('#plDel').onclick = () => confirmInline($('#plDel'), async () => { await q(sb.from('plan_stationen').delete().eq('id', row.id)); closeSheet(); toast('Gelöscht'); onDone(); });
 }
 function openBeuSheet(row, forUser, onDone) {
   const isNew = !row, k = row?.kriterien || {}, prof = S.profiles[forUser];
@@ -2959,7 +3135,7 @@ function showExpired(me) {
 }
 function homeTopHTML() {
   const H = S.home, me = S.me;
-  const exam = isAzubi() ? [['Zwischenprüfung', me.zp_datum], ['Abschlussprüfung', me.ap_datum]].map(([l, d]) => [l, d, daysUntil(d)]).find(x => x[2] !== null && x[2] >= 0) : null;
+  const exam = isAzubi() ? [[EXN(me.beruf)[0], me.zp_datum], [EXN(me.beruf)[1], me.ap_datum]].map(([l, d]) => [l, d, daysUntil(d)]).find(x => x[2] !== null && x[2] >= 0) : null;
   return `${trialBannerHTML()}${setupHTML()}
     ${H.pflichtOffen?.length ? `<button class="card w-full p-4 mt-4 text-left" style="border-color:var(--crit)" data-go="news"><div class="flex items-center gap-2"><span class="chip crit tnum">${H.pflichtOffen.length}</span><span class="font-semibold text-[15px]">${H.pflichtOffen.length === 1 ? 'Wichtige Info bitte bestätigen' : 'Wichtige Infos bitte bestätigen'}</span></div><div class="text-[13px] text-muted mt-1 truncate">${esc(H.pflichtOffen.map(a => a.titel).join(' · '))}</div></button>` : ''}
     ${H.uwOffen?.length ? `<button class="card w-full p-4 mt-3 text-left" data-go="uw"><div class="flex items-center gap-2"><span class="chip ${H.uwOffen.some(x => x.st.state === 'offen') ? 'crit' : 'warn'} tnum">${H.uwOffen.length}</span><span class="font-semibold text-[15px]">${H.uwOffen.length === 1 ? 'Unterweisung offen' : 'Unterweisungen offen'}</span></div><div class="text-[13px] text-muted mt-1 truncate">${esc(H.uwOffen.map(x => x.w.titel).join(' · '))}</div></button>` : ''}
@@ -3164,12 +3340,12 @@ async function uwPdf(w, btn) {
   try {
     await loadScript('./vendor/jspdf.umd.min.js');
     const rows = await q(sb.from('unterweisung_bestaetigungen').select('user_id,name_text,bestaetigt_at,unterschrift').eq('unterweisung_id', w.id).order('bestaetigt_at', { ascending: false }));
-    const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: 'mm', format: 'a4' }), M = 18, W = 210;
-    const headr = () => { doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(pdfSafe('Nachweis Unterweisung'), M, 20); doc.setFontSize(11); doc.text(pdfSafe(w.titel), M, 27);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(100); doc.text(pdfSafe(`${S.hotel} - erstellt am ${fmtDate(new Date().toISOString())} mit ${BR.appName}`), M, 33); doc.setTextColor(0); doc.setDrawColor(200); doc.line(M, 36, W - M, 36); };
+    const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: 'mm', format: 'a4' }), M = 18, W = 210; const FONT = await pdfFont(doc);
+    const headr = () => { doc.setFont(FONT, 'bold'); doc.setFontSize(15); doc.text(pdfSafe('Nachweis Unterweisung'), M, 20); doc.setFontSize(11); doc.text(pdfSafe(w.titel), M, 27);
+      doc.setFont(FONT, 'normal'); doc.setFontSize(9); doc.setTextColor(100); doc.text(pdfSafe(`${S.hotel} - erstellt am ${fmtDate(new Date().toISOString())} mit ${BR.appName}`), M, 33); doc.setTextColor(0); doc.setDrawColor(200); doc.line(M, 36, W - M, 36); };
     headr(); let y = 44;
-    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.text('Name', M, y); doc.text('Datum', M + 70, y); doc.text('Unterschrift', M + 105, y); y += 4;
-    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9); doc.setFont(FONT, 'bold'); doc.text('Name', M, y); doc.text('Datum', M + 70, y); doc.text('Unterschrift', M + 105, y); y += 4;
+    doc.setFont(FONT, 'normal');
     rows.forEach(r => {
       if (y > 270) { doc.addPage(); headr(); y = 44; }
       doc.text(pdfSafe(r.name_text), M, y + 8); doc.text(pdfSafe(new Date(r.bestaetigt_at).toLocaleString('de-DE')), M + 70, y + 8);
@@ -3180,7 +3356,7 @@ async function uwPdf(w, btn) {
     doc.addPage(); headr(); doc.setFontSize(10);
     let yy = 44; doc.splitTextToSize(pdfSafe((w.inhalt || '').replace(/^##\s*/gm, '')), W - 2 * M).forEach(l => { if (yy > 280) { doc.addPage(); headr(); yy = 44; } doc.text(l, M, yy); yy += 5; });
     doc.save(`Unterweisung_${pdfSafe(w.titel).replace(/[^\w]+/g, '_')}.pdf`); toast('PDF erstellt');
-  } catch (e) { toast(errText(e)); } finally { btn.disabled = false; PDF_DE = false; }
+  } catch (e) { toast(errText(e)); } finally { btn.disabled = false; PDF_DE = false; PDF_UNI = false; }
 }
 
 /* ---------- Pinnwand ---------- */
@@ -3321,7 +3497,7 @@ function openExportSheet(userId) {
   const p = S.profiles[userId], jahre = ausbildungsjahre(p);
   sheetShell('Ausbildungsnachweis', `
     <form id="exForm" class="card p-4 flex flex-col gap-3">
-      <p class="text-[13px] text-muted">Für die Anmeldung zur Prüfung bei der IHK. Seit 2020 dürfen Ausbildungsnachweise elektronisch geführt werden.</p>
+      <p class="text-[13px] text-muted">Für die Anmeldung zur Prüfung bei der IHK. Elektronische Ausbildungsnachweise sind erlaubt, wenn der Ausbildungsvertrag (ab 1. Oktober 2017) das vorsieht.</p>
       <div><label class="lbl" for="exJahr">Zeitraum</label><select id="exJahr" class="field"><option value="">Gesamte Ausbildung</option>${jahre.map(j => `<option value="${j.n}">${j.n}. Ausbildungsjahr (${fmtDate(j.von)} – ${fmtDate(j.bis)})</option>`).join('')}</select></div>
       <label class="flex items-center gap-2.5 text-[14px]"><input type="checkbox" id="exCover" class="cbx" checked> Deckblatt mit Übersicht</label>
       <label class="flex items-center gap-2.5 text-[14px]"><input type="checkbox" id="exRp" class="cbx" checked> Abgleich mit dem Ausbildungsrahmenplan</label>
@@ -3696,9 +3872,10 @@ async function showSchool(tok) {
   const { data, error } = await sb.rpc('schule_view', { p_token: tok });
   if (error || !data) { el.innerHTML = `<div class="card p-5 mt-8"><h1 class="text-[22px] font-bold">Link nicht gültig</h1><p class="text-muted mt-1">Der Zugang ist abgelaufen oder wurde vom Ausbildungsbetrieb beendet. Bitte wenden Sie sich an den Betrieb.</p></div>`; return; }
   const D = data, a = D.azubi;
+  klRemember(tok, D);
   const absTone = { Berufsschule: 'accent', Krank: 'crit', Urlaub: 'brass' };
   el.innerHTML = `
-    <div class="pt-4 pb-3 flex items-center justify-between gap-3"><div class="eyebrow">Zugang für die Berufsschule</div><button class="btn ghost py-1.5 text-[13px]" onclick="print()">Drucken</button></div>
+    <div class="pt-4 pb-3 flex items-center justify-between gap-3"><div class="eyebrow">Zugang für die Berufsschule${S.demo ? ' · Demo mit Beispieldaten' : ''}</div><div class="flex gap-2"><button class="btn ghost py-1.5 text-[13px]" id="spKlasse">Meine Klasse (${klList().length})</button><button class="btn ghost py-1.5 text-[13px]" onclick="print()">Drucken</button></div></div>
     <section class="keycard p-5"><div class="sub text-[13px]">${esc(D.schule)}${D.lehrkraft ? ' · ' + esc(D.lehrkraft) : ''}</div><h1 class="text-[26px] font-bold leading-tight mt-1" translate="no">${esc(a.name)}</h1>
       <div class="sub text-[14px] mt-1">${esc(a.beruf)} · ${a.lehrjahr}. Ausbildungsjahr · ${esc(D.betrieb)}</div>
       ${D.ausbilder ? `<div class="sub text-[13px] mt-3">Ansprechpartner im Betrieb: <b translate="no">${esc(D.ausbilder.name)}</b>${D.ausbilder.telefon ? ' · ' + esc(D.ausbilder.telefon) : ''}${D.ausbilder.email ? ' · ' + esc(D.ausbilder.email) : ''}</div>` : ''}</section>
@@ -3716,6 +3893,7 @@ async function showSchool(tok) {
     ${D.berichte.length ? `<div class="flex flex-col gap-3">${D.berichte.map(r => `<details class="card"><summary class="flex items-center gap-3 p-3.5"><div class="font-display font-bold text-[16px] w-16 tnum flex-none">KW ${r.kw}</div><div class="flex-1 min-w-0 text-[14px] truncate">${esc(r.abteilung)} · ${weekRange(r)}${r.jahr}</div><span class="chip ${r.status === 'abgezeichnet' ? 'ok' : 'brass'}">${r.status === 'abgezeichnet' ? 'abgezeichnet' : 'eingereicht'}</span></summary>
       <div class="px-3.5 pb-3.5">${r.tage?.length ? weekTableHTML(r.tage, r) : ''}${r.inhalt ? `<p class="text-[14px] mt-3 whitespace-pre-line">${esc(r.inhalt)}</p>` : ''}</div></details>`).join('')}</div>` : empty('Noch keine eingereichten Berichte.')}
     <p class="text-[12px] text-muted text-center mt-6 mb-10">Zugang gültig bis ${fmtDate(D.gueltig_bis)} · bereitgestellt von ${esc(D.betrieb)} mit AzubiHub · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
+  $('#spKlasse').onclick = () => showClass();
   $('#spForm').onsubmit = async e => {
     e.preventDefault();
     const btn = $('#spForm button.btn'); btn.disabled = true;
@@ -3723,6 +3901,88 @@ async function showSchool(tok) {
     btn.disabled = false;
     if (error) return toast(/DATUM/.test(error.message) ? 'Bitte ein Datum aus den letzten 4 Monaten wählen.' : /LIMIT/.test(error.message) ? 'Heute wurden schon viele Meldungen gesendet.' : 'Das hat nicht geklappt. Bitte später erneut versuchen.');
     toast('Gesendet. Der Betrieb wurde benachrichtigt.'); showSchool(tok);
+  };
+}
+
+/* Klassenübersicht für Lehrkräfte: sammelt die Zugänge, die eine Lehrkraft von verschiedenen Betrieben bekommen hat.
+   Die Liste liegt nur im Browser der Lehrkraft. Jeder Betrieb entscheidet weiter selbst über seinen Zugang. */
+const KL_KEY = 'azubihub-klasse';
+function klList() {
+  if (S.demo) return (S.demoKlasse ||= ['demo', 'demo-tom', 'demo-aylin'].map(token => ({ token })));
+  try { const l = JSON.parse(localStorage.getItem(KL_KEY) || '[]'); return Array.isArray(l) ? l.filter(x => x && typeof x.token === 'string') : []; } catch { return []; }
+}
+function klSave(l) { if (S.demo) { S.demoKlasse = l; return; } try { localStorage.setItem(KL_KEY, JSON.stringify(l)); } catch {} }
+function klRemember(tok, D) { const l = klList(), e = l.find(x => x.token === tok), info = { token: tok, name: D.azubi?.name || '', betrieb: D.betrieb || '' }; if (e) Object.assign(e, info); else l.push({ ...info, added: new Date().toISOString() }); klSave(l); }
+const klToken = v => { v = String(v || '').trim(); const m = v.match(/[?&]schule=([A-Za-z0-9_-]+)/); return m ? m[1] : /^[A-Za-z0-9_-]{8,}$/.test(v) ? v : null; };
+async function showClass() {
+  const el = $('#careerScreen'); el.hidden = false; $('#authScreen').hidden = true; $('#appScreen').hidden = true;
+  el.innerHTML = skeleton(); scrollTo({ top: 0 });
+  const list = klList();
+  const res = await Promise.all(list.map(x => sb.rpc('schule_view', { p_token: x.token }).then(r => (r.error || !r.data) ? { x } : { x, D: r.data }, () => ({ x }))));
+  const today = localDate(), d30 = localDate(new Date(Date.now() - 30 * 864e5));
+  const weeks = [1, 2, 3, 4].map(i => isoWeek(new Date(Date.now() - 7 * i * 864e5)));
+  const daysIn = (von, bis) => { const a = von < d30 ? d30 : von, b = bis > today ? today : bis; return a > b ? 0 : Math.round((new Date(b) - new Date(a)) / 864e5) + 1; };
+  const rows = res.map(({ x, D }) => {
+    if (!D) return { x, bad: true, name: x.name || 'Unbekannt' };
+    const bset = new Set(D.berichte.map(r => r.jahr + '-' + r.kw));
+    const next = [D.azubi.zp && [EXN(D.azubi.beruf)[0], D.azubi.zp], D.azubi.ap && [EXN(D.azubi.beruf)[1], D.azubi.ap]].filter(v => v && v[1] >= today).sort((a, b) => a[1].localeCompare(b[1]))[0];
+    return { x, D, name: D.azubi.name, rep4: weeks.filter(w => bset.has(w.jahr + '-' + w.kw)).length, last: D.berichte[0],
+      krank: D.abwesenheiten.filter(a => a.typ === 'Krank').reduce((s, a) => s + daysIn(a.von, a.bis), 0),
+      meld: D.eintraege.filter(e => ['fehltag', 'verspaetung'].includes(e.typ) && e.datum >= d30).length, next };
+  }).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const good = rows.filter(r => !r.bad), betriebe = new Set(good.map(r => r.D.betrieb));
+  const tone = n => n >= 4 ? 'ok' : n >= 2 ? 'brass' : 'crit';
+  el.innerHTML = `
+    <div class="pt-4 pb-3 flex items-center justify-between gap-3"><div class="eyebrow">Zugang für die Berufsschule${S.demo ? ' · Demo mit Beispieldaten' : ''}</div><button class="btn ghost py-1.5 text-[13px]" onclick="print()">Drucken</button></div>
+    <h1 class="text-[26px] font-bold leading-tight">Meine Klasse</h1>
+    <p class="text-[14px] text-muted mt-1">${good.length} Auszubildende aus ${betriebe.size} ${betriebe.size === 1 ? 'Betrieb' : 'Betrieben'}. Die Liste wird nur in diesem Browser gespeichert. Jeder Betrieb entscheidet selbst, wie lange sein Zugang gilt.</p>
+    ${rows.length ? `<form id="klForm"><div class="flex flex-col gap-3 mt-4">${rows.map((r, i) => r.bad ? `
+      <div class="card p-4 flex items-center gap-3"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px] truncate" translate="no">${esc(r.name)}</div><div class="text-[13px] text-muted">Zugang abgelaufen oder vom Betrieb beendet</div></div><button type="button" class="btn ghost py-1.5 text-[13px]" data-kldel="${esc(r.x.token)}">Entfernen</button></div>` : `
+      <div class="card p-4">
+        <div class="flex items-start gap-3">
+          <input type="checkbox" class="cbx mt-1" id="kl${i}" value="${esc(r.x.token)}" aria-label="${esc(r.name)} für Sammelmeldung auswählen">
+          <div class="flex-1 min-w-0"><label for="kl${i}" class="font-semibold text-[16px] block truncate" translate="no">${esc(r.name)}</label><div class="text-[13px] text-muted truncate">${esc(r.D.azubi.beruf)} · ${r.D.azubi.lehrjahr}. Jahr · ${esc(r.D.betrieb)}</div></div>
+          <button type="button" class="btn ghost py-1.5 text-[13px] flex-none" data-klopen="${esc(r.x.token)}">Öffnen</button>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3 text-[12px]">
+          <span class="chip ${tone(r.rep4)}">Berichte letzte 4 Wochen: ${r.rep4}/4</span>
+          <span class="chip">${r.last ? `zuletzt KW ${r.last.kw}` : 'noch kein Bericht'}</span>
+          ${r.krank ? `<span class="chip crit">${r.krank} Krankheitstag${r.krank === 1 ? '' : 'e'} (30 Tage)</span>` : ''}
+          ${r.meld ? `<span class="chip warn">${r.meld} Meldung${r.meld === 1 ? '' : 'en'} von Ihnen (30 Tage)</span>` : ''}
+          ${r.next ? `<span class="chip accent">${r.next[0]} · ${fmtDate(r.next[1])}</span>` : ''}
+        </div>
+      </div>`).join('')}</div>
+    ${good.length ? `<h2 class="text-[18px] font-bold mt-6 mb-2">Meldung an mehrere Betriebe</h2>
+    <div class="card p-4 flex flex-col gap-3">
+      <p class="text-[13px] text-muted">Oben die Auszubildenden auswählen, z. B. für einen Hinweis auf eine Klassenarbeit oder einen Ausflug. Jeder Betrieb bekommt die Meldung nur für seine Auszubildenden.</p>
+      <div class="flex gap-3 text-[13px] font-semibold"><button type="button" class="text-accent" id="klAll">Alle auswählen</button><button type="button" class="text-muted" id="klNone">Keine</button></div>
+      <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="klTyp">Art</label><select id="klTyp" class="field">${Object.entries(SCHUL_TYP).map(([k, v]) => `<option value="${k}" ${k === 'notiz' ? 'selected' : ''}>${v[1]}</option>`).join('')}</select></div><div><label class="lbl" for="klDat">Datum</label><input id="klDat" type="date" class="field" value="${today}"></div></div>
+      <div><label class="lbl" for="klText">Bemerkung</label><textarea id="klText" class="field" rows="3" maxlength="2000" placeholder="z. B. Klassenarbeit Wirtschafts- und Sozialkunde am Dienstag"></textarea></div>
+      <div><label class="lbl" for="klVon">Ihr Name</label><input id="klVon" class="field" maxlength="120" value="${esc(good[0]?.D.lehrkraft || '')}"></div>
+      <button class="btn" id="klSend">An Auswahl senden</button>
+    </div>` : ''}</form>` : `<div class="card p-4 mt-4 text-[14px] text-muted">Noch keine Auszubildenden. Öffnen Sie den Link, den Sie vom Ausbildungsbetrieb bekommen haben, oder fügen Sie ihn unten ein.</div>`}
+    <h2 class="text-[18px] font-bold mt-6 mb-2">Weiteren Zugang hinzufügen</h2>
+    <form id="klAdd" class="card p-4 flex gap-2"><label for="klLink" class="sr-only">Link vom Ausbildungsbetrieb</label><input id="klLink" class="field flex-1" placeholder="Link vom Ausbildungsbetrieb einfügen" autocomplete="off"><button class="btn flex-none">Hinzufügen</button></form>
+    <p class="text-[12px] text-muted text-center mt-6 mb-10">AzubiHub · <button type="button" class="font-semibold" data-privacy>Datenschutz</button> · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
+  $$('[data-klopen]').forEach(b => b.onclick = () => showSchool(b.dataset.klopen));
+  $$('[data-kldel]').forEach(b => b.onclick = () => { klSave(klList().filter(x => x.token !== b.dataset.kldel)); showClass(); });
+  const boxes = () => $$('#klForm input[type=checkbox]');
+  if ($('#klAll')) { $('#klAll').onclick = () => boxes().forEach(c => c.checked = true); $('#klNone').onclick = () => boxes().forEach(c => c.checked = false); }
+  if ($('#klForm')) $('#klForm').onsubmit = async e => {
+    e.preventDefault();
+    const toks = boxes().filter(c => c.checked).map(c => c.value);
+    if (!toks.length) return toast('Bitte mindestens eine Person auswählen.');
+    const btn = $('#klSend'); btn.disabled = true; let ok = 0;
+    for (const t of toks) { const { error } = await sb.rpc('schule_add', { p_token: t, p_typ: $('#klTyp').value, p_datum: $('#klDat').value, p_text: $('#klText').value.trim(), p_von: $('#klVon').value.trim() }).catch(err => ({ error: err })); if (!error) ok++; }
+    btn.disabled = false;
+    toast(ok === toks.length ? `Gesendet für ${ok} ${ok === 1 ? 'Auszubildende Person' : 'Auszubildende'}.` : `${ok} von ${toks.length} gesendet. Bitte ein Datum aus den letzten 4 Monaten wählen.`);
+    if (ok) showClass();
+  };
+  $('#klAdd').onsubmit = e => {
+    e.preventDefault(); const t = klToken($('#klLink').value);
+    if (!t) return toast('Das ist kein gültiger Link.');
+    if (!klList().some(x => x.token === t)) klSave([...klList(), { token: t, added: new Date().toISOString() }]);
+    showClass();
   };
 }
 
@@ -3769,7 +4029,7 @@ async function openProfile() {
       </div>
       <div><label class="lbl" for="pBeruf">Ausbildung</label><input id="pBeruf" class="field" value="${esc(me.beruf)}" maxlength="60"></div>
       <div><label class="lbl" for="pStart">Erster Arbeitstag</label><input id="pStart" type="date" class="field" value="${me.start_datum}"></div>
-      <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="pZp">Zwischenprüfung</label><input id="pZp" type="date" class="field" value="${me.zp_datum || ''}"></div><div><label class="lbl" for="pAp">Abschlussprüfung</label><input id="pAp" type="date" class="field" value="${me.ap_datum || ''}"></div></div>`}
+      <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="pZp">${EXN(me.beruf)[0]}</label><input id="pZp" type="date" class="field" value="${me.zp_datum || ''}"></div><div><label class="lbl" for="pAp">${EXN(me.beruf)[1]}</label><input id="pAp" type="date" class="field" value="${me.ap_datum || ''}"></div></div>`}
       <button class="btn">Speichern</button>
     </form>
     ${pushHTML}
@@ -3950,6 +4210,7 @@ function openDemoPicker() {
 }
 $('#demoBtn').onclick = openDemoPicker;
 $('#demoRole').onclick = openDemoPicker;
+$('#demoReset').onclick = () => location.reload();
 async function startDemo(role) {
   try { await loadScript('demo.js'); } catch { showAuth(); return toast('Die Demo konnte nicht geladen werden.'); }
   window.__realSb = sb; S.demo = true;
@@ -3963,6 +4224,11 @@ async function startDemo(role) {
 (async () => {
   applyConfig(); loadBranding();
   if (CAREER_SLUG) return showCareer(CAREER_SLUG);
+  if (SCHOOL_SLUG === 'demo') {
+    try { await loadScript('demo.js'); } catch { return toast('Die Demo konnte nicht geladen werden.'); }
+    window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('azubi'); await sb.ready;
+  }
+  if (SCHOOL_SLUG === 'klasse') return showClass();
   if (SCHOOL_SLUG) return showSchool(SCHOOL_SLUG);
   if (new URLSearchParams(location.search).has('demo')) return startDemo(new URLSearchParams(location.search).get('demo') || 'azubi');
   const { data } = await sb.auth.getSession();
