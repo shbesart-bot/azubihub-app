@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datenschutz &amp; Sicherheit – AzubiHub</title>
+<meta name="description" content="Datenschutz und Sicherheit bei AzubiHub auf einen Blick: Serverstandort, Rechte, Schutz der Ausbildungsnachweise, Zugang für die Berufsschule und Löschfristen.">
+<meta name="theme-color" content="#0f5c5f">
+<link rel="canonical" href="https://azubihub-app.de/start/sicherheit.html">
+<link rel="icon" href="../favicon-32.png">
+<link rel="stylesheet" href="./start.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="top"><div class="wrap"><a class="logo" href="./"><img src="../icon-192.png" alt="" width="32" height="32">AzubiHub</a><nav class="nav" aria-label="Hauptnavigation"><a href="./">Startseite</a><a class="btn small" href="../?login">Zur App</a></nav></div></header>
+<main id="main" class="doc">
+<div class="eyebrow">Für Betriebe, IHK und Berufsschulen</div>
+<h1>Datenschutz &amp; Sicherheit auf einen Blick</h1>
+<p class="lead">Die wichtigsten Antworten auf einer Seite. Die vollständigen Regeln stehen im <a href="./avv.html">Vertrag zur Auftragsverarbeitung</a> und in den Datenschutzhinweisen des jeweiligen Betriebs in der App.</p>
+
+<h2>Wer ist verantwortlich?</h2>
+<p>Der Ausbildungsbetrieb ist für die Daten seiner Auszubildenden und seines Teams verantwortlich. NovaWorks betreibt AzubiHub in seinem Auftrag und verarbeitet die Daten nur nach Weisung des Betriebs (Art. 28 DSGVO). Den Vertrag dazu schließt jeder Betrieb bei der Anmeldung ab.</p>
+
+<h2>Wo liegen die Daten?</h2>
+<p>Datenbank und Dateien liegen bei Supabase auf Servern in Frankfurt am Main. Die App selbst wird über GitHub Pages ausgeliefert. Beide Anbieter haben ihren Sitz in den USA; mögliche Übermittlungen sind über die EU-Standardvertragsklauseln abgesichert. Die App setzt keine Werbe- oder Analysedienste ein und lädt keine Schriften oder Skripte von fremden Servern.</p>
+
+<h2>Wer sieht was?</h2>
+<ul>
+<li>Jeder Betrieb sieht nur seine eigenen Daten. Die Trennung zwischen den Betrieben prüft die Datenbank selbst bei jeder Abfrage, nicht nur die App.</li>
+<li>Auszubildende sehen ihre eigenen Berichte, Lernziele und Abwesenheiten.</li>
+<li>Ausbilderinnen und Ausbilder sehen nur, wofür die Leitung ihnen Rechte gibt, auf Wunsch beschränkt auf ihre Abteilungen.</li>
+<li>Gesprächsnotizen und Beurteilungen sehen nur die Leitung und die dafür berechtigten Personen.</li>
+</ul>
+
+<h2>Wie ist der Ausbildungsnachweis geschützt?</h2>
+<ul>
+<li>Jeder Wochenbericht ist einer Person eindeutig zugeordnet und wird von der Ausbilderin oder dem Ausbilder elektronisch abgezeichnet, mit Name und Datum.</li>
+<li>Abgezeichnete Berichte sind gesperrt. Die Datenbank lässt keine Änderung mehr zu.</li>
+<li>Jeder Schritt wird automatisch protokolliert: angelegt, bearbeitet, eingereicht, zurückgegeben, abgezeichnet. Diesen Verlauf kann niemand ändern oder löschen, auch die Leitung nicht.</li>
+<li>Das PDF für die Prüfungsanmeldung enthält fortlaufende Nachweis-Nummern, eine Erklärung zur selbstständigen Erstellung und den Verlauf jeder Woche.</li>
+</ul>
+
+<h2>Zugang für die Berufsschule</h2>
+<ul>
+<li>Den Zugang richtet der Betrieb für einzelne Auszubildende ein. Die Lehrkraft bekommt einen persönlichen Link, ohne eigenes Konto.</li>
+<li>Der Link ist befristet, und der Betrieb kann ihn jederzeit beenden. Die Auszubildenden sehen in der App, welche Schule Zugang hat.</li>
+<li>Die Lehrkraft sieht nur eingereichte Wochenberichte und genehmigte Abwesenheiten (Berufsschule, Urlaub, Krankheit ohne Diagnose). Sie kann Fehltage, Verspätungen, Notizen und Lob eintragen.</li>
+<li>Für die Klassenübersicht speichert der Browser der Lehrkraft nur die Links, die sie von den Betrieben bekommen hat. Auf dem Server entsteht dafür keine Klassenliste.</li>
+</ul>
+
+<h2>Anmeldung und Passwörter</h2>
+<p>Passwörter werden nie im Klartext gespeichert, sondern nur als nicht umkehrbarer Prüfwert (Hash). Beim Festlegen prüft die App anonym, ob ein Passwort aus bekannten Datenlecks stammt. Dabei verlässt nur ein Teil eines Prüfwerts das Gerät, nie das Passwort selbst. Alle Verbindungen sind verschlüsselt (HTTPS).</p>
+
+<h2>Wann wird gelöscht?</h2>
+<ul>
+<li>Bewerbungen: automatisch 6 Monate nach Zusage oder Absage, unbearbeitete spätestens 12 Monate nach Eingang.</li>
+<li>Technisches Fehlerprotokoll: nach 30 Tagen.</li>
+<li>Ausbildungsdaten: so lange, wie der Betrieb sie braucht oder aufbewahren muss. Die Frist legt der Betrieb in seinen Datenschutzhinweisen fest.</li>
+<li>Bei Vertragsende kann der Betrieb alle Daten als ZIP-Datei herunterladen. Danach werden sie gelöscht, wie im Vertrag zur Auftragsverarbeitung geregelt.</li>
+</ul>
+
+<h2>Rechte der Betroffenen</h2>
+<p>Auszubildende und Mitarbeitende können beim Betrieb Auskunft, Berichtigung und Löschung verlangen. Der Betrieb kann dafür den Datenexport nutzen. NovaWorks unterstützt ihn dabei.</p>
+
+<h2>Fragen?</h2>
+<p>Schreiben Sie an <a href="mailto:info@novaworks-it.de?subject=AzubiHub%20Datenschutz">info@novaworks-it.de</a>.</p>
+<p class="note">Stand: Oktober 2026. Diese Übersicht ersetzt nicht den Vertrag zur Auftragsverarbeitung und die Datenschutzhinweise des Betriebs.</p>
+</main>
+<footer><div class="wrap"><span>© 2026 NovaWorks</span><a href="./impressum.html">Impressum &amp; Datenschutz</a><a href="./sicherheit.html">Datenschutz &amp; Sicherheit</a><a href="./agb.html">AGB</a><a href="./avv.html">Auftragsverarbeitung</a><a href="../?login">Zur App</a></div></footer>
+</body>
+</html>
