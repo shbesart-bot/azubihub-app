@@ -145,6 +145,10 @@
   details > summary { list-style:none; cursor:pointer; }
   details > summary::-webkit-details-marker { display:none; }
   details[open] > summary .chev { transform: rotate(180deg); }
+  .updbar { position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 70; display: flex; align-items: center; gap: 12px; background: var(--fg); color: var(--bg); padding: 8px 8px 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.18); width: max-content; max-width: calc(100vw - 24px); }
+  .updbar span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .updbar button { background: var(--accent); color: var(--accent-fg); border-radius: 999px; padding: 7px 14px; font-weight: 700; white-space: nowrap; }
+  .updbar button.x { background: transparent; color: var(--bg); padding: 7px 10px; opacity: .8; }
   .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; z-index: 60; max-width: calc(100vw - 32px); text-align: center; }
   .sheet-scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 50; display:flex; align-items:flex-end; justify-content:center; }
   .sheet { background: var(--bg); width: 100%; max-width: 30rem; max-height: 88vh; overflow-y: auto; border-radius: 20px 20px 0 0; padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px)); animation: up .22s ease; }
@@ -2449,8 +2453,26 @@ const isStandalone = () => matchMedia('(display-mode: standalone)').matches || n
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 let swReg = null;
+function showUpdateBar() {
+  if ($('#updBar')) return;
+  const el = document.createElement('div');
+  el.id = 'updBar'; el.className = 'updbar'; el.setAttribute('role', 'status');
+  el.innerHTML = `<span>${esc(t('Neue Version verfügbar'))}</span><button type="button" id="updGo">${esc(t('Neu laden'))}</button><button type="button" class="x" id="updX" aria-label="${esc(t('Später'))}">✕</button>`;
+  document.body.appendChild(el);
+  $('#updGo').onclick = () => location.reload();
+  $('#updX').onclick = () => el.remove();
+}
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
+  /* Update-Hinweis: Der neue Service Worker übernimmt sofort (skipWaiting). Hatte die Seite vorher schon einen,
+     ist eine neue Version da: Leiste „Neu laden“ zeigen. Geprüft wird beim Zurückkehren in die App und alle 30 Minuten. */
+  const hadSw = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadSw) showUpdateBar(); });
+  navigator.serviceWorker.register('sw.js').then(r => {
+    swReg = r;
+    const check = () => r.update().catch(() => {});
+    setInterval(check, 30 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+  }).catch(() => {});
   navigator.serviceWorker.addEventListener('message', e => { if (e.data?.go && VIEWS[e.data.go]) go(e.data.go); });
 }
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); S.installEvt = e; if (S.view === 'home') render(); });
