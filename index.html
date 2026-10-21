@@ -3730,7 +3730,7 @@ function anbieterHTML() {
   ${secTitle('Bezahlung')}
   <form id="payForm" class="card p-4 flex flex-col gap-3">
     <div><label class="lbl" for="payLink">Stripe-Zahlungslink</label><input id="payLink" class="field" placeholder="https://buy.stripe.com/…" value="${esc(A.pcfg.zahl_link || '')}"><p class="text-[12px] text-muted mt-1">Die App hängt automatisch die Betriebs-Kennung an. Nach der Zahlung schaltet der Webhook den Betrieb frei.</p></div>
-    <div><label class="lbl" for="payText">Preis-Hinweis in der App</label><input id="payText" class="field" maxlength="200" placeholder="z. B. 49 € pro Monat zzgl. MwSt." value="${esc(A.pcfg.preis_text || '')}"></div>
+    <div><label class="lbl" for="payText">Preis-Hinweis in der App</label><input id="payText" class="field" maxlength="200" placeholder="z. B. 49 € pro Monat (Endpreis, § 19 UStG)" value="${esc(A.pcfg.preis_text || '')}"></div>
     <button class="btn">Speichern</button>
   </form>
   ${secTitle('Impressum')}
