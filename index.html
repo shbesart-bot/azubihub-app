@@ -1649,6 +1649,7 @@ const Admin = {
         <div><label class="lbl" for="sCode">Code für neue Konten</label><div class="flex gap-2"><input id="sCode" class="field font-semibold tracking-wider flex-1 min-w-0" value="${esc(A.code)}" maxlength="30" autocapitalize="characters"><button type="button" id="aGen" class="btn ghost">Neu erzeugen</button></div><p class="text-[12px] text-muted mt-1">Wer den Code kennt, kann ein Konto in deinem Betrieb anlegen. Ändere ihn, wenn alle registriert sind.</p></div>
         <button class="btn">Speichern</button>
       </form>
+      ${isAdmin() ? aboCardHTML() : ''}
       ${isAdmin() ? `${secTitle('Alle Daten exportieren')}
       <div class="card p-4 flex flex-col gap-3">
         <p class="text-[14px] text-muted">Lädt alle Daten deines Betriebs als ZIP-Datei herunter: Tabellen (CSV für Excel, dazu JSON), Unterschriften und auf Wunsch Fotos und Bewerbungsunterlagen. Für Archiv, Wechsel oder Vertragsende. Private Chat-Nachrichten anderer Personen sind nicht enthalten.</p>
@@ -3134,6 +3135,16 @@ function trialBannerHTML() {
     <div class="grid grid-cols-2 gap-2 mt-3">${b.zahl_link ? `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>` : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">Freischalten anfragen</a>`}<button class="btn ghost" data-redeem>Code eingeben</button></div></div>`;
 }
 const payLink = () => { const b = S.betrieb, u = new URL(b.zahl_link); u.searchParams.set('client_reference_id', b.id); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
+const portalLink = () => { const u = new URL(S.betrieb.portal_link); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
+function aboCardHTML() {
+  const b = S.betrieb; if (!b) return '';
+  const paid = b.bezahlt_bis && new Date(b.bezahlt_bis) > new Date();
+  const line = paid ? `Freigeschaltet bis ${fmtDate(b.bezahlt_bis)}${b.abo ? ' · verlängert sich automatisch, solange das Abo läuft' : ''}.` : b.status === 'test' ? `Testphase bis ${fmtDate(b.testphase_bis)}.` : 'Noch nicht freigeschaltet.';
+  const portal = b.abo && b.portal_link ? `<a class="btn ghost" href="${esc(portalLink())}" target="_blank" rel="noopener">Abo verwalten</a><p class="text-[12px] text-muted">Rechnungen herunterladen, Zahlungsart oder Rechnungsadresse ändern oder kündigen (zum Ende des laufenden Monats). Anmeldung mit der E-Mail-Adresse, die beim Bezahlen angegeben wurde.</p>` : '';
+  const pay = !paid && b.zahl_link ? `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>` : '';
+  return `${secTitle('Abo und Rechnungen')}
+      <div class="card p-4 flex flex-col gap-3"><p class="text-[14px]">${esc(line)}${b.preis_text && !paid ? ' ' + esc(b.preis_text) : ''}</p>${pay}${portal}${!portal && !pay ? `<p class="text-[12px] text-muted">Fragen zur Rechnung: <a class="text-accent font-semibold" href="mailto:info@novaworks-it.de">info@novaworks-it.de</a></p>` : ''}</div>`;
+}
 function openRedeem() {
   sheetShell('Freischalt-Code eingeben', `<form id="rdForm" class="card p-4 flex flex-col gap-3"><p class="text-[14px] text-muted">Den Code bekommst du von NovaWorks nach der Bestellung.</p><input id="rdCode" class="field tracking-wider" placeholder="AH-XXXX-XXXX" autocapitalize="characters"><button class="btn">Freischalten</button></form>`);
   $('#rdForm').onsubmit = async e => {
@@ -3730,6 +3741,7 @@ function anbieterHTML() {
   ${secTitle('Bezahlung')}
   <form id="payForm" class="card p-4 flex flex-col gap-3">
     <div><label class="lbl" for="payLink">Stripe-Zahlungslink</label><input id="payLink" class="field" placeholder="https://buy.stripe.com/…" value="${esc(A.pcfg.zahl_link || '')}"><p class="text-[12px] text-muted mt-1">Die App hängt automatisch die Betriebs-Kennung an. Nach der Zahlung schaltet der Webhook den Betrieb frei.</p></div>
+    <div><label class="lbl" for="payPortal">Stripe-Kundenportal</label><input id="payPortal" class="field" placeholder="https://billing.stripe.com/p/login/…" value="${esc(A.pcfg.portal_link || '')}"><p class="text-[12px] text-muted mt-1">Leitungen sehen damit unter Verwaltung › Einstellungen „Abo verwalten“ (Rechnungen, Zahlungsart, Kündigung).</p></div>
     <div><label class="lbl" for="payText">Preis-Hinweis in der App</label><input id="payText" class="field" maxlength="200" placeholder="z. B. 49 € pro Monat (Endpreis, § 19 UStG)" value="${esc(A.pcfg.preis_text || '')}"></div>
     <button class="btn">Speichern</button>
   </form>
@@ -3771,8 +3783,8 @@ function bindAnbieter() {
   if ($('#grNew')) $('#grNew').onsubmit = async e => { e.preventDefault(); const n = $('#grName').value.trim(); if (n.length < 2) return toast('Bitte einen Namen eingeben.'); await q(sb.rpc('platform_create_gruppe', { p_name: n })); toast('Gruppe angelegt'); go('admin'); };
   if ($('#payForm')) $('#payForm').onsubmit = async e => {
     e.preventDefault();
-    const l = $('#payLink').value.trim(); if (l && !/^https:\/\//.test(l)) return toast('Der Link muss mit https:// beginnen.');
-    await q(sb.rpc('platform_set_config', { p_key: 'zahl_link', p_value: l })); await q(sb.rpc('platform_set_config', { p_key: 'preis_text', p_value: $('#payText').value.trim() }));
+    const l = $('#payLink').value.trim(), pl = $('#payPortal').value.trim(); if ((l && !/^https:\/\//.test(l)) || (pl && !/^https:\/\//.test(pl))) return toast('Der Link muss mit https:// beginnen.');
+    await q(sb.rpc('platform_set_config', { p_key: 'zahl_link', p_value: l })); await q(sb.rpc('platform_set_config', { p_key: 'portal_link', p_value: pl })); await q(sb.rpc('platform_set_config', { p_key: 'preis_text', p_value: $('#payText').value.trim() }));
     toast('Gespeichert');
   };
   if ($('#impForm')) $('#impForm').onsubmit = async e => {
