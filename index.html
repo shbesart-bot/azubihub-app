@@ -97,6 +97,16 @@
   .zbtn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--fg); }
   .bar { height: 7px; border-radius: 99px; background: var(--sunk); overflow: hidden; }
   .bar > i { display:block; height:100%; border-radius: 99px; background: var(--accent); transition: width .4s ease; }
+  :root { --st-ok:#2e9d5a; --st-warn:#e8922c; --st-crit:#d64545; }
+  .stbar { display:flex; height:14px; border-radius:99px; overflow:hidden; background:var(--sunk); gap:2px; }
+  .stbar > i { display:block; height:100%; transition: width .4s ease; }
+  .stbar.mini { height:6px; gap:1px; }
+  .stleg { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .stleg > div { border-radius:12px; padding:10px 10px 9px; background:var(--sunk); border-top:4px solid var(--c); }
+  .stleg b { display:block; font-size:22px; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .stleg span { display:block; font-size:12px; color:var(--muted); }
+  .kwchip { display:inline-flex; align-items:center; padding:3px 9px; border-radius:99px; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; border:1px solid color-mix(in srgb, var(--c) 45%, transparent); color:var(--ink); background:color-mix(in srgb, var(--c) 14%, transparent); }
+  button.kwchip { cursor:pointer; }
   .bar.brass > i { background: var(--brass); }
   .check { display:flex; gap:12px; align-items:flex-start; padding: 11px 14px; cursor:pointer; }
   .check + .check { border-top: 1px solid var(--line); }
@@ -414,7 +424,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-07';
+const APP_VERSION = '2026-10-21';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -757,11 +767,12 @@ const Home = {
       if (can('team')) S.home.photoCount = (await q(sb.from('photo_requests').select('user_id').eq('status', 'offen'))).length;
     } else {
       const [reps, qa, notes, gp] = await Promise.all([
-        q(sb.from('reports').select('status').eq('user_id', S.me.id)),
+        q(sb.from('reports').select('jahr,kw,status').eq('user_id', S.me.id)),
         q(sb.from('quiz_answers').select('korrekt').eq('user_id', S.me.id)),
         q(sb.from('shift_notes').select('id').eq('author_id', S.me.id)),
         q(sb.from('goal_progress').select('prozent').eq('user_id', S.me.id))
       ]);
+      S.home.myReps = reps;
       S.home.stats = { submitted: reps.filter(r => r.status !== 'entwurf').length, signed: reps.filter(r => r.status === 'abgezeichnet').length,
         obDone: S.home.obDone, obTotal: S.content.tasks.length, quizRight: qa.filter(a => a.korrekt).length,
         goalFull: gp.filter(g => g.prozent >= 100).length, notes: notes.length };
@@ -807,6 +818,7 @@ const Home = {
     ${homeTopHTML()}
     ${isAusbilder() && H.absent?.length ? `${secTitle('Heute nicht im Haus', `<span class="chip tnum">${H.absent.length}</span>`)}<div class="card">${H.absent.map((a, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><span class="chip ${ABS_TONE[a.typ]}">${a.typ}</span><div class="flex-1 min-w-0 text-[14px] font-semibold truncate">${esc(nameOf(a.user_id))}</div><div class="text-[12px] text-muted tnum">bis ${fmtD(a.bis)}</div></div>`).join('')}</div>` : ''}
     ${team}
+    ${isAzubi() && H.myReps && mod('bericht').on !== false ? `${secTitle('Dein Berichtsheft', '<button data-go="bericht" class="text-[13px] font-semibold text-accent">Öffnen</button>')}${berichtBarHTML(berichtStand(me, H.myReps), { open: true })}` : ''}
 
     ${secTitle(isAusbilder() ? 'Module' : 'Deine Module')}
     <div class="grid grid-cols-2 gap-3 modgrid">
@@ -961,6 +973,64 @@ function weekTableHTML(days, w) {
     <div class="p-3 border-t border-line flex justify-between text-[13px] font-semibold" style="background:var(--sunk)"><span>Summe der Woche</span><span class="tnum">${fmtMin(weekMin(days))}</span></div></div>`;
 }
 
+/* ---------- Berichtsheft-Stand: fehlt / zur Prüfung / abgezeichnet ---------- */
+// Fällig ist jede Woche ab Ausbildungsbeginn bis zur Vorwoche. Die laufende Woche zählt mit,
+// sobald sie eingereicht oder abgezeichnet ist. Entwurf und „zum Überarbeiten“ gelten als fehlend.
+function berichtStand(p, reps) {
+  if (!p) return null;
+  const key = w => w.jahr * 100 + w.kw;
+  const start = isoWeek(new Date((p.start_datum || localDate()) + 'T12:00:00'));
+  const by = {}; (reps || []).forEach(r => { by[r.jahr * 100 + r.kw] = r.status; });
+  const weeks = []; let w = weekShift(NOW, -1), guard = 0;
+  while (key(w) >= key(start) && guard++ < 320) { weeks.push(w); w = weekShift(w, -1); }
+  const cur = by[key(NOW)];
+  if (key(NOW) >= key(start) && (cur === 'eingereicht' || cur === 'abgezeichnet')) weeks.unshift(NOW);
+  const st = { total: weeks.length, fertig: [], pruef: [], fehlt: [] };
+  weeks.forEach(x => { const s = by[key(x)]; (s === 'abgezeichnet' ? st.fertig : s === 'eingereicht' ? st.pruef : st.fehlt).push(x); });
+  // Prozente, die zusammen genau 100 ergeben (größter Rest)
+  const n = st.total || 1, raw = [st.fertig.length, st.pruef.length, st.fehlt.length].map(v => v * 100 / n);
+  const pc = raw.map(Math.floor); let rest = st.total ? 100 - pc.reduce((a, b) => a + b, 0) : 0;
+  raw.map((v, i) => [v - pc[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest > 0 && raw[i] > 0) { pc[i]++; rest--; } });
+  st.pct = pc; st.raw = raw;
+  return st;
+}
+function kwLabel(w) { return `KW ${w.kw}${w.jahr !== NOW.jahr ? '/' + String(w.jahr).slice(2) : ''}`; }
+function berichtBarHTML(st, opts = {}) {
+  if (!st) return '';
+  if (!st.total) return `<div class="card p-4"><p class="text-[13px] text-muted">Noch keine Woche fällig. Gezählt wird ab der Woche des ersten Arbeitstags.</p></div>`;
+  const [pOk, pPr, pFe] = st.pct, [rOk, rPr, rFe] = st.raw;
+  const seg = (v, c) => v > 0 ? `<i style="width:${v}%;background:var(${c})"></i>` : '';
+  const chips = (list, c, max) => {
+    const tag = opts.open ? 'button' : 'span';
+    const sorted = list.slice().sort((a, b) => a.jahr - b.jahr || a.kw - b.kw);
+    const shown = sorted.slice(0, max);
+    return shown.map(w => `<${tag} ${opts.open ? `type="button" data-gowk="${w.jahr}-${w.kw}" title="Woche ${weekRange(w)} öffnen"` : `title="${weekRange(w)}"`} class="kwchip" style="--c:var(${c})">${kwLabel(w)}</${tag}>`).join('') + (sorted.length > max ? `<span class="text-[12px] text-muted self-center">+${sorted.length - max} weitere</span>` : '');
+  };
+  return `<div class="card p-4">
+    <div class="flex items-baseline justify-between gap-3 mb-2"><div class="text-[14px] font-semibold">${pOk} % abgeschlossen</div><div class="text-[12px] text-muted tnum">${st.total} ${st.total === 1 ? 'Woche' : 'Wochen'} fällig</div></div>
+    <div class="stbar" role="img" aria-label="Berichtsheft: ${pOk} Prozent abgezeichnet, ${pPr} Prozent zur Prüfung, ${pFe} Prozent fehlen">${seg(rOk, '--st-ok')}${seg(rPr, '--st-warn')}${seg(rFe, '--st-crit')}</div>
+    <div class="stleg mt-3">
+      <div style="--c:var(--st-ok)"><b>${pOk} %</b><span>Abgeschlossen</span><span class="tnum">${st.fertig.length} KW</span></div>
+      <div style="--c:var(--st-warn)"><b>${pPr} %</b><span>Zur Prüfung</span><span class="tnum">${st.pruef.length} KW</span></div>
+      <div style="--c:var(--st-crit)"><b>${pFe} %</b><span>Fehlen</span><span class="tnum">${st.fehlt.length} KW</span></div>
+    </div>
+    ${st.fehlt.length ? `<div class="text-[12px] font-semibold mt-3 mb-1.5">Fehlende Wochen${opts.open ? ' <span class="font-normal text-muted">– antippen zum Schreiben</span>' : ''}</div><div class="flex flex-wrap gap-1.5">${chips(st.fehlt, '--st-crit', 30)}</div>` : '<p class="text-[13px] mt-3" style="color:var(--ok)">Keine Woche fehlt.</p>'}
+    ${st.pruef.length ? `<div class="text-[12px] font-semibold mt-3 mb-1.5">Warten auf Prüfung</div><div class="flex flex-wrap gap-1.5">${chips(st.pruef, '--st-warn', 30)}</div>` : ''}
+  </div>`;
+}
+function berichtMiniHTML(st) {
+  if (!st || !st.total) return '';
+  const [pOk, pPr, pFe] = st.pct, [rOk, rPr, rFe] = st.raw;
+  const seg = (v, c) => v > 0 ? `<i style="width:${v}%;background:var(${c})"></i>` : '';
+  return `<div class="mt-1.5" title="Berichtsheft: ${pOk} % abgeschlossen, ${pPr} % zur Prüfung, ${pFe} % fehlen"><div class="stbar mini">${seg(rOk, '--st-ok')}${seg(rPr, '--st-warn')}${seg(rFe, '--st-crit')}</div>
+    <div class="flex flex-wrap gap-x-3 mt-1 text-[11px] tnum"><span style="color:var(--ok)">${pOk} % fertig</span><span style="color:var(--warn)">${pPr} % Prüfung</span><span style="color:var(--crit)">${pFe} % fehlen${st.fehlt.length ? ' (' + st.fehlt.length + ')' : ''}</span></div></div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-gowk]'); if (!b) return;
+  const [j, k] = b.dataset.gowk.split('-').map(Number);
+  S.rep.week = { jahr: j, kw: k }; S.rep.draftText = null; S.rep.days = null;
+  if (S.view === 'bericht') { render(); scrollTo({ top: 0, behavior: 'smooth' }); } else go('bericht');
+});
 const STATUS = { entwurf: ['warn', 'Entwurf'], eingereicht: ['brass', 'Eingereicht'], abgezeichnet: ['ok', 'Abgezeichnet'], zurueck: ['crit', 'Zum Überarbeiten'] };
 
 const Bericht = {
@@ -1049,6 +1119,9 @@ const Bericht = {
     <button type="button" id="icsOut" class="btn ghost w-full mt-2 text-[13px]">${svg('copy', 'w-4 h-4')} Termine in meinen Kalender übernehmen</button>
     ${S.rep.talks?.length ? secTitle('Meine Gespräche') + talkList(S.rep.talks, false) : ''}
     ${S.rep.beu?.length ? secTitle('Meine Beurteilungen') + beuList(S.rep.beu, false) : ''}
+
+    ${secTitle('Stand Berichtsheft')}
+    ${berichtBarHTML(berichtStand(me, S.rep.list), { open: true })}
 
     ${secTitle('Alle Berichte', `<button id="repPdf" class="btn ghost py-1.5 text-[13px]">${svg('book', 'w-4 h-4')} Als PDF</button>`)}
     ${S.rep.list.length ? `<div class="card">${S.rep.list.map((b, i) => `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-openwk="${b.jahr}-${b.kw}"><div class="font-display font-bold text-[17px] w-16 tnum">KW ${b.kw}</div><div class="flex-1 min-w-0 text-[14px] truncate">${esc(b.abteilung)}${b.tage?.length ? ` <span class="text-muted tnum">· ${fmtMin(weekMin(b.tage))}</span>` : ''}</div><span class="chip ${STATUS[b.status][0]}">${STATUS[b.status][1]}</span></button>`).join('')}</div>` : empty('Noch keine Berichte. Fang mit dieser Woche an.')}`;
@@ -1206,6 +1279,8 @@ const Review = {
     <div class="card p-3.5 mt-3 flex items-center gap-3">${avatar(S.profiles[sel], 40)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(nameOf(sel))}</div><div class="text-[12px] text-muted truncate">${esc(S.profiles[sel]?.abteilung || '')} · Ansprechpartner: ${esc(betreuerOf(S.profiles[sel])?.full_name || 'noch keiner')}</div></div><button class="btn ghost py-2 text-[13px]" data-chat="${sel}">Nachricht</button></div>
     ${secTitle('Lernziele', `<span class="text-[12px] text-muted">${can('lernziele') ? 'Schieberegler speichert sofort' : 'nur ansehen'}</span>`)}
     <div class="card p-4 flex flex-col gap-4">${S.content.goals.map(g => { const p = gp[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><label for="g${g.id}" class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</label><div class="text-[13px] font-bold tnum" id="gv${g.id}">${p}%</div></div>${can('lernziele') ? `<input type="range" id="g${g.id}" min="0" max="100" step="5" value="${p}" data-goal="${g.id}">` : `<div class="bar mt-1.5"><i style="width:${p}%"></i></div>`}</div>`; }).join('')}</div>
+    ${secTitle('Stand Berichtsheft')}
+    ${berichtBarHTML(berichtStand(S.profiles[sel], userReps))}
     ${secTitle('Berichte', `<span class="text-[12px] text-muted tnum">${userReps.length}</span>`)}
     ${userReps.length ? `<div class="card">${userReps.map((r, i) => `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-rev="${r.id}"><div class="font-display font-bold text-[17px] w-16 tnum">KW ${r.kw}</div><div class="flex-1 min-w-0 text-[14px] truncate">${esc(r.abteilung)}${r.tage?.length ? ` <span class="text-muted tnum">· ${fmtMin(weekMin(r.tage))}</span>` : ''}</div><span class="chip ${STATUS[r.status][0]}">${STATUS[r.status][1]}</span></button>`).join('')}</div>` : empty('Noch keine eingereichten Berichte.')}
     ${userReps.length ? `<button id="revPdf" class="btn ghost w-full mt-2">${svg('book', 'w-4 h-4')} Ausbildungsnachweis als PDF</button>` : ''}
@@ -3111,7 +3186,7 @@ async function homeExtras() {
   if (can('abwesenheiten')) jobs.antr = sb.from('absences').select('*').eq('status', 'beantragt').order('von');
   if (can('bewerbungen')) jobs.bew = sb.from('bewerbungen').select('id,name,beruf,created_at,status').eq('status', 'neu').order('created_at', { ascending: false });
   if (isAusbilder()) {
-    jobs.reps = sb.from('reports').select('user_id,jahr,kw,status,updated_at').gte('jahr', NOW.jahr - 1);
+    jobs.reps = sb.from('reports').select('user_id,jahr,kw,status,updated_at');
     if (can('abwesenheiten')) jobs.krank = sb.from('absences').select('user_id,von,bis,typ,status').eq('typ', 'Krank').gte('bis', `${NOW.jahr}-01-01`);
     if (can('unterweisungen')) jobs.allub = sb.from('unterweisung_bestaetigungen').select('user_id,unterweisung_id,bestaetigt_at');
   }
@@ -3219,9 +3294,9 @@ function ampelHTML(list, obTotal) {
   return `${secTitle('Ampel', `<span class="text-[12px] text-muted tnum">${list.length} Azubis</span>`)}
   <div class="card">${rows.map(({ p, a }, i) => { const d = H.obByUser[p.id] || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-ampel="${p.id}">${avatar(p, 38)}
     <div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name || 'Ohne Namen')}</div><div class="text-[12px] text-muted truncate">${p.lehrjahr}. LJ · ${esc(p.abteilung)}${betreuerOf(p) ? ' · bei ' + esc(firstName(betreuerOf(p).full_name)) : ''}</div>
-    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">${dot(a.berichte, 'Berichte', a.miss ? `${a.miss} Wochen ohne Bericht` : 'Berichte vollständig')}${dot(a.pruefen, 'Prüfen', a.old ? `${a.old} Berichte warten > 7 Tage` : 'nichts liegen geblieben')}${dot(a.krank, 'Fehltage', `${a.krankTage || 0} Krankheitstage ${NOW.jahr}`)}${dot(a.uw, 'Unterweisung', a.uwDue ? `${a.uwDue} fällig` : 'alle erledigt')}${pct(d, obTotal) < 100 && obTotal ? `<span class="text-[11px] text-muted tnum">Onboarding ${pct(d, obTotal)}%</span>` : ''}</div></div>
+    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">${dot(a.berichte, 'Berichte', a.miss ? `${a.miss} Wochen ohne Bericht` : 'Berichte vollständig')}${dot(a.pruefen, 'Prüfen', a.old ? `${a.old} Berichte warten > 7 Tage` : 'nichts liegen geblieben')}${dot(a.krank, 'Fehltage', `${a.krankTage || 0} Krankheitstage ${NOW.jahr}`)}${dot(a.uw, 'Unterweisung', a.uwDue ? `${a.uwDue} fällig` : 'alle erledigt')}${pct(d, obTotal) < 100 && obTotal ? `<span class="text-[11px] text-muted tnum">Onboarding ${pct(d, obTotal)}%</span>` : ''}</div>${H.reps ? berichtMiniHTML(berichtStand(p, H.reps.filter(r => r.user_id === p.id))) : ''}</div>
     ${a.exam ? `<span class="chip ${a.exam[1] <= 30 ? 'warn' : ''} tnum flex-none">${a.exam[0]} ${a.exam[1]} T.</span>` : ''}</button>`; }).join('')}</div>
-  <p class="text-[12px] text-muted mt-2">Grün = alles gut, Gelb = bitte ansehen, Rot = handeln. Berichte: letzte 8 Wochen. Antippen öffnet den Azubi.</p>`;
+  <p class="text-[12px] text-muted mt-2">Grün = alles gut, Gelb = bitte ansehen, Rot = handeln. Berichte: letzte 8 Wochen. Der Balken zeigt das ganze Berichtsheft: grün abgezeichnet, orange zur Prüfung, rot fehlt. Antippen öffnet den Azubi.</p>`;
 }
 function extraTilesHTML() {
   const H = S.home, uwOff = H.uwOffen?.length || 0, neu = H.ankNeu?.length || 0;
