@@ -319,6 +319,8 @@
         if (!a.p_status) { DB.schul_lf_stand = DB.schul_lf_stand.filter(s => s !== ex); return true; }
         if (ex) Object.assign(ex, { status: a.p_status, von: a.p_von || f.lehrkraft, updated_at: iso(new Date()) }); else DB.schul_lf_stand.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, lf_nr: a.p_lf, status: a.p_status, note: a.p_note, von: a.p_von || f.lehrkraft, seit: ymd(new Date()), updated_at: iso(new Date()) }); return true; },
       schule_msg: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null; DB.schul_nachrichten.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, freigabe_id: f.id, richtung: 'schule', von: a.p_von || f.lehrkraft, text: a.p_text, created_at: iso(new Date()) }); return true; },
+      ihk_mein: () => ({ ihknr: 108, name: 'Industrie- und Handelskammer Ostwestfalen zu Bielefeld', kurz: 'Bielefeld', street: 'Elsa-Brändström-Straße 1-3', zip: '33602', city: 'Bielefeld', land: 'Nordrhein-Westfalen', phone: '+49 521 554-0', email: 'info@ostwestfalen.ihk.de', homepage: 'https://www.ostwestfalen.ihk.de', quelle: 'Berufsbildende Schulen Warburg' }),
+      ihk_info: () => RPC.ihk_mein(), ihk_suche: () => [RPC.ihk_mein()],
       schul_nachweis: a => { const e = DB.schul_eintraege.find(x => x.id === a.p_id); if (e) e.nachweis = a.p_path; return true; },
       beurteilung_gelesen: a => { const b = DB.beurteilungen.find(x => x.id === a.p_id); if (b) b.gelesen_at = iso(new Date()); return null; },
       admin_users: () => DB.profiles.map(p => ({ id: p.id, email: p.full_name.split(' ')[0].toLowerCase() + '@seeblick.example', last_sign_in_at: iso(day(-1)), created_at: p.created_at })),

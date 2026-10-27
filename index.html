@@ -426,7 +426,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-27d';
+const APP_VERSION = '2026-10-27f';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -479,6 +479,8 @@ const I = {
   book: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/><path d="M8 7h8M8 11h6"/>',
   wiki: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   buddy: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/>',
+  school: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/><path d="M22 9v6"/>',
+  ihk: '<circle cx="12" cy="9" r="5"/><path d="M9 13.5 7.5 21l4.5-2.5 4.5 2.5L15 13.5"/>',
   shift: '<path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v5"/><path d="M8 14h5M8 17h8"/>',
   arrow: '<path d="m9 6 6 6-6 6"/>', left: '<path d="m15 6-6 6 6 6"/>',
   spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
@@ -664,9 +666,10 @@ async function startApp(user) {
 /* =====================================================================
    Navigation
    ===================================================================== */
-const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['uebergabe', null, 'shift']];
+const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk']];
 const EXTRA_VIEWS = ['home', 'admin', 'chat', 'uw', 'news'];
-const visible = v => EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
+// Übergabebuch ist seit 27.10.2026 ausgeblendet (Daten bleiben erhalten); Schule und IHK gibt es nicht für Mitarbeiter/innen
+const visible = v => v === 'uebergabe' ? false : (v === 'schule' || v === 'ihk') ? !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
 function renderTabs() {
   const tabs = TABS.filter(([id]) => visible(id));
   $('#tabs').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
@@ -682,7 +685,7 @@ async function go(v) {
   try { await VIEWS[v].load?.(); } catch (e) { if (tok === navToken) $('#app').innerHTML = `<div class="card p-4 mt-2 text-[14px]">Laden fehlgeschlagen: ${esc(errText(e))} <button class="btn ghost mt-3 w-full" data-go="${v}">Erneut versuchen</button></div>`; return; }
   if (tok === navToken) { render(); if (S.navByUser) { S.navByUser = false; $('#app').focus({ preventScroll: true }); } }
 }
-const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung' };
+const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK' };
 function render() {
   const V = VIEWS[S.view];
   try { const t = VIEW_TITLES[S.view] || (S.view === 'home' ? 'Start' : mod(S.view)?.tab) || ''; document.title = (t ? t + ' – ' : '') + (BR.appName || 'AzubiHub'); } catch {}
@@ -811,7 +814,6 @@ const Home = {
       <div class="sub text-[14px] mt-1">${isAusbilder() ? esc(staffLine(me)) : isMA() ? esc(me.position || t('Mitarbeiter/in')) : `${esc(me.beruf)} · ${me.lehrjahr}. ${t('Ausbildungsjahr')} · ${t('Tag')} ${day} ${t('im Haus')}`}</div>
       <div class="mt-4 flex flex-wrap gap-2 text-[13px] font-semibold">
         ${isAusbilder() ? '' : `<span class="pill px-3 py-1.5 rounded-full">${esc(me.abteilung)}</span>`}
-        <span class="pill px-3 py-1.5 rounded-full tnum">${openCount} offene Posten im Haus</span>
       </div>
     </section>
 
@@ -839,18 +841,13 @@ const Home = {
         <div><div class="font-display font-bold text-[16px] leading-snug">${esc(mod('buddy').title)}</div><div class="text-[13px] text-muted mt-0.5 tnum">${H.obDone} von ${obTotal} Aufgaben</div></div>
         <div class="bar w-full"><i style="width:${pct(H.obDone, obTotal)}%"></i></div>
       </button>` : ''}
-      ${mod('uebergabe').on !== false ? `<button class="card modtile" data-go="uebergabe">
-        <div class="flex items-center justify-between gap-2"><span class="ico brass">${svg('shift')}</span><span class="chip ${openCount ? 'crit' : 'ok'} tnum">${openCount} offen</span></div>
-        <div><div class="font-display font-bold text-[16px] leading-snug">${esc(mod('uebergabe').title)}</div><div class="text-[13px] text-muted mt-0.5 tnum">${S.board.notes.length} Einträge im Übergabebuch</div></div>
-        <div class="bar brass w-full"><i style="width:${pct(S.board.items.filter(o => o.done).length, S.board.items.length)}%"></i></div>
-      </button>` : ''}
+      ${!isMA() ? schoolTilesHTML() : ''}
       ${extraTilesHTML()}
     </div>
 
     ${isAzubi() ? `${secTitle('Deine Ansprechpartner', '<button data-go="chat" class="text-[13px] font-semibold text-accent">Team & Nachrichten</button>')}${myContactsHTML(me)}` : ''}
     ${isAzubi() && H.stats ? badgesHTML(H.stats) : ''}
-    ${mod('uebergabe').on !== false ? `${secTitle('Letzte Übergabe', `<button data-go="uebergabe" class="text-[13px] font-semibold text-accent">Alle ansehen</button>`)}
-    ${latest ? noteCard(latest) : empty('Noch keine Übergabe geschrieben.')}` : ''}`;
+`;
   },
   bind() {
     $$('[data-review]').forEach(b => b.onclick = () => { S.rev.open = b.dataset.review; go('bericht'); });
@@ -1116,7 +1113,7 @@ const Bericht = {
     ${secTitle('Lernziele', '<span class="text-[12px] text-muted">bewertet von der Ausbildungsleitung</span>')}
     <div class="card p-4 flex flex-col gap-4">${goals.map(g => { const p = S.rep.goals[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><div class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</div><div class="text-[13px] font-bold tnum">${p}%</div></div><div class="text-[11px] text-muted mb-1.5">${esc(g.ref)}</div><div class="bar ${p < 20 ? 'brass' : ''}"><i style="width:${p}%"></i></div></div>`; }).join('')}</div>
 
-    ${schoolHTML(me, false)}
+    ${schoolLinkHTML()}
     ${secTitle('Abwesenheiten & Berufsschule', '<button id="absNew" class="text-[13px] font-semibold text-accent">+ Eintragen</button>')}
     ${absenceList(S.rep.abs || [])}
     <button type="button" id="icsOut" class="btn ghost w-full mt-2 text-[13px]">${svg('copy', 'w-4 h-4')} Termine in meinen Kalender übernehmen</button>
@@ -1299,7 +1296,7 @@ const Review = {
     ${talkList(S.rev.talks.filter(t => t.user_id === sel), true)}
     ${secTitle('Beurteilungen', '<button id="beuNew" class="text-[13px] font-semibold text-accent">+ Neu</button>')}
     ${beuList((S.rev.beu || []).filter(b => b.azubi_id === sel), true)}` : ''}
-    ${canSchool(S.profiles[sel]) ? schoolHTML(S.profiles[sel], true) : ''}
+    ${canSchool(S.profiles[sel]) ? schoolLinkHTML() : ''}
     ${secTitle('Abwesenheiten & Berufsschule', can('abwesenheiten') ? '<button id="absNew" class="text-[13px] font-semibold text-accent">+ Eintragen</button>' : '')}
     ${absenceList(S.rev.abs.filter(a => a.user_id === sel))}` : ''}`;
   },
@@ -1920,7 +1917,7 @@ function bindCfgForm() {
       wikiChips: lines('cWikiChips'), botHello: $('#cBotHello').value.trim() || DEFAULT_APP.botHello, botAsks: lines('cBotAsks'),
       botFallback: $('#cBotFallback').value.trim() || DEFAULT_APP.botFallback,
       genPhrases: gen, genFallback: $('#cGenFb').value.trim() || DEFAULT_APP.genFallback, genLinks: links,
-      wochenSoll: Math.min(60, Math.max(0, parseInt($('#cSoll').value, 10) || 0)) };
+      wochenSoll: Math.min(60, Math.max(0, parseInt($('#cSoll').value, 10) || 0)), ...(APP.ihk ? { ihk: APP.ihk } : {}) };
     await q(sb.from('app_config').upsert([{ key: 'branding', value: newBR }, { key: 'app', value: newAPP }], { onConflict: 'betrieb_id,key' }));
     BR = mergeCfg(DEFAULT_BRANDING, newBR); APP = mergeCfg(DEFAULT_APP, newAPP); applyConfig(); renderTabs();
     toast('Gespeichert. Gilt ab sofort für alle.');
@@ -3981,6 +3978,7 @@ function openSchoolSheet(a, f, onDone) {
       <form id="scForm" class="card p-4 flex flex-col gap-3">
         <p class="text-[13px] text-muted">Für <b>${esc(a.full_name)}</b>. Die Lehrkraft bekommt einen Link, kein Konto. Sie sieht eingereichte Wochenberichte und Fehlzeiten und kann Fehltage, Verspätungen oder Notizen melden. Du kannst den Zugang jederzeit beenden.</p>
         <div><label class="lbl" for="scSchule">Schule</label><input id="scSchule" class="field" maxlength="120" placeholder="z. B. Berufsbildende Schulen Warburg"></div>
+        <div><label class="lbl" for="scOrt">PLZ oder Ort der Schule <span class="font-normal text-muted">(daraus erkennt AzubiHub eure IHK)</span></label><input id="scOrt" class="field" maxlength="80" placeholder="z. B. 34414 Warburg"></div>
         <div><label class="lbl" for="scLk">Lehrkraft</label><input id="scLk" class="field" maxlength="120" placeholder="z. B. Frau Lehmann (Klassenleitung)"></div>
         <div><label class="lbl" for="scMail">E-Mail der Lehrkraft <span class="font-normal text-muted">(optional, zum Senden des Links)</span></label><input id="scMail" type="email" class="field" maxlength="120"></div>
         <div><label class="lbl" for="scBis">Zugang gültig bis</label><input id="scBis" type="date" class="field" value="${localDate(end)}"></div>
@@ -3988,7 +3986,7 @@ function openSchoolSheet(a, f, onDone) {
       </form>`);
     $('#scForm').onsubmit = async e => {
       e.preventDefault();
-      const out = { azubi_id: a.id, schule: $('#scSchule').value.trim(), lehrkraft: $('#scLk').value.trim(), email: $('#scMail').value.trim(), gueltig_bis: $('#scBis').value };
+      const out = { azubi_id: a.id, schule: $('#scSchule').value.trim(), ort: $('#scOrt').value.trim() || null, lehrkraft: $('#scLk').value.trim(), email: $('#scMail').value.trim(), gueltig_bis: $('#scBis').value };
       if (out.schule.length < 2) return toast('Bitte den Namen der Schule eingeben.');
       const row = await q(sb.from('schul_freigaben').insert(out).select().single());
       S.school.f.unshift(row); openSchoolSheet(a, row, onDone);
@@ -4168,7 +4166,7 @@ async function showClass() {
   };
 }
 
-const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, admin: Admin, chat: Chat, uw: UW, news: News };
+const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, admin: Admin, chat: Chat, uw: UW, news: News };
 function updateAdminBtn() { $('#admBtn').hidden = !canManage(); }
 
 /* =====================================================================

@@ -499,3 +499,194 @@ function schClassAttendanceBind(again) {
     if (ok) again();
   };
 }
+
+/* =====================================================================
+   Eigene Bereiche (Kacheln) „Schule“ und „IHK“
+   ===================================================================== */
+const schStaffList = () => azubis().filter(a => canSchool(a));
+function schPerson() {
+  if (isAzubi()) return S.me;
+  const list = schStaffList();
+  return S.profiles[S.rev.selUser] && list.some(a => a.id === S.rev.selUser) ? S.profiles[S.rev.selUser] : list[0] || null;
+}
+function schSelectorHTML(cur, attr = 'data-schsel') {
+  const list = schStaffList(); if (!list.length) return '';
+  return `${secTitle('Azubi auswählen')}<div class="seg" role="group" aria-label="Azubi">${list.map(p => `<button ${attr}="${p.id}" aria-pressed="${p.id === cur?.id}">${esc(firstName(p.full_name))}</button>`).join('')}</div>`;
+}
+const SchoolView = {
+  async load() {
+    await Bericht.load();
+    const a = schPerson();
+    if (a) { if (!isAzubi()) S.rev.selUser = a.id; await loadSchool(a.id).catch(() => { S.school = null; }); }
+  },
+  html() {
+    const a = schPerson();
+    const intro = isAzubi() ? 'Fehltage, Noten, Zeugnisse und Lernfelder – und was deine Schule an den Betrieb meldet.' : 'Anwesenheit, Fehltage, Noten, Zeugnisse, Lernfelder und Nachrichten der Berufsschule.';
+    if (!a) return `${head('Berufsschule', 'Schule', intro)}${empty('Noch keine Azubis, für die du zuständig bist.')}`;
+    return `${head('Berufsschule', 'Schule', intro)}
+      ${!isAzubi() && (isAdmin() || can('team')) ? '<button id="schPdf2" class="btn ghost w-full">Schulbericht für alle Azubis (PDF)</button>' : ''}
+      ${isAzubi() ? '' : schSelectorHTML(a)}
+      ${isAzubi() ? '' : `<div class="card p-3.5 mt-3 flex items-center gap-3">${avatar(a, 40)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(a.full_name)}</div><div class="text-[12px] text-muted truncate">${esc(a.beruf || '')} · ${a.lehrjahr || 1}. Ausbildungsjahr</div></div></div>`}
+      ${schoolHTML(a, !isAzubi()) || empty('Die Daten der Berufsschule konnten nicht geladen werden.')}`;
+  },
+  bind() {
+    const a = schPerson(); if (a) bindSchool(a, () => go('schule'));
+    $$('[data-schsel]').forEach(b => b.onclick = () => { S.rev.selUser = b.dataset.schsel; go('schule'); });
+    if ($('#schPdf2')) $('#schPdf2').onclick = () => schMonatPDF($('#schPdf2'));
+  }
+};
+
+/* IHK: Prüfungstermine, Zulassung, Unterlagen, Prüfungstraining, Kontakt zur eigenen IHK */
+function ihkPerson() { return isAzubi() ? S.me : schPerson(); }
+function ihkReps(p) { return isAzubi() ? (S.rep.list || []) : (S.rev.list || []).filter(r => r.user_id === p.id); }
+const IhkView = {
+  async load() {
+    await Bericht.load();
+    const p = ihkPerson();
+    if (p && (isAzubi() || canSchool(p))) { if (!isAzubi()) S.rev.selUser = p.id; await loadSchool(p.id).catch(() => { S.school = null; }); }
+    await ihkLoad();
+  },
+  html() {
+    const p = ihkPerson(), ihk = APP.ihk || {};
+    const intro = 'Prüfungstermine, Zulassung, Ausbildungsnachweis und der Draht zu eurer IHK an einem Ort.';
+    if (!p) return `${head('Industrie- und Handelskammer', 'IHK', intro)}${empty('Noch keine Azubis, für die du zuständig bist.')}${ihkContactHTML(ihk)}`;
+    const reps = ihkReps(p), st = berichtStand(p, reps), rs = rpStand(reps, p);
+    const names = EXN(p.beruf), exams = [[names[0], p.zp_datum], [names[1], p.ap_datum]];
+    const sc = S.school && S.school.azubi === p.id ? S.school : null;
+    const unent = sc ? sc.e.filter(e => e.typ === 'fehltag' && e.status === 'unentschuldigt').length : 0;
+    const offen = sc ? sc.e.filter(e => e.typ === 'fehltag' && schSt(e) === 'offen').length : 0;
+    const firstDone = p.zp_datum && daysUntil(p.zp_datum) < 0;
+    const fehl = st?.fehlt?.length || 0, pruef = st?.pruef?.length || 0;
+    const checks = [
+      [!fehl && !pruef ? 'ok' : fehl ? 'crit' : 'warn', 'Ausbildungsnachweise vollständig und abgezeichnet', fehl || pruef ? `${fehl ? fehl + ' Woche' + (fehl === 1 ? '' : 'n') + ' fehlen' : ''}${fehl && pruef ? ', ' : ''}${pruef ? pruef + ' warten auf Abzeichnung' : ''}` : 'Alle fälligen Wochen sind abgezeichnet.', 'Die IHK lässt nur zur Abschlussprüfung zu, wer die Ausbildungsnachweise vorgelegt hat (§ 43 BBiG).'],
+      [firstDone ? 'ok' : p.zp_datum ? 'warn' : '', `${names[0]} abgelegt`, p.zp_datum ? (firstDone ? `am ${fmtDate(p.zp_datum)}` : `geplant am ${fmtDate(p.zp_datum)}`) : 'noch kein Termin eingetragen', ZWEIJ(p.beruf) ? 'Die Teilnahme an der Zwischenprüfung ist Voraussetzung für die Zulassung zur Abschlussprüfung.' : 'Teil 1 zählt bereits zur Gesamtnote der Abschlussprüfung.'],
+      [rs ? (rs.pc >= 80 ? 'ok' : rs.pc >= 50 ? 'warn' : 'crit') : '', 'Ausbildungsrahmenplan vermittelt', rs ? `${rs.pc} % der Positionen erledigt` : 'kein Rahmenplan hinterlegt', 'Prüfungsstoff ist, was im Rahmenplan und in der Berufsschule vermittelt wird.'],
+      [sc ? (unent ? 'crit' : offen ? 'warn' : 'ok') : '', 'Berufsschule ohne offene Fehltage', sc ? (unent || offen ? `${unent ? unent + ' unentschuldigt' : ''}${unent && offen ? ', ' : ''}${offen ? offen + ' ungeklärt' : ''}` : 'keine offenen Fehltage') : 'nicht verfügbar', ''],
+      ['', 'Anmeldung zur Prüfung', 'Fristen, Formular und Anmeldeweg legt eure IHK fest.', 'Links und Kontakt findest du unten bei „Eure IHK“.']
+    ];
+    const dot = c => `<span class="flex-none mt-1" style="width:12px;height:12px;border-radius:50%;display:inline-block;background:${c === 'ok' ? 'var(--st-ok)' : c === 'warn' ? 'var(--st-warn)' : c === 'crit' ? 'var(--st-crit)' : 'var(--line)'}"></span>`;
+    return `${head('Industrie- und Handelskammer', 'IHK', intro)}
+      ${isAzubi() ? '' : schSelectorHTML(p, 'data-ihksel')}
+      ${secTitle('Prüfungstermine')}
+      <div class="grid grid-cols-2 gap-2">${exams.map(([l, d]) => { const n = daysUntil(d);
+        return `<div class="card p-3.5"><div class="text-[12px] text-muted font-semibold">${esc(l)}</div><div class="text-[20px] font-bold tnum leading-tight mt-1">${d ? fmtDate(d) : '–'}</div><div class="text-[12px] tnum mt-0.5" style="color:${n === null ? 'var(--muted)' : n < 0 ? 'var(--st-ok)' : n <= 30 ? 'var(--st-crit)' : n <= 90 ? 'var(--st-warn)' : 'var(--muted)'}">${n === null ? 'noch kein Termin' : n < 0 ? 'abgelegt' : n === 0 ? 'heute' : `in ${n} Tagen`}</div></div>`; }).join('')}</div>
+      ${!p.zp_datum || !p.ap_datum ? `<p class="text-[12px] text-muted mt-2">${isAzubi() ? '<button class="font-semibold text-accent" id="ihkSetDates">Termine eintragen</button> – die IHK teilt sie mit der Einladung mit.' : 'Termine trägt die Leitung unter Verwaltung › Team beim Azubi ein.'}</p>` : ''}
+
+      ${secTitle('Zulassung zur Prüfung', '<span class="text-[12px] text-muted">automatisch geprüft</span>')}
+      <div class="card">${checks.map(([c, t, d, h], i) => `<div class="p-3.5 flex gap-3 ${i ? 'border-t border-line' : ''}">${dot(c)}<div class="min-w-0"><div class="text-[14px] font-semibold">${t}</div><div class="text-[13px] mt-0.5" style="color:${c === 'crit' ? 'var(--st-crit)' : c === 'warn' ? 'var(--st-warn)' : 'var(--muted)'}">${esc(d)}</div>${h ? `<div class="text-[12px] text-muted mt-0.5">${h}</div>` : ''}</div></div>`).join('')}</div>
+
+      ${secTitle('Unterlagen für die IHK')}
+      <div class="grid gap-2">
+        <button class="btn" id="ihkPdf">${svg('book', 'w-4 h-4')} Ausbildungsnachweis als PDF</button>
+        ${isAzubi() ? '<button class="btn ghost" id="ihkIcs">Prüfungstermine in den Kalender</button>' : ''}
+        ${!isAzubi() && (isAdmin() || can('team')) ? '<button class="btn ghost" id="ihkSchul">Schulbericht (PDF)</button>' : ''}
+      </div>
+      <p class="text-[12px] text-muted mt-2">Der Nachweis enthält alle Wochenberichte mit Abzeichnung und auf Wunsch den Abgleich mit dem Rahmenplan – so, wie ihn die IHK zur Prüfungsanmeldung sehen will.</p>
+
+      ${secTitle('Prüfungstraining', isAzubi() ? '<button id="ihkExam" class="text-[13px] font-semibold text-accent">Prüfung simulieren</button>' : '')}
+      <div data-examstats="${p.id}"><div class="card p-4 text-[14px] text-muted">Wird geladen …</div></div>
+
+      ${ihkContactHTML(ihk)}`;
+  },
+  bind() {
+    const p = ihkPerson();
+    $$('[data-ihksel]').forEach(b => b.onclick = () => { S.rev.selUser = b.dataset.ihksel; go('ihk'); });
+    if ($('#ihkPdf') && p) $('#ihkPdf').onclick = () => openExportSheet(p.id);
+    if ($('#ihkIcs')) $('#ihkIcs').onclick = exportIcs;
+    if ($('#ihkSchul')) $('#ihkSchul').onclick = () => schMonatPDF($('#ihkSchul'));
+    if ($('#ihkExam')) $('#ihkExam').onclick = openExamPicker;
+    if ($('#ihkSetDates')) $('#ihkSetDates').onclick = openProfile;
+    if ($('#ihkEdit')) $('#ihkEdit').onclick = ihkEditSheet;
+    if ($('#ihkPick')) $('#ihkPick').onclick = ihkPickSheet;
+    if ($('[data-examstats]')) fillExamStats();
+  }
+};
+/* Eure IHK: wird automatisch über die Berufsschulen (Ort oder Name) erkannt. Daten aus dem öffentlichen IHK-Verzeichnis von ihk.de,
+   monatlich aktualisiert. Die Leitung kann eine andere Kammer wählen und Ansprechpartner ergänzen. */
+async function ihkLoad() {
+  const man = +(APP.ihk?.ihknr || 0);
+  try {
+    const { data } = man ? await sb.rpc('ihk_info', { p_nr: man }) : await sb.rpc('ihk_mein');
+    S.ihkData = data ? { ...data, quelle: man ? 'hand' : data.quelle } : null;
+  } catch { S.ihkData = null; }
+}
+const ihkHost = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+function ihkContactHTML(ihk) {
+  const K = S.ihkData, beruf = ihkPerson()?.beruf || '';
+  const link = (u, l) => u ? `<a class="btn ghost py-2 text-[13px]" href="${esc(u)}" target="_blank" rel="noopener">${l} ↗</a>` : '';
+  const search = q => K?.homepage ? `https://www.google.com/search?q=${encodeURIComponent(`site:${ihkHost(K.homepage)} ${q}`)}` : '';
+  const extra = ihk.berater || ihk.telefon || ihk.email || ihk.portal;
+  return `${secTitle('Eure IHK', isAdmin() ? `<span class="flex gap-3"><button id="ihkPick" class="text-[13px] font-semibold text-accent">${K ? 'Andere wählen' : 'IHK wählen'}</button><button id="ihkEdit" class="text-[13px] font-semibold text-accent">Ansprechpartner</button></span>` : '')}
+    ${K ? `<div class="card p-4 flex flex-col gap-2">
+      <div class="text-[16px] font-bold">${esc(K.name)}</div>
+      <div class="text-[13px] text-muted">${esc(K.street || '')}${K.zip ? ', ' + esc(K.zip) + ' ' + esc(K.city || '') : ''}</div>
+      <div class="text-[14px] flex flex-wrap" style="column-gap:16px;row-gap:4px">${K.phone ? `<a class="text-accent font-semibold" href="tel:${esc(K.phone.replace(/[^\d+]/g, ''))}">${esc(K.phone)}</a>` : ''}${K.email ? `<a class="text-accent font-semibold" href="mailto:${esc(K.email)}">${esc(K.email)}</a>` : ''}</div>
+      ${extra ? `<div class="rounded-xl p-3 mt-1 text-[14px]" style="background:var(--sunk)"><div class="text-[12px] text-muted font-semibold mb-0.5">Eure Ansprechperson für die Ausbildung</div>${ihk.berater ? `<div class="font-semibold">${esc(ihk.berater)}</div>` : ''}<div class="flex flex-wrap" style="column-gap:16px">${ihk.telefon ? `<a class="text-accent font-semibold" href="tel:${esc(ihk.telefon.replace(/[^\d+]/g, ''))}">${esc(ihk.telefon)}</a>` : ''}${ihk.email ? `<a class="text-accent font-semibold" href="mailto:${esc(ihk.email)}">${esc(ihk.email)}</a>` : ''}</div></div>` : ''}
+      <div class="grid grid-cols-2 gap-2 mt-1">${link(K.homepage, 'Website der IHK')}${link(ihk.portal, 'Prüfungsanmeldung')}${link(search(`Prüfungstermine ${beruf}`.trim()), 'Prüfungstermine')}${link(search('Ausbildungsberatung'), 'Ausbildungsberatung')}${ihk.portal ? '' : link(search('Anmeldung Abschlussprüfung'), 'Anmeldung zur Prüfung')}</div>
+      <p class="text-[12px] text-muted">${K.quelle === 'hand' ? 'Von der Leitung ausgewählt.' : K.quelle ? `Automatisch erkannt über die Berufsschule „${esc(K.quelle)}“.` : ''} Kontaktdaten aus dem öffentlichen IHK-Verzeichnis (ihk.de), monatlich aktualisiert.</p>
+    </div>` : empty(isAdmin() ? 'Noch keine IHK erkannt. Sobald ein Zugang für die Berufsschule angelegt ist (mit Ort oder PLZ der Schule), findet AzubiHub eure IHK automatisch – oder ihr wählt sie oben selbst.' : 'Eure IHK wird erkannt, sobald der Betrieb einen Zugang für die Berufsschule angelegt hat.')}`;
+}
+async function ihkSaveApp(patch) {
+  const rows = await q(sb.from('app_config').select('key,value').eq('key', 'app'));
+  const stored = rows[0]?.value || {}, ihk = { ...(stored.ihk || {}), ...patch };
+  Object.keys(ihk).forEach(k => { if (ihk[k] === '' || ihk[k] == null) delete ihk[k]; });
+  await q(sb.from('app_config').upsert([{ key: 'app', value: { ...stored, ihk } }], { onConflict: 'betrieb_id,key' }));
+  APP.ihk = ihk;
+}
+function ihkEditSheet() {
+  const i = APP.ihk || {};
+  const f = (id, l, v, ph = '', type = 'text') => `<div><label class="lbl" for="${id}">${l}</label><input id="${id}" type="${type}" class="field" value="${esc(v || '')}" placeholder="${esc(ph)}" maxlength="200"></div>`;
+  sheetShell('Ansprechpartner bei der IHK', `<form id="ihkForm" class="card p-4 flex flex-col gap-3">
+    ${f('ihBer', 'Ausbildungsberater/in', i.berater, 'Name')}
+    <div class="grid grid-cols-2 gap-2">${f('ihTel', 'Telefon', i.telefon, '', 'tel')}${f('ihMail', 'E-Mail', i.email, '', 'email')}</div>
+    ${f('ihPortal', 'Link zur Prüfungsanmeldung oder zum Ausbildungsportal', i.portal, 'https://…', 'url')}
+    <button class="btn">Speichern</button><p class="text-[12px] text-muted">Name, Adresse und Zentrale der IHK kommen automatisch aus dem IHK-Verzeichnis.</p></form>`);
+  $('#ihkForm').onsubmit = async e => {
+    e.preventDefault();
+    const url = v => { v = v.trim(); return v && !/^https?:\/\//i.test(v) ? 'https://' + v : v; };
+    await ihkSaveApp({ berater: $('#ihBer').value.trim(), telefon: $('#ihTel').value.trim(), email: $('#ihMail').value.trim(), portal: url($('#ihPortal').value) });
+    closeSheet(); toast('Gespeichert'); render();
+  };
+}
+function ihkPickSheet() {
+  sheetShell('IHK wählen', `<form id="ihkSForm" class="card p-4 flex flex-col gap-3">
+    <div><label class="lbl" for="ihQ">PLZ, Ort oder Name der IHK</label><input id="ihQ" class="field" placeholder="z. B. 34414 oder Warburg" autocomplete="off"></div>
+    <button class="btn">Suchen</button>
+    <div id="ihRes" class="flex flex-col"></div>
+    ${APP.ihk?.ihknr ? '<button type="button" class="btn ghost" id="ihAuto">Wieder automatisch erkennen</button>' : ''}</form>`);
+  $('#ihkSForm').onsubmit = async e => {
+    e.preventDefault();
+    const { data } = await sb.rpc('ihk_suche', { p_q: $('#ihQ').value });
+    $('#ihRes').innerHTML = (data || []).length ? data.map(k => `<button type="button" class="rpitem py-2.5 text-left" data-ihknr="${k.ihknr}"><div class="text-[14px] font-semibold">${esc(k.name)}</div><div class="text-[12px] text-muted">${esc(k.city || '')} · ${esc(k.land || '')}</div></button>`).join('') : '<p class="text-[13px] text-muted">Nichts gefunden.</p>';
+    $$('[data-ihknr]').forEach(b => b.onclick = async () => { await ihkSaveApp({ ihknr: +b.dataset.ihknr }); await ihkLoad(); closeSheet(); toast('IHK gespeichert'); render(); });
+  };
+  if ($('#ihAuto')) $('#ihAuto').onclick = async () => { await ihkSaveApp({ ihknr: null }); await ihkLoad(); closeSheet(); toast('Wird wieder automatisch erkannt'); render(); };
+}
+
+/* Kacheln auf der Startseite und Verweis aus dem Berichtsheft */
+function schoolTilesHTML() {
+  const H = S.home || {}, me = S.me;
+  let chipS = ['', 'Berufsschule'], subS = 'Fehltage, Noten, Zeugnisse, Lernfelder';
+  if (isAusbilder() && H.schE) {
+    const off = H.schE.filter(e => e.typ === 'fehltag' && schSt(e) === 'offen').length;
+    chipS = off ? ['warn', `${off} ungeklärt`] : ['ok', 'alles geklärt'];
+    subS = 'Meldungen, Noten und Lernfelder aller Azubis';
+  }
+  let chipI = ['', 'Prüfung'], subI = 'Prüfungstermine, Zulassung, Ausbildungsnachweis';
+  if (isAzubi()) {
+    const next = [[EXN(me.beruf)[0], me.zp_datum], [EXN(me.beruf)[1], me.ap_datum]].map(([l, d]) => [l, daysUntil(d)]).find(x => x[1] !== null && x[1] >= 0);
+    if (next) { chipI = [next[1] <= 30 ? 'crit' : next[1] <= 90 ? 'warn' : '', `in ${next[1]} Tagen`]; subI = next[0]; }
+  } else {
+    const soon = azubis().filter(p => [p.zp_datum, p.ap_datum].some(d => { const n = daysUntil(d); return n !== null && n >= 0 && n <= 90; })).length;
+    if (soon) { chipI = ['warn', `${soon} in 90 Tagen`]; subI = 'Prüfungen stehen an'; }
+  }
+  return `<button class="card modtile" data-go="schule">
+      <div class="flex items-center justify-between gap-2"><span class="ico">${svg('school')}</span><span class="chip ${chipS[0]} tnum">${chipS[1]}</span></div>
+      <div><div class="font-display font-bold text-[16px] leading-snug">Schule</div><div class="text-[13px] text-muted mt-0.5">${subS}</div></div></button>
+    <button class="card modtile" data-go="ihk">
+      <div class="flex items-center justify-between gap-2"><span class="ico brass">${svg('ihk')}</span><span class="chip ${chipI[0]} tnum">${chipI[1]}</span></div>
+      <div><div class="font-display font-bold text-[16px] leading-snug">IHK</div><div class="text-[13px] text-muted mt-0.5">${esc(subI)}</div></div></button>`;
+}
+function schoolLinkHTML() {
+  return `<button class="card w-full p-3.5 mt-6 flex items-center gap-3 text-left" data-go="schule"><span class="ico" style="width:34px;height:34px">${svg('school', 'w-4 h-4')}</span><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold">Berufsschule</div><div class="text-[12px] text-muted">Fehltage, Noten, Zeugnisse, Lernfelder und Nachrichten – jetzt unter „Schule“</div></div>${svg('arrow', 'w-4 h-4')}</button>`;
+}
