@@ -425,7 +425,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-27';
+const APP_VERSION = '2026-10-27b';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -3188,6 +3188,7 @@ async function homeExtras() {
   if (can('bewerbungen')) jobs.bew = sb.from('bewerbungen').select('id,name,beruf,created_at,status').eq('status', 'neu').order('created_at', { ascending: false });
   if (isAusbilder()) {
     jobs.reps = sb.from('reports').select('user_id,jahr,kw,status,updated_at');
+    if (mod('bericht').on !== false && (S.content.rp || []).length) { jobs.rpReps = sb.from('reports').select('user_id,status,tage,inhalt').neq('status', 'entwurf'); jobs.rpvAll = sb.from('rp_vermittelt').select('*'); }
     if (can('abwesenheiten')) jobs.krank = sb.from('absences').select('user_id,von,bis,typ,status').eq('typ', 'Krank').gte('bis', `${NOW.jahr}-01-01`);
     if (can('unterweisungen')) jobs.allub = sb.from('unterweisung_bestaetigungen').select('user_id,unterweisung_id,bestaetigt_at');
   }
@@ -3195,6 +3196,7 @@ async function homeExtras() {
   if (isAdmin() && !setupDismissed()) jobs.kar = sb.from('karriere').select('aktiv').maybeSingle();
   const keys = Object.keys(jobs), res = await Promise.all(keys.map(k => jobs[k]));
   keys.forEach((k, i) => { if (res[i].error) console.warn(k, res[i].error); H[k] = res[i].data || []; });
+  if (H.rpvAll) { const by = {}; H.rpvAll.forEach(v => (by[v.azubi_id] = by[v.azubi_id] || []).push(v)); Object.keys(by).forEach(k => { S.rpv[k] = by[k]; }); }
   H.gelSet = new Set(H.gel.map(g => g.ankuendigung_id));
   H.myAnk = H.ank.filter(a => a.author_id !== me.id);
   H.pflichtOffen = H.myAnk.filter(a => a.pflicht && !H.gelSet.has(a.id));
@@ -3295,9 +3297,9 @@ function ampelHTML(list, obTotal) {
   return `${secTitle('Ampel', `<span class="text-[12px] text-muted tnum">${list.length} Azubis</span>`)}
   <div class="card">${rows.map(({ p, a }, i) => { const d = H.obByUser[p.id] || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-ampel="${p.id}">${avatar(p, 38)}
     <div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name || 'Ohne Namen')}</div><div class="text-[12px] text-muted truncate">${p.lehrjahr}. LJ · ${esc(p.abteilung)}${betreuerOf(p) ? ' · bei ' + esc(firstName(betreuerOf(p).full_name)) : ''}</div>
-    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">${dot(a.berichte, 'Berichte', a.miss ? `${a.miss} Wochen ohne Bericht` : 'Berichte vollständig')}${dot(a.pruefen, 'Prüfen', a.old ? `${a.old} Berichte warten > 7 Tage` : 'nichts liegen geblieben')}${dot(a.krank, 'Fehltage', `${a.krankTage || 0} Krankheitstage ${NOW.jahr}`)}${dot(a.uw, 'Unterweisung', a.uwDue ? `${a.uwDue} fällig` : 'alle erledigt')}${pct(d, obTotal) < 100 && obTotal ? `<span class="text-[11px] text-muted tnum">Onboarding ${pct(d, obTotal)}%</span>` : ''}</div>${H.reps ? berichtMiniHTML(berichtStand(p, H.reps.filter(r => r.user_id === p.id))) : ''}</div>
+    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">${dot(a.berichte, 'Berichte', a.miss ? `${a.miss} Wochen ohne Bericht` : 'Berichte vollständig')}${dot(a.pruefen, 'Prüfen', a.old ? `${a.old} Berichte warten > 7 Tage` : 'nichts liegen geblieben')}${dot(a.krank, 'Fehltage', `${a.krankTage || 0} Krankheitstage ${NOW.jahr}`)}${dot(a.uw, 'Unterweisung', a.uwDue ? `${a.uwDue} fällig` : 'alle erledigt')}${pct(d, obTotal) < 100 && obTotal ? `<span class="text-[11px] text-muted tnum">Onboarding ${pct(d, obTotal)}%</span>` : ''}</div>${H.reps ? berichtMiniHTML(berichtStand(p, H.reps.filter(r => r.user_id === p.id))) : ''}${H.rpReps ? rpMiniHTML(rpStand(H.rpReps.filter(r => r.user_id === p.id), p)) : ''}</div>
     ${a.exam ? `<span class="chip ${a.exam[1] <= 30 ? 'warn' : ''} tnum flex-none">${a.exam[0]} ${a.exam[1]} T.</span>` : ''}</button>`; }).join('')}</div>
-  <p class="text-[12px] text-muted mt-2">Grün = alles gut, Gelb = bitte ansehen, Rot = handeln. Berichte: letzte 8 Wochen. Der Balken zeigt das ganze Berichtsheft: grün abgezeichnet, orange zur Prüfung, rot fehlt. Antippen öffnet den Azubi.</p>`;
+  <p class="text-[12px] text-muted mt-2">Grün = alles gut, Gelb = bitte ansehen, Rot = handeln. Berichte: letzte 8 Wochen. Der Balken zeigt das ganze Berichtsheft: grün abgezeichnet, orange zur Prüfung, rot fehlt. Rahmenplan: Anteil erledigter Positionen je Ausbildungsjahr (grün komplett, orange laufendes Jahr, rot vergangenes Jahr mit offenen Positionen). Antippen öffnet den Azubi.</p>`;
 }
 function extraTilesHTML() {
   const H = S.home, uwOff = H.uwOffen?.length || 0, neu = H.ankNeu?.length || 0;
@@ -3564,6 +3566,23 @@ function rpCoverage(reports, p, verm) {
   });
   (verm || []).forEach(v => { if (cov[v.rp_id]) cov[v.rp_id].verm = v; });
   return { pos, cov };
+}
+/* Rahmenplan-Stand je Ausbildungsjahr (für Ampel/Übersicht) */
+function rpStand(reports, p) {
+  const { pos, cov } = rpCoverage(reports, p, S.rpv[p?.id] || []);
+  if (!pos.length) return null;
+  const yr = x => x.lehrjahr || 1, done = c => !!(c.hits || c.verm);
+  const years = [...new Set(pos.map(yr))].sort();
+  const cur = Math.min(Math.max(p?.lehrjahr || 1, years[0]), years[years.length - 1]);
+  const ys = years.map(y => { const l = pos.filter(x => yr(x) === y), d = l.filter(x => done(cov[x.id])).length; return { y, d, n: l.length, pc: l.length ? Math.round(d * 100 / l.length) : 0 }; });
+  const all = pos.filter(x => done(cov[x.id])).length;
+  return { ys, cur, all, n: pos.length, pc: Math.round(all * 100 / pos.length) };
+}
+const rpCol = (pc, y, cur) => pc >= 100 ? 'var(--st-ok)' : y < cur ? 'var(--st-crit)' : y === cur ? 'var(--st-warn)' : 'var(--muted)';
+function rpMiniHTML(st) {
+  if (!st) return '';
+  return `<div class="mt-2" title="Rahmenplan: ${st.pc} % gesamt"><div class="text-[11px] text-muted font-semibold">Rahmenplan · ${st.pc} % gesamt</div>
+    <div class="grid gap-2 mt-0.5" style="grid-template-columns:repeat(${st.ys.length},minmax(0,1fr))">${st.ys.map(x => { const c = rpCol(x.pc, x.y, st.cur); return `<div class="min-w-0"><div class="text-[11px] tnum truncate" style="color:${c}"><b>${x.pc} %</b> <span class="text-muted">${x.y}. LJ</span></div><div class="stbar mini"><i style="width:${x.pc}%;background:${c}"></i></div></div>`; }).join('')}</div></div>`;
 }
 function rpHTML(reports, p) {
   const { pos, cov } = rpCoverage(reports, p, rpVerm(p?.id));
