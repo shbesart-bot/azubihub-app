@@ -101,6 +101,7 @@
   .stbar { display:flex; height:14px; border-radius:99px; overflow:hidden; background:var(--sunk); gap:2px; }
   .stbar > i { display:block; height:100%; transition: width .4s ease; }
   .stbar.mini { height:6px; gap:1px; }
+  .rpitem + .rpitem { border-top:1px solid var(--line); }
   .stleg { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
   .stleg > div { border-radius:12px; padding:10px 10px 9px; background:var(--sunk); border-top:4px solid var(--c); }
   .stleg b { display:block; font-size:22px; line-height:1.1; font-variant-numeric:tabular-nums; }
@@ -424,7 +425,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-21';
+const APP_VERSION = '2026-10-27';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -3567,15 +3568,40 @@ function rpCoverage(reports, p, verm) {
 function rpHTML(reports, p) {
   const { pos, cov } = rpCoverage(reports, p, rpVerm(p?.id));
   if (!pos.length) return '';
-  const done = c => c.hits || c.verm, covered = pos.filter(x => done(cov[x.id])).length, max = Math.max(60, ...pos.map(x => cov[x.id].min));
-  const groups = [...new Set(pos.map(x => x.lehrjahr || 0))].sort();
+  const done = c => !!(c.hits || c.verm), max = Math.max(60, ...pos.map(x => cov[x.id].min));
+  const yr = x => x.lehrjahr || 1;
+  const years = [...new Set(pos.map(yr))].sort();
+  const cur = Math.min(Math.max(p?.lehrjahr || 1, years[0]), years[years.length - 1]);
+  S.rpYear = S.rpYear || {};
+  const sel = years.includes(S.rpYear[p.id]) ? S.rpYear[p.id] : cur;
+  const stat = y => { const list = pos.filter(x => yr(x) === y), d = list.filter(x => done(cov[x.id])).length; return { list, d, n: list.length, pc: list.length ? Math.round(d * 100 / list.length) : 0 }; };
+  const all = pos.filter(x => done(cov[x.id])).length, allPc = Math.round(all * 100 / pos.length);
+  const col = (pc, y) => pc >= 100 ? 'var(--st-ok)' : y < cur && pc < 100 ? 'var(--st-crit)' : y === cur ? 'var(--st-warn)' : 'var(--muted)';
+  const st = stat(sel);
   const staff = pos.some(x => rpCanMark(p, x));
-  return `${secTitle('Ausbildungsrahmenplan', `<span class="chip ${covered === pos.length ? 'ok' : 'brass'} tnum">${covered}/${pos.length} erledigt</span>`)}
-    <div class="card p-4 flex flex-col gap-4">${groups.map(g => `<div><div class="eyebrow mb-2">${g ? `ab ${g}. Lehrjahr` : 'Allgemein'}</div><div class="flex flex-col gap-3">${pos.filter(x => (x.lehrjahr || 0) === g).map(x => { const c = cov[x.id], due = (x.lehrjahr || 1) <= (p.lehrjahr || 1), mark = rpCanMark(p, x);
-      const state = c.verm ? `<span style="color:var(--ok)" class="font-semibold">✓ vermittelt ${fmtDate(c.verm.datum)}</span>` : c.hits ? (c.min ? Math.round(c.min / 6) / 10 + ' Std' : 'erwähnt') : due ? 'noch offen' : 'später';
-      return `<div><div class="flex items-baseline justify-between gap-3"><div class="text-[14px] min-w-0"><span class="text-muted tnum">${esc(x.nr)}</span> ${esc(x.titel)}</div><div class="text-[12px] tnum flex-none text-right ${done(c) ? '' : due ? 'font-semibold' : 'text-muted'}" style="${!done(c) && due ? 'color:var(--crit)' : ''}">${state}</div></div><div class="bar mt-1 ${done(c) ? '' : 'brass'}"><i style="width:${c.verm ? 100 : c.min ? Math.max(4, pct(c.min, max)) : 0}%;${c.verm && !c.min ? 'background:var(--ok)' : ''}"></i></div>${c.verm?.notiz ? `<div class="text-[12px] text-muted mt-1">${esc(c.verm.notiz)}</div>` : ''}${mark ? `<div class="mt-1.5">${c.verm ? `<button type="button" class="text-[12px] font-semibold text-muted" data-rpvdel="${c.verm.id}" data-rpuid="${p.id}">Haken entfernen</button>` : `<button type="button" class="text-[12px] font-semibold text-accent" data-rpv="${x.id}" data-rpuid="${p.id}">Als vermittelt abhaken</button>`}</div>` : ''}</div>`; }).join('')}</div></div>`).join('')}
-    <p class="text-[12px] text-muted">${staff ? 'Fortschritt kommt aus den Wochenberichten: aus der gewählten Position bei einer Tätigkeit oder automatisch über Stichworte. Was im Gespräch, in einer Schulung oder ohne passenden Bericht vermittelt wurde, hakst du hier ab.' : 'Fortschritt kommt aus deinen Wochenberichten: Wähle bei einer Tätigkeit die passende Position, sonst erkennt die App sie an Stichworten. „Noch offen“ = für dein Lehrjahr vorgesehen, aber noch nicht vorgekommen.'}</p></div>`;
+  const item = x => { const c = cov[x.id], due = yr(x) <= (p.lehrjahr || 1), mark = rpCanMark(p, x);
+    const state = c.verm ? `<span style="color:var(--ok)" class="font-semibold">✓ vermittelt ${fmtDate(c.verm.datum)}</span>` : c.hits ? `<span style="color:var(--ok)">✓ ${c.min ? Math.round(c.min / 6) / 10 + ' Std' : 'erwähnt'}</span>` : due ? 'noch offen' : 'später';
+    return `<div class="rpitem py-2.5"><div class="flex items-baseline justify-between gap-3"><div class="text-[14px] min-w-0"><span class="text-muted tnum">${esc(x.nr)}</span> ${esc(x.titel)}</div><div class="text-[12px] tnum flex-none text-right ${done(c) ? '' : due ? 'font-semibold' : 'text-muted'}" style="${!done(c) && due ? 'color:var(--crit)' : ''}">${state}</div></div><div class="bar mt-1 ${done(c) ? '' : 'brass'}"><i style="width:${c.verm ? 100 : c.min ? Math.max(4, pct(c.min, max)) : 0}%;${c.verm && !c.min ? 'background:var(--ok)' : ''}"></i></div>${c.verm?.notiz ? `<div class="text-[12px] text-muted mt-1">${esc(c.verm.notiz)}</div>` : ''}${mark ? `<div class="mt-1.5">${c.verm ? `<button type="button" class="text-[12px] font-semibold text-muted" data-rpvdel="${c.verm.id}" data-rpuid="${p.id}">Haken entfernen</button>` : `<button type="button" class="text-[12px] font-semibold text-accent" data-rpv="${x.id}" data-rpuid="${p.id}">Als vermittelt abhaken</button>`}</div>` : ''}</div>`; };
+  const offen = st.list.filter(x => !done(cov[x.id])), fertig = st.list.filter(x => done(cov[x.id]));
+  return `${secTitle('Ausbildungsrahmenplan', `<span class="chip ${all === pos.length ? 'ok' : 'brass'} tnum">${allPc} % gesamt</span>`)}
+    <div class="grid gap-2" style="grid-template-columns:repeat(${years.length},minmax(0,1fr))" role="group" aria-label="Ausbildungsjahr">${years.map(y => { const t = stat(y), c = col(t.pc, y);
+      return `<button type="button" class="card p-3 text-left" data-rpyear="${y}" data-rpuid="${p.id}" aria-pressed="${y === sel}" style="${y === sel ? 'outline:2px solid var(--accent);outline-offset:-1px' : ''}">
+        <div class="text-[12px] text-muted font-semibold">${y}. Ausbildungsjahr${y === cur ? ' · aktuell' : ''}</div>
+        <div class="text-[22px] font-bold tnum leading-tight mt-0.5" style="color:${c}">${t.pc} %</div>
+        <div class="stbar mini mt-1.5"><i style="width:${t.pc}%;background:${c}"></i></div>
+        <div class="text-[11px] text-muted tnum mt-1">${t.d} von ${t.n}</div></button>`; }).join('')}</div>
+    <div class="card p-4 mt-3">
+      <div class="flex items-baseline justify-between gap-3"><div class="text-[15px] font-bold">${sel}. Ausbildungsjahr</div><div class="text-[13px] tnum font-semibold" style="color:${col(st.pc, sel)}">${st.d} von ${st.n} erledigt · ${st.pc} %</div></div>
+      <div class="stbar mt-2"><i style="width:${st.pc}%;background:${col(st.pc, sel)}"></i></div>
+      ${offen.length ? `<div class="eyebrow mt-4 mb-1">Noch offen (${offen.length})</div><div class="flex flex-col">${offen.map(item).join('')}</div>` : `<p class="text-[14px] mt-4" style="color:var(--ok)">Alle Positionen dieses Jahres sind erledigt.</p>`}
+      ${fertig.length ? `<details class="mt-3"${offen.length ? '' : ' open'}><summary class="text-[13px] font-semibold text-accent cursor-pointer">Erledigt anzeigen (${fertig.length})</summary><div class="flex flex-col mt-1">${fertig.map(item).join('')}</div></details>` : ''}
+    </div>
+    <p class="text-[12px] text-muted mt-2"><span>${staff ? 'Fortschritt kommt aus den Wochenberichten: aus der gewählten Position bei einer Tätigkeit oder automatisch über Stichworte. Was im Gespräch, in einer Schulung oder ohne passenden Bericht vermittelt wurde, hakst du hier ab.' : 'Fortschritt kommt aus deinen Wochenberichten: Wähle bei einer Tätigkeit die passende Position, sonst erkennt die App sie an Stichworten. „Noch offen“ = für dein Lehrjahr vorgesehen, aber noch nicht vorgekommen.'}</span> <span>Farben: grün = Jahr komplett, orange = laufendes Jahr, rot = vergangenes Jahr mit offenen Positionen.</span></p>`;
 }
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-rpyear]'); if (!b) return;
+  S.rpYear = S.rpYear || {}; S.rpYear[b.dataset.rpuid] = +b.dataset.rpyear; render();
+});
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-rpv],[data-rpvdel]'); if (!b) return;
   const uid = b.dataset.rpuid;
