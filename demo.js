@@ -174,6 +174,13 @@
     DB.beurteilungen = [{ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, abteilung: 'Rezeption', von: ymd(day(-110)), bis: ymd(day(-20)), kriterien: { 'Fachkenntnisse': 4, 'Arbeitsqualität': 4, 'Arbeitstempo': 3, 'Zuverlässigkeit & Pünktlichkeit': 5, 'Teamarbeit': 5, 'Umgang mit Gästen': 5, 'Selbstständigkeit': 3, 'Lernbereitschaft': 5, 'Auftreten & Erscheinungsbild': 4, 'Hygiene & Arbeitssicherheit': 4 }, staerken: 'Sehr herzlich im Gästekontakt, immer pünktlich, fragt nach, wenn etwas unklar ist.', ziele: 'Am Telefon sicherer werden, Check-ins in Stoßzeiten selbstständig übernehmen.', sichtbar: true, author_id: P.fom.id, created_at: iso(day(-19)), gelesen_at: null }];
     DB.rp_vermittelt = [];
     const rpN = n => DB.rahmenplan.find(r => r.nr === n);
+    // Praxisaufgaben (Hotelfach) mit Stand bei Lena
+    const pa = (titel, nr, lj, beschreibung) => ({ id: uuid(), betrieb_id: B, rp_id: rpN(nr)?.id || null, beruf: 'Hotelfachmann/-frau', titel, beschreibung, lehrjahr: lj, aktiv: true, created_by: P.fom.id, created_at: iso(day(-60)) });
+    DB.praxisaufgaben = [pa('5 Gäste selbstständig einchecken', 'H6', 1, 'Meldeschein, Zimmerkarte, Frühstückszeiten erklären – Julia ist in Rufweite.'), pa('Telefonische Reservierung komplett aufnehmen', 'H5', 1, 'Mit Rückbestätigung per E-Mail.'),
+      pa('Ein Zimmer nach Standard kontrollieren', 'H3', 1, 'Checkliste Zimmerkontrolle, Mängel ins Übergabebuch.'), pa('Frühstücksbuffet allein auffüllen und HACCP-Liste führen', 'H7', 1, ''), pa('Beschwerde eines Gastes lösen', 'H8', 2, 'Nach dem LAST-Prinzip, danach kurz mit Julia besprechen.')];
+    DB.praxis_stand = [{ id: uuid(), betrieb_id: B, aufgabe_id: DB.praxisaufgaben[0].id, azubi_id: P.lena.id, status: 'bestaetigt', notiz: 'Am Dienstag 5 Anreisen allein.', gemeldet_at: iso(day(-12)), bestaetigt_von: P.fom.id, bestaetigt_at: iso(day(-11)) },
+      { id: uuid(), betrieb_id: B, aufgabe_id: DB.praxisaufgaben[1].id, azubi_id: P.lena.id, status: 'gemeldet', notiz: 'Reservierung für Familie Braun, 3 Nächte.', gemeldet_at: iso(day(-1)) }];
+    DB.lernkarten = []; DB.einladungen = [];
     if (rpN('I1')) DB.rp_vermittelt.push({ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, rp_id: rpN('I1').id, datum: ymd(day(-66)), notiz: 'Einführungstag: Ausbildungsvertrag, Arbeitszeiten, Betriebsrat', von: P.lei.id, created_at: iso(day(-66)) });
     if (rpN('I2')) DB.rp_vermittelt.push({ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, rp_id: rpN('I2').id, datum: ymd(day(-60)), notiz: 'Unterweisung Arbeits- und Brandschutz', von: P.fom.id, created_at: iso(day(-60)) });
     const h6 = rpN('H6'), h8 = rpN('H8');
@@ -366,6 +373,12 @@
       },
       ihk_info: () => RPC.ihk_mein(), ihk_suche: () => [RPC.ihk_mein()],
       schul_nachweis: a => { const e = DB.schul_eintraege.find(x => x.id === a.p_id); if (e) e.nachweis = a.p_path; return true; },
+      beurteilung_bestaetigen: a => { const b = DB.beurteilungen.find(x => x.id === a.p_id); if (b) Object.assign(b, { gelesen_at: b.gelesen_at || iso(new Date()), bestaetigt_at: iso(new Date()), azubi_kommentar: a.p_kommentar || null, selbst: a.p_selbst }); return null; },
+      gruppe_vergleich: () => [
+        { id: B, name: 'Hotel Seeblick', ich_hier: true, azubis: 3, offen: 2, berichte_30: 11, fehltage_90: 3, unentschuldigt_90: 1, noten_schnitt: 2.8, stimmung: 3.9, feedback: 4.1, schichten: 62 },
+        { id: 'demo-h2', name: 'Seeblick Stadthotel', ich_hier: false, azubis: 5, offen: 7, berichte_30: 14, fehltage_90: 11, unentschuldigt_90: 4, noten_schnitt: 3.4, stimmung: 3.1, feedback: 3.3, schichten: 95 },
+        { id: 'demo-h3', name: 'Seeblick Resort & Spa', ich_hier: false, azubis: 4, offen: 1, berichte_30: 16, fehltage_90: 2, unentschuldigt_90: 0, noten_schnitt: 2.4, stimmung: 4.3, feedback: 4.4, schichten: 80 }],
+      public_siegel: () => ({ name: 'Hotel Seeblick', slug: 'hotel-seeblick-demo', azubis: 3, feedback: { anzahl: 12, anleitung: 4.3, aufgaben: 4.1, team: 4.6 }, stimmung: 4.0, abzeichnung_7_tage: 92, seit: 2024, karriere: true, branding: {} }),
       beurteilung_gelesen: a => { const b = DB.beurteilungen.find(x => x.id === a.p_id); if (b) b.gelesen_at = iso(new Date()); return null; },
       admin_users: () => DB.profiles.map(p => ({ id: p.id, email: p.full_name.split(' ')[0].toLowerCase() + '@seeblick.example', last_sign_in_at: iso(day(-1)), created_at: p.created_at })),
       get_invite_code: () => 'SEEB-DEMO', admin_quiz: () => DB.quiz_questions,

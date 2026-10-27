@@ -134,6 +134,7 @@ function schHTML(a, manage) {
         : `<p class="text-[14px] text-muted">${manage ? 'Noch kein Zugang. Die Lehrkraft sieht damit Berichtsheft und Fehlzeiten (nur lesen), meldet Anwesenheit, Fehltage und Noten und kann Ihnen schreiben – ohne Konto.' : 'Deine Berufsschule hat keinen Zugang zu deinem Berichtsheft.'}</p>`}
       ${!manage && active.length ? '<p class="text-[12px] text-muted">Die Schule sieht deine eingereichten Wochenberichte, Fehlzeiten und den Stand der Lernfelder, aber keine Nachrichten, Gespräche oder Lernziele.</p>' : ''}
       <label class="btn ghost py-2 text-[13px] cursor-pointer">${svg('copy', 'w-4 h-4')} Stundenplan importieren (.ics)<input type="file" accept=".ics,text/calendar" id="scIcs" hidden></label>
+      <button type="button" class="btn ghost py-2 text-[13px]" id="scMuster">Schultage nach Muster (Wochentage oder Blockunterricht)</button>
       <p class="text-[12px] text-muted -mt-1">Kalender-Datei aus WebUntis oder vom Schul-Kalender. Schultage werden als „Berufsschule“ eingetragen, im Wochenbericht vorbelegt und mit den Meldungen der Schule abgeglichen.</p>
     </div>
 
@@ -178,6 +179,7 @@ function schBind(a, onDone) {
   const reload = async () => { const y = scrollY; await schLoad(a.id).catch(() => {}); render(); scrollTo(0, y); };
   if ($('#scNew')) $('#scNew').onclick = () => openSchoolSheet(a, null, onDone);
   $$('[data-scshow]').forEach(b => b.onclick = () => openSchoolSheet(a, Sc.f.find(f => f.id === b.dataset.scshow), onDone));
+  if ($('#scMuster')) $('#scMuster').onclick = () => schMusterSheet([a.id], onDone, isAzubi() ? null : azubis().filter(x => canSchool(x)));
   if ($('#scIcs')) $('#scIcs').onchange = async e => { const f = e.target.files?.[0]; if (f) { await importIcs(f, a.id); onDone(); } };
   $$('[data-schfile]').forEach(b => b.onclick = () => schOpenFile(b.dataset.schfile));
   $$('[data-schnw]').forEach(inp => inp.onchange = async () => {
@@ -546,7 +548,7 @@ const IhkView = {
     await Bericht.load();
     const p = ihkPerson();
     if (p && (isAzubi() || canSchool(p))) { if (!isAzubi()) S.rev.selUser = p.id; await loadSchool(p.id).catch(() => { S.school = null; }); }
-    await Promise.all([ihkLoad(), avLoad(p && (isAzubi() || canSchool(p)) ? p : null)]);
+    await Promise.all([ihkLoad(), avLoad(p && (isAzubi() || canSchool(p)) ? p : null), isAzubi() ? lkCount().then(n => { S.lkDue = n; }) : null]);
   },
   html() {
     const p = ihkPerson(), ihk = APP.ihk || {};
@@ -582,11 +584,14 @@ const IhkView = {
       <div class="grid gap-2">
         <button class="btn" id="ihkPdf">${svg('book', 'w-4 h-4')} Ausbildungsnachweis als PDF</button>
         ${isAzubi() ? '<button class="btn ghost" id="ihkIcs">Prüfungstermine in den Kalender</button>' : ''}
+        <button class="btn ghost" id="ihkDB">Datenblatt zur Prüfungsanmeldung (PDF)</button>
         ${!isAzubi() && (isAdmin() || can('team')) ? '<button class="btn ghost" id="ihkSchul">Schulbericht (PDF)</button>' : ''}
+        ${!isAzubi() && (isAdmin() || can('team')) ? '<button class="btn ghost" id="ihkBer">Übersicht für die IHK-Ausbildungsberatung (PDF)</button>' : ''}
       </div>
       <p class="text-[12px] text-muted mt-2">Der Nachweis enthält alle Wochenberichte mit Abzeichnung und auf Wunsch den Abgleich mit dem Rahmenplan – so, wie ihn die IHK zur Prüfungsanmeldung sehen will.</p>
 
       ${secTitle('Prüfungstraining', isAzubi() ? '<button id="ihkExam" class="text-[13px] font-semibold text-accent">Prüfung simulieren</button>' : '')}
+      ${isAzubi() ? `<button class="card w-full p-3.5 mb-2 flex items-center gap-3 text-left" id="ihkLk"><span style="font-size:22px">🗂️</span><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold">Lernkarten</div><div class="text-[12px] text-muted">Falsch beantwortete Fragen kommen wieder, bis sie sitzen</div></div>${S.lkDue ? `<span class="chip brass tnum">${S.lkDue} fällig</span>` : '<span class="chip ok">nichts fällig</span>'}</button>` : ''}
       <div data-examstats="${p.id}"><div class="card p-4 text-[14px] text-muted">Wird geladen …</div></div>
 
       ${ihkContactHTML(ihk)}`;
@@ -598,6 +603,9 @@ const IhkView = {
     if ($('#ihkIcs')) $('#ihkIcs').onclick = exportIcs;
     if ($('#ihkSchul')) $('#ihkSchul').onclick = () => schMonatPDF($('#ihkSchul'));
     if ($('#ihkExam')) $('#ihkExam').onclick = openExamPicker;
+    if ($('#ihkDB') && p) $('#ihkDB').onclick = () => ihkDatenblattPDF(p, $('#ihkDB'));
+    if ($('#ihkBer')) $('#ihkBer').onclick = () => beraterPDF($('#ihkBer'));
+    if ($('#ihkLk')) $('#ihkLk').onclick = lkOpen;
     if ($('#ihkSetDates')) $('#ihkSetDates').onclick = openProfile;
     if ($('#ihkEdit')) $('#ihkEdit').onclick = ihkEditSheet;
     if ($('#ihkPick')) $('#ihkPick').onclick = ihkPickSheet;

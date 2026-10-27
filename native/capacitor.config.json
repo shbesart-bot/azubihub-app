@@ -1,0 +1,16 @@
+{
+  "appId": "de.novaworks.azubihub",
+  "appName": "AzubiHub",
+  "webDir": "www",
+  "server": {
+    "url": "https://azubihub-app.de",
+    "cleartext": false,
+    "allowNavigation": ["azubihub-app.de", "*.supabase.co"]
+  },
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "always" },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 800, "backgroundColor": "#0f5c5f", "showSpinner": false },
+    "StatusBar": { "style": "DARK", "backgroundColor": "#0f5c5f" }
+  }
+}

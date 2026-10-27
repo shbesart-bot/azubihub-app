@@ -263,6 +263,7 @@
 
 <script src="./schule.js"></script>
 <script src="./ausbildung.js"></script>
+<script src="./ausbau2.js"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -429,7 +430,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-27g';
+const APP_VERSION = '2026-10-28a';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -621,7 +622,7 @@ $('#authForm').onsubmit = async e => {
 
 let booted = false;
 sb.auth.onAuthStateChange((event, session) => {
-  if (CAREER_SLUG || S.demo || new URLSearchParams(location.search).get('schule') || ELTERN_SLUG) return;
+  if (CAREER_SLUG || S.demo || new URLSearchParams(location.search).get('schule') || ELTERN_SLUG || SIEGEL_SLUG) return;
   if (event === 'PASSWORD_RECOVERY') S.recovery = true;
   if (session?.user) { if (!booted) { booted = true; setTimeout(() => startApp(session.user), 0); } }
   else { booted = false; showAuth(); }
@@ -652,7 +653,7 @@ async function startApp(user) {
     S.hotel = S.betrieb.name || '';
     $('#hotelName').textContent = S.hotel + (S.betrieb.gruppen_leitung ? ' ▾' : '');
     setMeBtn();
-    await loadBoard(); startRealtime(); refreshUnread();
+    await loadBoard(); startRealtime(); refreshUnread(); setTimeout(flushOutbox, 2000);
     let v = null; try { v = sessionStorage.getItem('azubihub.view'); } catch {}
     const hv = location.hash.slice(1), hc = hv.match(/^(chat|gruppe)-([0-9a-f-]{36})$/);
     const alias = { unterweisungen: 'uw', news: 'news', antraege: 'home', bewerbungen: 'admin' };
@@ -697,6 +698,7 @@ function render() {
   V.bind?.();
   bindRepLog();
   hydrateImgs($('#app'));
+  bfHydrate($('#app'));
 }
 /* Verlauf eines Wochenberichts (wird in der Datenbank automatisch geschrieben, nicht änderbar) */
 const LOG_TXT = { erstellt: 'angelegt', geaendert: 'bearbeitet', eingereicht: 'eingereicht', zurueckgegeben: 'zur Überarbeitung zurückgegeben', abgezeichnet: 'abgezeichnet', wieder_geoeffnet: 'zur Bearbeitung zurückgezogen', geloescht: 'gelöscht' };
@@ -826,7 +828,7 @@ const Home = {
     ${pushAskCard()}
     ${installCard()}
     ${homeTopHTML()}
-    ${moodAskHTML()}${fbAskHTML()}
+    ${moodAskHTML()}${fbAskHTML()}${lkHomeHTML()}
     ${isAusbilder() && H.absent?.length ? `${secTitle('Heute nicht im Haus', `<span class="chip tnum">${H.absent.length}</span>`)}<div class="card">${H.absent.map((a, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><span class="chip ${ABS_TONE[a.typ]}">${a.typ}</span><div class="flex-1 min-w-0 text-[14px] font-semibold truncate">${esc(nameOf(a.user_id))}</div><div class="text-[12px] text-muted tnum">bis ${fmtD(a.bis)}</div></div>`).join('')}</div>` : ''}
     ${team}
     ${isAzubi() && H.myReps && mod('bericht').on !== false ? `${secTitle('Dein Berichtsheft', '<button data-go="bericht" class="text-[13px] font-semibold text-accent">Öffnen</button>')}${berichtBarHTML(berichtStand(me, H.myReps), { open: true })}` : ''}
@@ -924,7 +926,7 @@ function exportIcs() {
   toast(`${ev.length} Termine exportiert – Datei öffnen, um sie in den Kalender zu übernehmen`);
 }
 function initDays(r, w, abs, prof) {
-  if (r?.tage?.length === 7) return r.tage.map(d => ({ tag: d.tag, bereich: d.bereich, eintraege: OFF.includes(d.bereich) ? [] : (d.eintraege?.length ? d.eintraege.map(e => ({ text: e.text || '', min: +e.min || 0, ...(e.rp ? { rp: +e.rp } : {}), ...(e.lf ? { lf: +e.lf } : {}) })) : [{ text: '', min: 0 }]) }));
+  if (r?.tage?.length === 7) return r.tage.map(d => ({ tag: d.tag, bereich: d.bereich, ...(d.fotos?.length ? { fotos: d.fotos.slice() } : {}), eintraege: OFF.includes(d.bereich) ? [] : (d.eintraege?.length ? d.eintraege.map(e => ({ text: e.text || '', min: +e.min || 0, ...(e.rp ? { rp: +e.rp } : {}), ...(e.lf ? { lf: +e.lf } : {}) })) : [{ text: '', min: 0 }]) }));
   return weekDates(w).map((dt, i) => {
     const iso = localDate(dt), a = (abs || []).find(x => x.von <= iso && x.bis >= iso && (x.status || 'genehmigt') === 'genehmigt');
     const bereich = a ? (a.typ === 'Sonstiges' ? 'Frei' : a.typ) : (i < 5 ? (prof?.abteilung || ABTEILUNGEN[0]) : 'Frei');
@@ -958,6 +960,7 @@ function weekEditorHTML(days, w) {
       <div class="flex items-center gap-2">
         <div class="w-[82px] flex-none"><div class="font-semibold text-[14px]">${DAYS[i].slice(0, 2)}, ${ddmm(dates[i])}</div><div class="text-[11px] text-muted tnum" data-daytot="${i}">${fmtMin(dayMin(d))}</div></div>
         <select class="field py-2 flex-1 min-w-0 text-[14px]" style="background:var(--surface)" data-bereich="${i}" aria-label="Bereich am ${DAYS[i]}">${list.map(b => opt(esc(b), d.bereich, esc(b))).join('')}</select>
+        ${off ? '' : dkMicBtn(`data-diktat="${i}"`, `${DAYS[i]} einsprechen`)}
         ${i ? `<button type="button" class="xbtn" data-copyprev="${i}" title="Wie Vortag übernehmen" aria-label="${DAYS[i]} wie Vortag übernehmen">${svg('copy', 'w-4 h-4')}</button>` : '<span class="w-7 flex-none"></span>'}
       </div>
       ${off ? `<p class="text-[12px] text-muted mt-2">${esc(d.bereich)}: keine Einträge nötig.</p>` : `
@@ -966,7 +969,7 @@ function weekEditorHTML(days, w) {
         <select class="field py-2 px-1.5 flex-none tnum text-[14px]" style="background:var(--surface);width:62px;padding:8px 2px 8px 8px" data-h="${i}-${j}" aria-label="Stunden">${[...Array(13).keys()].map(h => opt(h, Math.floor(e.min / 60), h + ' h')).join('')}</select>
         <select class="field py-2 px-1.5 flex-none tnum text-[14px]" style="background:var(--surface);width:84px;padding:8px 2px 8px 8px" data-m="${i}-${j}" aria-label="Minuten">${MIN_STEPS.map(m => opt(m, e.min % 60, m + ' min')).join('')}</select>
         ${!school && rpOpts.length ? `<select class="field py-2 flex-1 min-w-0 text-[13px]" style="background:var(--surface);padding:8px 4px 8px 8px;${e.rp ? '' : 'color:var(--muted)'}" data-rp="${i}-${j}" aria-label="Position im Ausbildungsrahmenplan"><option value="">Rahmenplan: automatisch</option>${rpOpts.map(x => `<option value="${x.id}" ${x.id === e.rp ? 'selected' : ''}>${esc(x.nr)} · ${esc(rpShort(x.titel))}</option>`).join('')}</select>` : school && lfOpts.length ? `<select class="field py-2 flex-1 min-w-0 text-[13px]" style="background:var(--surface);padding:8px 4px 8px 8px;${e.lf ? '' : 'color:var(--muted)'}" data-lf="${i}-${j}" aria-label="Lernfeld"><option value="">Lernfeld: automatisch</option>${lfOpts.map(l => `<option value="${l.nr}" ${l.nr === e.lf ? 'selected' : ''}>LF ${l.nr} · ${esc(rpShort(l.titel))}</option>`).join('')}</select>` : '<span class="flex-1"></span>'}<button type="button" class="xbtn" data-delentry="${i}-${j}" aria-label="Eintrag entfernen">${svg('x', 'w-4 h-4')}</button></div>`).join('')}
-        <button type="button" class="text-[13px] font-semibold text-accent self-start" data-addentry="${i}">+ ${school ? 'Fach' : 'Tätigkeit'}</button></div>`}
+        <div class="flex flex-wrap items-center gap-4"><button type="button" class="text-[13px] font-semibold text-accent" data-addentry="${i}">+ ${school ? 'Fach' : 'Tätigkeit'}</button><label class="text-[13px] font-semibold text-accent cursor-pointer">+ Foto<input type="file" accept="image/*" capture="environment" data-bfadd="${i}" hidden></label></div>${bfThumbs(d.fotos, i)}</div>`}
     </div>`; }).join('')}
     <div class="flex items-center justify-between px-1"><span class="text-[13px] font-semibold">Summe der Woche</span><span class="font-display font-bold text-[18px] tnum" id="weekTot">${fmtMin(weekMin(days))}</span></div>
     <div id="weekHint" class="flex flex-col gap-2">${hoursInfo(days, S.me)}</div>
@@ -978,6 +981,7 @@ function weekTableHTML(days, w) {
   return `<div class="mt-3 rounded-xl overflow-hidden" style="border:1px solid var(--line)">${days.map((d, i) => `<div class="p-3 ${i ? 'border-t border-line' : ''}">
       <div class="flex items-baseline justify-between gap-2"><div class="text-[13px] font-semibold">${DAYS[i]}, ${ddmm(dates[i])}</div><div class="text-[12px] text-muted tnum text-right">${esc(d.bereich)}${OFF.includes(d.bereich) ? '' : ' · ' + fmtMin(dayMin(d))}</div></div>
       ${(d.eintraege || []).filter(e => e.text || e.min).map(e => `<div class="flex justify-between gap-3 text-[13px] mt-1"><span class="min-w-0">${esc(e.text) || '–'}${e.rp && rpById(e.rp) ? ` <span class="chip tnum" style="padding:1px 6px;font-size:11px" title="${esc(rpById(e.rp).titel)}">${esc(rpById(e.rp).nr)}</span>` : ''}${e.lf ? ` <span class="chip accent tnum" style="padding:1px 6px;font-size:11px">LF ${+e.lf}</span>` : ''}</span><span class="tnum text-muted flex-none">${fmtMin(+e.min || 0)}</span></div>`).join('')}
+      ${bfThumbs(d.fotos)}
     </div>`).join('')}
     <div class="p-3 border-t border-line flex justify-between text-[13px] font-semibold" style="background:var(--sunk)"><span>Summe der Woche</span><span class="tnum">${fmtMin(weekMin(days))}</span></div></div>`;
 }
@@ -1058,7 +1062,7 @@ const Bericht = {
     [S.rep.beu, S.rep.plan] = await Promise.all([q(sb.from('beurteilungen').select('*').eq('azubi_id', S.me.id).eq('sichtbar', true).order('bis', { ascending: false })).catch(() => []),
       q(sb.from('plan_stationen').select('*').eq('azubi_id', S.me.id).order('von')).catch(() => [])]);
     S.rep.draftText = null;
-    await loadSchool(S.me.id).catch(() => { S.school = null; });
+    await Promise.all([loadSchool(S.me.id).catch(() => { S.school = null; }), pxLoad()]);
   },
   current() { const w = S.rep.week; return S.rep.list.find(r => r.jahr === w.jahr && r.kw === w.kw); },
   html() {
@@ -1086,10 +1090,11 @@ const Bericht = {
         <div class="flex-1 text-center"><div class="font-display font-bold text-[20px] tnum">KW ${w.kw} / ${w.jahr}</div><div class="text-[12px] text-muted tnum">${weekRange(w)}${isNow ? ' · diese Woche' : ''}</div></div>
         <button class="xbtn" data-wk="1" aria-label="Nächste Woche" ${isNow ? 'disabled' : ''}>${svg('arrow', 'w-5 h-5')}</button>
       </div>
+      ${outboxHTML()}
       <div class="flex items-center justify-between gap-2 mt-3"><span class="chip ${st[0]}">${st[1]}</span>${r?.signed_by ? `<span class="text-[12px] text-muted truncate">von ${esc(nameOf(r.signed_by))}</span>` : ''}</div>
       ${r?.feedback ? `<div class="mt-3 p-3 rounded-xl text-[14px]" style="background:${r.status === 'zurueck' ? 'var(--crit-soft)' : 'var(--ok-soft)'}"><div class="eyebrow mb-1">Rückmeldung</div>${esc(r.feedback)}</div>` : ''}
       ${locked ? (r.tage?.length ? weekTableHTML(r.tage, w) : '') : weekEditorHTML(S.rep.days, w)}
-      ${locked && !text ? '' : `<div class="mt-4"><label class="lbl" for="repText">Zusammenfassung & Gelerntes <span class="font-normal text-muted">(optional)</span></label><textarea id="repText" rows="4" class="field text-[14px]" ${locked ? 'disabled' : ''} placeholder="Was hast du diese Woche gelernt? Der Generator unten hilft beim Formulieren.">${esc(text)}</textarea></div>`}
+      ${locked && !text ? '' : `<div class="mt-4"><div class="flex items-center justify-between gap-2"><label class="lbl" for="repText">Zusammenfassung & Gelerntes <span class="font-normal text-muted">(optional)</span></label>${locked ? '' : dkMicBtn('data-dkfield="#repText"', 'Zusammenfassung einsprechen')}</div><textarea id="repText" rows="4" class="field text-[14px]" ${locked ? 'disabled' : ''} placeholder="Was hast du diese Woche gelernt? Der Generator unten hilft beim Formulieren.">${esc(text)}</textarea></div>`}
       ${locked ? `<p class="text-[13px] text-muted mt-2">${r.status === 'eingereicht' ? 'Eingereicht und wartet auf Abzeichnung.' : 'Abgezeichnet und gesperrt.'}</p>${r.status === 'eingereicht' ? '<button id="repWithdraw" class="btn ghost w-full mt-2">Zurückziehen und bearbeiten</button>' : ''}` : `
       <div class="grid grid-cols-2 gap-2 mt-3"><button id="repSave" class="btn ghost">Entwurf speichern</button><button id="repSubmit" class="btn">Einreichen</button></div>
       ${r?.status === 'entwurf' ? '<button id="repDel" class="text-[13px] font-semibold text-muted mt-3">Entwurf löschen</button>' : ''}`}
@@ -1099,7 +1104,7 @@ const Bericht = {
     ${locked ? '' : `
     ${secTitle('Tagesbericht-Generator')}
     <div class="card p-4 flex flex-col gap-3">
-      <div><label class="lbl" for="genIn">Was hast du heute gemacht? <span class="font-normal text-muted">(ein Stichpunkt pro Zeile)</span></label>
+      <div><div class="flex items-center justify-between gap-2"><label class="lbl" for="genIn">Was hast du heute gemacht? <span class="font-normal text-muted">(ein Stichpunkt pro Zeile)</span></label>${dkMicBtn('data-dkfield="#genIn"', 'Stichpunkte einsprechen')}</div>
         <textarea id="genIn" rows="4" class="field" placeholder="Check-in 6 Gäste&#10;Telefon angenommen&#10;Beschwerde wegen Lärm aufgenommen"></textarea></div>
       <div><label class="lbl" for="genLearn">Was hast du gelernt? <span class="font-normal text-muted">(optional)</span></label>
         <input id="genLearn" class="field" placeholder="wie man eine Firmenrechnung anlegt"></div>
@@ -1113,6 +1118,7 @@ const Bericht = {
 
     ${secTitle('Ausbildungsplan', `<span class="text-[12px] text-muted">${me.lehrjahr}. Lehrjahr</span>`)}
     ${planHTML(S.rep.plan, me, false)}
+    ${praxisHTML(me, false)}
 
     ${secTitle('Wochen je Abteilung')}
     <div class="grid grid-cols-2 gap-3">${perAbt.map(([a, n, mins]) => `<div class="card p-3.5"><div class="text-[14px] font-semibold">${a}</div><div class="text-[12px] text-muted tnum mb-2">${n} von ${ABT_SOLL[a] || 0} Wochen${mins ? ' · ' + Math.round(mins / 60) + ' Std' : ''}</div><div class="bar"><i style="width:${Math.min(100, pct(n, ABT_SOLL[a] || 0))}%"></i></div></div>`).join('')}</div>
@@ -1154,6 +1160,12 @@ const Bericht = {
       const keyNow = S.rep.daysKey, persist = () => localDraft.set(keyNow, S.rep.days, $('#repText')?.value);
       ed.addEventListener('input', e => { const t = e.target; if (t.dataset.txt) { const [i, j] = ij(t.dataset.txt); days[i].eintraege[j].text = t.value; } persist(); });
       ed.addEventListener('change', persist);
+      ed.addEventListener('change', async e => {
+        const f = e.target.closest('[data-bfadd]'); if (!f || !f.files?.[0]) return;
+        const i = +f.dataset.bfadd; if ((days[i].fotos || []).length >= 4) return toast('Höchstens 4 Fotos pro Tag.');
+        toast('Foto wird hochgeladen …'); const pth = await bfUpload(f.files[0], S.rep.week); if (!pth) return;
+        (days[i].fotos ||= []).push(pth); persist(); rerender(); toast('Foto hinzugefügt. Speichern nicht vergessen.');
+      });
       $('#repText')?.addEventListener('input', persist);
       if (S.rep.localRestored === keyNow) { S.rep.localRestored = null; toast(navigator.onLine === false ? 'Offline: Dein Entwurf ist auf diesem Gerät gesichert.' : 'Ungespeicherter Entwurf von diesem Gerät wiederhergestellt'); }
       ed.addEventListener('change', e => {
@@ -1175,12 +1187,14 @@ const Bericht = {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.addentry) { const i = +b.dataset.addentry; days[i].eintraege.push({ text: '', min: 0 }); rerender(`[data-txt="${i}-${days[i].eintraege.length - 1}"]`); }
         if (b.dataset.delentry) { const [i, j] = ij(b.dataset.delentry); days[i].eintraege.splice(j, 1); if (!days[i].eintraege.length) days[i].eintraege = [{ text: '', min: 0 }]; rerender(); }
+        if (b.dataset.diktat) { dkDaySheet(+b.dataset.diktat, days, () => rerender()); return; }
+        if (b.dataset.bfdel) { const [i, k] = ij(b.dataset.bfdel), pth = days[i].fotos[k]; days[i].fotos.splice(k, 1); if (!days[i].fotos.length) delete days[i].fotos; sb.storage.from('berichtfotos').remove([pth]).then(() => {}, () => {}); persist(); rerender(); return; }
         if (b.dataset.copyprev) { const i = +b.dataset.copyprev; days[i] = { tag: i, bereich: days[i - 1].bereich, eintraege: clone(days[i - 1].eintraege) }; rerender(); toast(`${DAYS[i]} wie ${DAYS[i - 1]} übernommen`); }
       });
     }
     const save = async status => {
       const inhalt = ($('#repText')?.value || '').trim();
-      const tage = S.rep.days.map(d => ({ tag: d.tag, bereich: d.bereich, eintraege: OFF.includes(d.bereich) ? [] : d.eintraege.filter(e => e.text.trim() || e.min).map(e => ({ text: e.text.trim().slice(0, 200), min: +e.min || 0, ...(e.rp && d.bereich !== 'Berufsschule' ? { rp: e.rp } : {}), ...(e.lf && d.bereich === 'Berufsschule' ? { lf: e.lf } : {}) })) }));
+      const tage = S.rep.days.map(d => ({ tag: d.tag, bereich: d.bereich, ...(d.fotos?.length ? { fotos: d.fotos } : {}), eintraege: OFF.includes(d.bereich) ? [] : d.eintraege.filter(e => e.text.trim() || e.min).map(e => ({ text: e.text.trim().slice(0, 200), min: +e.min || 0, ...(e.rp && d.bereich !== 'Berufsschule' ? { rp: e.rp } : {}), ...(e.lf && d.bereich === 'Berufsschule' ? { lf: e.lf } : {}) })) }));
       if (status === 'eingereicht') {
         const noTime = tage.find(d => d.eintraege.some(e => e.text && !e.min)), noText = tage.find(d => d.eintraege.some(e => e.min && !e.text));
         if (noTime) return toast(`${DAYS[noTime.tag]}: Bei einer Tätigkeit fehlt die Zeit.`);
@@ -1191,7 +1205,7 @@ const Bericht = {
         if (vague) return toast(`${DAYS[vague.tag]}: Schreib bei der Berufsschule Fach oder Thema auf (z. B. „LF 6 Check-in und Meldeschein“), nicht nur „Berufsschule“.`);
       }
       const row = { user_id: S.me.id, jahr: S.rep.week.jahr, kw: S.rep.week.kw, abteilung: mainArea(tage, S.me), inhalt, tage, status };
-      if (navigator.onLine === false) { localDraft.set(S.rep.daysKey, S.rep.days, inhalt); return toast('Keine Verbindung. Dein Entwurf ist auf diesem Gerät gesichert – sende ihn, sobald du wieder online bist.'); }
+      if (navigator.onLine === false) { localDraft.set(S.rep.daysKey, S.rep.days, inhalt); OUTBOX.put(row); render(); return toast(status === 'eingereicht' ? 'Keine Verbindung. Dein Bericht wird automatisch eingereicht, sobald du wieder online bist.' : 'Keine Verbindung. Dein Entwurf ist gesichert und wird automatisch gespeichert, sobald du online bist.'); }
       const saved = await q(sb.from('reports').upsert(row, { onConflict: 'user_id,jahr,kw' }).select().single());
       localDraft.clear(S.rep.daysKey);
       S.rep.list = [saved, ...S.rep.list.filter(x => x.id !== saved.id)].sort((a, b) => b.jahr - a.jahr || b.kw - a.kw);
@@ -1214,6 +1228,8 @@ const Bericht = {
     if ($('#examSet')) $('#examSet').onclick = openProfile;
     $('#absNew').onclick = () => openAbsenceSheet(null, S.me.id, () => go('bericht'));
     bindSchool(S.me, () => go('bericht'));
+    praxisBind(S.me, () => { const y = scrollY; render(); scrollTo(0, y); });
+    $$('[data-beuconf]').forEach(b => b.onclick = () => beuConfirmSheet(S.rep.beu.find(x => x.id === b.dataset.beuconf), () => { const y = scrollY; render(); scrollTo(0, y); }));
     if ($('#icsOut')) $('#icsOut').onclick = exportIcs;
     $$('[data-abs]').forEach(b => b.onclick = () => openAbsenceSheet(S.rep.abs.find(a => a.id === b.dataset.abs), S.me.id, () => go('bericht')));
     if ($('#genBtn')) $('#genBtn').onclick = () => {
@@ -1253,6 +1269,7 @@ const Review = {
       q(sb.from('plan_stationen').select('*').order('von')).catch(() => [])]);
     if (!S.rev.selUser || !S.profiles[S.rev.selUser]) { const az = azubis(); S.rev.selUser = (az.find(a => a.betreuer_id === S.me.id) || az.find(a => inScope(a.abteilung)) || az[0])?.id || null; }
     if (S.rev.selUser && S.profiles[S.rev.selUser] && canSchool(S.profiles[S.rev.selUser])) await loadSchool(S.rev.selUser).catch(() => {});
+    await pxLoad();
   },
   html() {
     const pending = S.rev.list.filter(r => r.status === 'eingereicht');
@@ -1299,6 +1316,7 @@ const Review = {
     ${rpHTML(userReps, S.profiles[sel])}
     ${secTitle('Ausbildungsplan', can('lernziele') ? '<button id="planNew" class="text-[13px] font-semibold text-accent">+ Station</button>' : '')}
     ${planHTML((S.rev.plan || []).filter(x => x.azubi_id === sel), S.profiles[sel], can('lernziele'))}
+    ${praxisHTML(S.profiles[sel], true)}
     ${secTitle('Prüfungstraining')}
     <div data-examstats="${sel}"><div class="card p-4 text-[14px] text-muted">Wird geladen …</div></div>
     ${can('gespraeche') ? `${secTitle('Gespräche', '<button id="talkNew" class="text-[13px] font-semibold text-accent">+ Neu</button>')}
@@ -1334,6 +1352,7 @@ const Review = {
     $$('[data-talk]').forEach(b => b.onclick = () => openTalkSheet(S.rev.talks.find(t => t.id === b.dataset.talk), sel, reload));
     if ($('#beuNew')) $('#beuNew').onclick = () => openBeuSheet(null, sel, reload);
     if ($('#planNew')) $('#planNew').onclick = () => openPlanSheet(null, sel, reload);
+    praxisBind(S.profiles[sel], () => { const y = scrollY; render(); scrollTo(0, y); });
     $$('[data-plan]').forEach(b => b.onclick = () => openPlanSheet(S.rev.plan.find(x => x.id === b.dataset.plan), sel, reload));
     $$('[data-beu]').forEach(b => b.onclick = () => openBeuSheet(S.rev.beu.find(x => x.id === b.dataset.beu), sel, reload));
     if ($('#absNew')) $('#absNew').onclick = () => openAbsenceSheet(null, sel, reload);
@@ -2762,6 +2781,7 @@ async function openExam(mode = 'teil2', maxLj = null, nrs = null, keys = null, t
       const right = E.qs.filter(x => E.ans[x.id] === x.richtig).length, pts = Math.round(right / E.qs.length * 100), [note, n] = IHK_NOTE(pts);
       const by = {}; E.qs.forEach(x => { const k = x.rp_nr || '–'; by[k] = by[k] || [0, 0]; by[k][1]++; if (E.ans[x.id] === x.richtig) by[k][0]++; });
       const rows = Object.entries(by).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
+      if (!E.saved) { lkRecord(E.qs, E.ans); }
       if (!E.saved) { E.saved = true; sb.from('exam_results').insert({ teil: E.mode, punkte: pts, fragen: E.qs.length, richtig: right, by_rp: by }).then(() => { if (S.view === 'wiki') fillExamStats(); }, () => {}); }
       sheetShell(title || EXAM_LABEL[E.mode] || 'Prüfungssimulation', `<div class="card p-5 flex flex-col items-center gap-2 text-center">${ring(pts, 96, 10)}
         <div class="font-display font-bold text-[22px] tnum">${pts} von 100 Punkten</div>
@@ -2886,7 +2906,8 @@ function beuList(rows, editable) {
       <div class="mt-3 flex flex-col gap-2">${BEU_KRIT.filter(k => b.kriterien?.[k]).map(k => { const n = +b.kriterien[k]; return `<div><div class="flex justify-between gap-3 text-[13px]"><span>${t(k)}</span><span class="text-muted">${t(BEU_SKALA[n])}</span></div><div class="bar mt-1 ${n <= 2 ? 'brass' : ''}" role="img" aria-label="${n} von 5"><i style="width:${n * 20}%"></i></div></div>`; }).join('')}</div>
       ${b.staerken ? `<div class="mt-3 p-3 rounded-xl text-[14px]" style="background:var(--sunk)"><div class="eyebrow mb-1">Stärken</div><div class="whitespace-pre-line">${esc(b.staerken)}</div></div>` : ''}
       ${b.ziele ? `<div class="mt-2 p-3 rounded-xl text-[14px]" style="background:var(--sunk)"><div class="eyebrow mb-1">Entwicklungsziele</div><div class="whitespace-pre-line">${esc(b.ziele)}</div></div>` : ''}
-      <div class="flex items-center justify-between gap-3 mt-3"><span class="text-[12px] text-muted">${esc(nameOf(b.author_id))}</span>${b.gelesen_at ? `<span class="chip ok">gelesen ${fmtD(b.gelesen_at.slice(0, 10))}</span>` : `<button class="btn py-2 text-[13px]" data-beuread="${b.id}">Gelesen</button>`}</div></div>`;
+      <div class="flex items-center justify-between gap-3 mt-3"><span class="text-[12px] text-muted">${esc(nameOf(b.author_id))}</span><span class="flex items-center gap-2"><button class="btn ghost py-2 text-[13px]" data-beupdf="${b.id}">PDF</button>${b.bestaetigt_at || b.gelesen_at ? `<span class="chip ok">bestätigt ${fmtD((b.bestaetigt_at || b.gelesen_at).slice(0, 10))}</span>` : `<button class="btn py-2 text-[13px]" data-beuconf="${b.id}">Lesen & bestätigen</button>`}</span></div>
+      ${b.azubi_kommentar ? `<div class="mt-3 p-3 rounded-xl text-[14px]" style="background:var(--sunk)"><div class="eyebrow mb-1">Deine Stellungnahme</div><div class="whitespace-pre-line">${esc(b.azubi_kommentar)}</div></div>` : ''}</div>`;
   }).join('')}</div>`;
 }
 /* ---------- Persönlicher Ausbildungsplan: welche Abteilung wann, abgeglichen mit Rahmenplan und Soll-Wochen ---------- */
@@ -2958,7 +2979,7 @@ function openBeuSheet(row, forUser, onDone) {
       <label class="flex items-center gap-2 text-[14px]"><input type="checkbox" id="beSicht" ${row?.sichtbar ? 'checked' : ''} style="accent-color:var(--accent);width:20px;height:20px"> Für den Azubi freigeben</label>
       <p class="text-[12px] text-muted">Erst nach der Freigabe sieht ${esc(nameOf(forUser))} die Beurteilung und bestätigt sie mit „Gelesen“. Am besten im Gespräch gemeinsam durchgehen.</p>
       <button class="btn">${isNew ? 'Speichern' : 'Änderungen speichern'}</button>
-    </form>${isNew ? '' : '<button id="beuDel" class="btn danger w-full mt-4">Löschen</button>'}`);
+    </form>${isNew ? '' : `${row.azubi_kommentar ? `<div class="card p-4 mt-3 text-[14px]"><div class="eyebrow mb-1">Stellungnahme von ${esc(firstName(nameOf(forUser)))}</div><div class="whitespace-pre-line">${esc(row.azubi_kommentar)}</div></div>` : ''}<button class="btn ghost w-full mt-3" data-beupdf="${row.id}">Als PDF (mit Unterschriftszeilen)</button><button id="beuDel" class="btn danger w-full mt-4">Löschen</button>`}`);
   $('#beVon').onchange = () => { if ($('#beBis').value < $('#beVon').value) $('#beBis').value = $('#beVon').value; };
   $('#beuForm').onsubmit = async e => {
     e.preventDefault();
@@ -3267,6 +3288,7 @@ async function homeExtras() {
   H.uwMine = S.content.uw.map(w => ({ w, st: uwState(me, w, lm[me.id + '|' + w.id]) })).filter(x => x.st);
   H.uwOffen = H.uwMine.filter(x => x.st.state !== 'ok');
   H.moodOpen = H.moodOpen === true;
+  if (isAzubi() && !S.demo) S.lkDue = await lkCount();
   if (Array.isArray(H.ihkM)) H.ihkM = null;
   ['moodAus', 'fbAus'].forEach(k => { if (!Array.isArray(H[k])) H[k] = []; });
   if (H.dp4) {
@@ -3333,7 +3355,7 @@ function staffHomeHTML() {
   let out = '';
   if (H.antr?.length) out += `${secTitle('Urlaubsanträge', `<span class="chip warn tnum">${H.antr.length}</span>`)}<div class="card">${H.antr.map((a, i) => `<div class="p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex items-center gap-3"><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(nameOf(a.user_id))}</div><div class="text-[12px] text-muted tnum">${span(a)}${a.notiz ? ' · ' + esc(a.notiz) : ''}</div></div><button class="btn danger py-1.5 px-3 text-[13px]" data-absno="${a.id}">Ablehnen</button><button class="btn ok py-1.5 px-3 text-[13px]" data-absok="${a.id}">OK</button></div></div>`).join('')}</div>`;
   if (H.bew?.length) out += `<button class="card w-full flex items-center gap-3 p-3.5 mt-4 text-left" data-bewgo><span class="chip accent tnum">${H.bew.length}</span><span class="flex-1 text-[14px] font-semibold">${H.bew.length === 1 ? 'Neue Bewerbung' : 'Neue Bewerbungen'}</span>${svg('arrow', 'w-4 h-4 text-muted')}</button>`;
-  if (H.grp?.length) out += `${secTitle(esc(S.betrieb.gruppe?.name || 'Hotelgruppe'), '<button class="text-[13px] font-semibold text-accent" data-houses>Haus wechseln</button>')}<div class="card">${H.grp.map((g, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(g.name)}${g.ich_hier ? ' <span class="chip accent ml-1">hier</span>' : ''}</div><div class="text-[12px] text-muted tnum">${g.azubis} Azubis · ${g.team} Team · ${g.berichte_30} Berichte/30 T.</div></div>${g.offen ? `<span class="chip brass tnum">${g.offen} prüfen</span>` : ''}${g.urlaub_offen ? `<span class="chip warn tnum">${g.urlaub_offen} Urlaub</span>` : ''}</div>`).join('')}</div>`;
+  if (H.grp?.length) out += `${secTitle(esc(S.betrieb.gruppe?.name || 'Hotelgruppe'), '<span class="flex gap-3"><button class="text-[13px] font-semibold text-accent" data-vergleich>Vergleich</button><button class="text-[13px] font-semibold text-accent" data-houses>Haus wechseln</button></span>')}<div class="card">${H.grp.map((g, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(g.name)}${g.ich_hier ? ' <span class="chip accent ml-1">hier</span>' : ''}</div><div class="text-[12px] text-muted tnum">${g.azubis} Azubis · ${g.team} Team · ${g.berichte_30} Berichte/30 T.</div></div>${g.offen ? `<span class="chip brass tnum">${g.offen} prüfen</span>` : ''}${g.urlaub_offen ? `<span class="chip warn tnum">${g.urlaub_offen} Urlaub</span>` : ''}</div>`).join('')}</div>`;
   return out;
 }
 function ampelData(p) {
@@ -3434,7 +3456,8 @@ function bindHomeExtras() {
   $$('[data-risktalk]').forEach(b => b.onclick = () => openTalkSheet(null, b.dataset.risktalk, () => go('home')));
   elternBind();
 }
-document.addEventListener('click', e => { if (e.target.closest('[data-houses]')) openHouses(); });
+document.addEventListener('click', e => { if (e.target.closest('[data-houses]')) openHouses(); if (e.target.closest('[data-vergleich]')) vergleichSheet(); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-beupdf]'); if (!b) return; const row = [...(S.rep?.beu || []), ...(S.rev?.beu || [])].find(x => x.id === b.dataset.beupdf); if (row) beuPDF(row, b); });
 
 /* ---------- Unterweisungen ---------- */
 S.uw = { tab: 'meine', all: [], mine: [] };
@@ -3887,7 +3910,9 @@ function karriereHTML() {
       ${(S.adm.bewFiles?.[b.id] || []).length ? `<div class="flex flex-col gap-1.5 mt-3">${S.adm.bewFiles[b.id].map(f => `<button class="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-left" data-bewfile="${esc(f.pfad)}"><span class="text-accent">${svg('file', 'w-4 h-4')}</span><span class="flex-1 min-w-0 truncate text-[13px] font-semibold" translate="no">${esc(bewFileName(f.pfad))}</span><span class="text-[12px] text-muted tnum">${fmtSize(f.groesse)}</span><span class="text-[12px] font-semibold text-accent">Öffnen</span></button>`).join('')}</div>` : ''}
       <div class="flex flex-wrap gap-3 mt-2 text-[13px] font-semibold"><a class="text-accent" href="mailto:${esc(b.email)}">${esc(b.email)}</a>${b.telefon ? `<a class="text-accent tnum" href="tel:${esc(b.telefon.replace(/[^\d+]/g, ''))}">${esc(b.telefon)}</a>` : ''}</div>
       <div class="grid grid-cols-2 gap-2 mt-3"><select class="field py-2 text-[14px]" data-bewst="${b.id}" aria-label="Status der Bewerbung von ${esc(b.name)}">${Object.entries(BEW_STATUS).map(([k, v]) => `<option value="${k}" ${b.status === k ? 'selected' : ''}>${v[1]}</option>`).join('')}</select><button class="btn ghost py-2 text-[13px]" data-bewnote="${b.id}">Notiz${b.notiz ? ' ✓' : ''}</button></div>
+      ${b.status === 'zusage' ? `<button class="btn w-full mt-3 text-[13px]" data-bewinv="${b.id}">Als Azubi einladen</button>` : ''}
       <button class="text-[13px] font-semibold text-muted mt-3" data-bewdel="${b.id}">Bewerbung löschen</button></div>`).join('')}</div>` : empty('Noch keine Bewerbungen. Teile den Link oder hänge den QR-Code aus.')}
+    ${siegelAdminHTML()}
     ${secTitle('Seite gestalten')}
     <form id="krForm" class="card p-4 flex flex-col gap-3">
       <label class="flex items-center gap-2.5 text-[14px] font-semibold"><input type="checkbox" id="krAktiv" class="cbx" ${K.aktiv ? 'checked' : ''}> Seite ist online</label>
@@ -3906,6 +3931,8 @@ async function bindKarriere() {
   $('#krCopy').onclick = async () => { try { await navigator.clipboard.writeText(url); toast('Link kopiert'); } catch { toast(url); } };
   loadScript('./vendor/qrcode.min.js').then(() => { const el = $('#krQr'); if (el && window.QRCode) { el.innerHTML = ''; new QRCode(el, { text: url, width: 116, height: 116, correctLevel: QRCode.CorrectLevel.M }); el.setAttribute('role', 'img'); el.setAttribute('aria-label', 'QR-Code zur Karriereseite'); el.querySelectorAll('img,canvas').forEach(x => { x.setAttribute('alt', ''); x.setAttribute('aria-hidden', 'true'); }); } }).catch(() => {});
   $$('[data-bewst]').forEach(s => s.onchange = async () => { const row = await q(sb.from('bewerbungen').update({ status: s.value }).eq('id', s.dataset.bewst).select().single()); Object.assign(S.adm.bew.find(b => b.id === s.dataset.bewst), row || { status: s.value }); toast('Gespeichert'); render(); });
+  $$('[data-bewinv]').forEach(b => b.onclick = () => einladungSheet(S.adm.bew.find(x => x.id === b.dataset.bewinv)));
+  siegelAdminBind();
   $$('[data-bewnote]').forEach(b => b.onclick = () => {
     const r = S.adm.bew.find(x => x.id === b.dataset.bewnote);
     sheetShell('Notiz zu ' + r.name, `<form id="bnf" class="card p-4 flex flex-col gap-3"><textarea id="bnt" class="field" rows="6" maxlength="2000">${esc(r.notiz)}</textarea><button class="btn">Speichern</button></form>`);
@@ -4026,6 +4053,7 @@ function bindAnbieter() {
 const SCHUL_TYP = { fehltag: ['crit', 'Fehltag'], verspaetung: ['warn', 'Verspätung'], notiz: ['', 'Notiz'], lob: ['ok', 'Lob'] };
 const SCHOOL_SLUG = new URLSearchParams(location.search).get('schule');
 const ELTERN_SLUG = new URLSearchParams(location.search).get('eltern');
+const SIEGEL_SLUG = new URLSearchParams(location.search).get('siegel');
 const schoolUrl = tok => `${location.origin}${location.pathname}?schule=${tok}`;
 const canSchool = a => !!a && a.role === 'azubi' && (can('team') || (can('berichte') && inScope(a.abteilung)) || a.betreuer_id === S.me.id);
 async function loadSchool(azubiId) { await schLoad(azubiId); }
@@ -4093,8 +4121,7 @@ async function importIcs(file, userId) {
   const covered = d => existing.some(x => x.von <= d && x.bis >= d);
   const days = parseIcsDates(text).filter(d => d >= from && d <= to && !covered(d));
   if (!days.length) return toast('Keine neuen Schultage gefunden.');
-  const runs = []; let cur = null;
-  days.forEach(d => { const gap = cur ? (new Date(d) - new Date(cur.bis)) / 864e5 : 99; if (cur && gap <= 3) cur.bis = d; else runs.push(cur = { von: d, bis: d }); });
+  const runs = schRuns(days);
   if (!confirm(`${days.length} Schultage in ${runs.length} Einträgen übernehmen?`)) return;
   await q(sb.from('absences').insert(runs.map(r => ({ user_id: userId, typ: 'Berufsschule', von: r.von, bis: r.bis, notiz: 'Stundenplan-Import' }))));
   toast(`${days.length} Schultage eingetragen`);
@@ -4467,6 +4494,10 @@ async function startDemo(role) {
   if (SCHOOL_SLUG === 'demo') {
     try { await loadScript('demo.js'); } catch { return toast('Die Demo konnte nicht geladen werden.'); }
     window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('azubi'); await sb.ready;
+  }
+  if (SIEGEL_SLUG) {
+    if (SIEGEL_SLUG === 'demo') { try { await loadScript('demo.js'); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('leitung'); await sb.ready; }
+    return showSiegel(SIEGEL_SLUG);
   }
   if (ELTERN_SLUG) {
     if (ELTERN_SLUG === 'demo') { try { await loadScript('demo.js'); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('azubi'); await sb.ready; }
