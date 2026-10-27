@@ -156,6 +156,31 @@
     if (rpN('I2')) DB.rp_vermittelt.push({ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, rp_id: rpN('I2').id, datum: ymd(day(-60)), notiz: 'Unterweisung Arbeits- und Brandschutz', von: P.fom.id, created_at: iso(day(-60)) });
     const h6 = rpN('H6'), h8 = rpN('H8');
     DB.reports.filter(r => r.user_id === P.lena.id).forEach((r, k) => (r.tage || []).forEach(d => (d.eintraege || []).forEach((e, j) => { if (d.bereich === 'Rezeption' && j === 0 && h6) e.rp = h6.id; if (d.bereich === 'Rezeption' && j === 1 && h8 && k % 2) e.rp = h8.id; })));
+    // Berufsschule: Lernfelder, Schultage, Anwesenheit, Fehltage, Noten, Zeugnisse, Nachrichten
+    DB.lernfelder = c.lf || [];
+    const wday = (back, wd) => { const d = day(-7 * back, 8); const cur = (d.getDay() + 6) % 7; d.setDate(d.getDate() - cur + wd); return d; };
+    const se = (az, f, typ, d, extra = {}) => DB.schul_eintraege.push({ id: uuid(), betrieb_id: B, azubi_id: az, freigabe_id: f, von: 'Frau Lehmann', typ, datum: ymd(d), text: '', created_at: iso(d), status: typ === 'fehltag' ? 'offen' : null, nachweis: null, ...extra });
+    const sday = (az, d) => DB.absences.push({ id: uuid(), betrieb_id: B, user_id: az, typ: 'Berufsschule', von: ymd(d), bis: ymd(d), notiz: 'Stundenplan-Import', status: 'genehmigt', created_at: iso(day(-70)) });
+    [2, 3, 6].forEach(b => sday(P.lena.id, wday(b, 2)));
+    se(P.lena.id, 'demo-sf1', 'anwesend', wday(3, 2));
+    se(P.lena.id, 'demo-sf1', 'fehltag', wday(6, 2), { text: 'Ohne Entschuldigung gefehlt.' });
+    [1, 2, 4].forEach(b => { sday(P.tom.id, wday(b, 1)); se(P.tom.id, 'demo-sf2', 'anwesend', wday(b, 1)); });
+    se(P.tom.id, 'demo-sf2', 'fehltag', wday(3, 1), { status: 'unentschuldigt', entschieden_von: P.koch.id, entschieden_at: iso(wday(3, 3)) });
+    se(P.aylin.id, 'demo-sf3', 'fehltag', wday(5, 3), { status: 'entschuldigt', nachweis: 'demo-aylin/au.pdf', entschieden_von: P.fom.id, entschieden_at: iso(wday(5, 4)) });
+    const lfs = (az, list) => list.forEach(([nr, status, note]) => DB.schul_lf_stand.push({ id: uuid(), betrieb_id: B, azubi_id: az, lf_nr: nr, status, note: note ?? null, seit: ymd(day(-20)), von: 'Frau Lehmann', updated_at: iso(day(-20)) }));
+    DB.schul_lf_stand = [];
+    lfs(P.lena.id, [[1, 'abgeschlossen', 2.0], [2, 'abgeschlossen'], [3, 'laeuft']]);
+    lfs(P.tom.id, [[1, 'abgeschlossen'], [2, 'abgeschlossen'], [3, 'abgeschlossen', 2.3], [4, 'abgeschlossen'], [5, 'abgeschlossen'], [6, 'abgeschlossen', 3.0], [7, 'laeuft']]);
+    lfs(P.aylin.id, [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => [n, 'abgeschlossen']).concat([[10, 'laeuft']]));
+    const nt = (az, note, d, art, extra = {}) => ({ id: uuid(), betrieb_id: B, azubi_id: az, note, datum: ymd(day(d)), art, quelle: 'schule', von: 'Frau Lehmann', freigabe_id: { [P.lena.id]: 'demo-sf1', [P.tom.id]: 'demo-sf2', [P.aylin.id]: 'demo-sf3' }[az], created_by: null, created_at: iso(day(d, 15)), ...extra });
+    DB.schul_noten = [nt(P.lena.id, 2.0, -30, 'klassenarbeit', { lf_nr: 1, titel: 'Ausbildungsvertrag und Arbeitsschutz' }), nt(P.lena.id, 2.7, -12, 'test', { fach: 'Englisch', titel: 'Guest Communication', quelle: 'azubi', von: null, freigabe_id: null, created_by: P.lena.id }),
+      nt(P.tom.id, 4.3, -8, 'klassenarbeit', { lf_nr: 7, titel: 'Garmethoden Fleisch' }), nt(P.tom.id, 3.0, -40, 'klassenarbeit', { lf_nr: 6, titel: 'Fonds und Saucen' }),
+      nt(P.aylin.id, 1.7, -25, 'klassenarbeit', { lf_nr: 10, titel: 'Nachtaudit und Tagesabschluss' }), nt(P.aylin.id, 2.0, -60, 'zeugnis', { fach: 'Wirtschafts- und Sozialkunde' })];
+    DB.schul_zeugnisse = [{ id: uuid(), betrieb_id: B, azubi_id: P.aylin.id, titel: 'Jahreszeugnis 2. Ausbildungsjahr', datum: ymd(day(-95)), datei: 'demo-aylin/zeugnis.pdf', created_by: P.aylin.id, kenntnis_von: P.fom.id, kenntnis_at: iso(day(-90)), created_at: iso(day(-95)) },
+      { id: uuid(), betrieb_id: B, azubi_id: P.tom.id, titel: 'Halbjahreszeugnis 2. Ausbildungsjahr', datum: ymd(day(-10)), datei: 'demo-tom/zeugnis.pdf', created_by: P.tom.id, kenntnis_von: null, kenntnis_at: null, created_at: iso(day(-10)) }];
+    DB.schul_nachrichten = [{ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, freigabe_id: 'demo-sf1', richtung: 'schule', von: 'Frau Lehmann', text: 'Lena hat am Mittwoch gefehlt. Liegt Ihnen eine Krankmeldung vor?', created_at: iso(wday(6, 3)) },
+      { id: uuid(), betrieb_id: B, azubi_id: P.tom.id, freigabe_id: 'demo-sf2', richtung: 'schule', von: 'Frau Lehmann', text: 'Tom hat in der Klassenarbeit LF 7 eine 4,3. Er sollte Garmethoden im Betrieb noch einmal üben.', created_at: iso(day(-7, 16)) },
+      { id: uuid(), betrieb_id: B, azubi_id: P.tom.id, freigabe_id: 'demo-sf2', richtung: 'betrieb', user_id: P.koch.id, von: 'Marco Brandt', text: 'Danke! Tom übernimmt nächste Woche die Schmorgerichte am Mittag.', created_at: iso(day(-6, 9)) }];
     const w = isoWeek(new Date());
     DB.quiz_questions = (c.quiz || []).map((q, i) => i < 3 ? { ...q, jahr: w.jahr, kw: w.kw, nur_training: false } : q);
     const uw = DB.unterweisungen, s = n => sig(n);
@@ -190,7 +215,7 @@
     const defaults = () => ({ id: uuid(), created_at: iso(new Date()), betrieb_id: B,
       ...(['reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions', 'exam_results'].includes(table) ? { user_id: me } : {}),
       ...(table === 'shift_notes' || table === 'ankuendigungen' || table === 'talks' || table === 'plan_stationen' ? { author_id: me } : {}),
-      ...(table === 'open_items' || table === 'absences' || table === 'chat_gruppen' ? { created_by: me } : {}),
+      ...(table === 'open_items' || table === 'absences' || table === 'chat_gruppen' || table === 'schul_noten' || table === 'schul_zeugnisse' ? { created_by: me } : {}),
       ...(table === 'messages' ? { sender_id: me, read_at: null } : {}) });
     function fix(row) {
       if (table === 'absences' && !row.status) row.status = 'genehmigt';
@@ -278,10 +303,23 @@
           ausbilder: be ? { name: be.full_name, position: be.position, email: be.kontakt_email, telefon: be.telefon } : null,
           berichte: DB.reports.filter(r => r.user_id === az.id && ['eingereicht', 'abgezeichnet'].includes(r.status)).sort((x, y) => y.jahr - x.jahr || y.kw - x.kw).map(r => ({ jahr: r.jahr, kw: r.kw, abteilung: r.abteilung, status: r.status, tage: r.tage, inhalt: r.inhalt, signed_at: r.signed_at })),
           abwesenheiten: DB.absences.filter(x => x.user_id === az.id && x.status === 'genehmigt' && ['Berufsschule', 'Krank', 'Urlaub'].includes(x.typ)).sort((x, y) => y.von.localeCompare(x.von)).map(x => ({ typ: x.typ, von: x.von, bis: x.bis })),
-          eintraege: DB.schul_eintraege.filter(e => e.azubi_id === az.id && e.freigabe_id === f.id).sort((x, y) => y.created_at.localeCompare(x.created_at)).map(e => ({ typ: e.typ, datum: e.datum, text: e.text, von: e.von, created_at: e.created_at }))
+          eintraege: DB.schul_eintraege.filter(e => e.azubi_id === az.id && e.freigabe_id === f.id).sort((x, y) => y.datum.localeCompare(x.datum) || y.created_at.localeCompare(x.created_at)).map(e => ({ id: e.id, typ: e.typ, datum: e.datum, text: e.text, von: e.von, created_at: e.created_at, status: e.status || null, nachweis: !!e.nachweis })),
+          noten: (DB.schul_noten || []).filter(n => n.azubi_id === az.id && n.quelle === 'schule' && n.freigabe_id === f.id).sort((x, y) => y.datum.localeCompare(x.datum)).map(n => ({ id: n.id, lf_nr: n.lf_nr || null, fach: n.fach || null, art: n.art, titel: n.titel || null, datum: n.datum, note: n.note, quelle: n.quelle })),
+          lernfelder: (DB.lernfelder || []).filter(l => l.beruf === az.beruf).sort((x, y) => x.nr - y.nr).map(l => ({ nr: l.nr, titel: l.titel, lehrjahr: l.lehrjahr, stunden: l.stunden })),
+          lf_stand: (DB.schul_lf_stand || []).filter(s => s.azubi_id === az.id).map(s => ({ lf_nr: s.lf_nr, status: s.status, seit: s.seit, note: s.note })),
+          nachrichten: (DB.schul_nachrichten || []).filter(m => m.azubi_id === az.id && (!m.freigabe_id || m.freigabe_id === f.id)).sort((x, y) => x.created_at.localeCompare(y.created_at)).map(m => ({ richtung: m.richtung, von: m.von, text: m.text, created_at: m.created_at }))
         };
       },
-      schule_add: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null; DB.schul_eintraege.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, freigabe_id: f.id, von: a.p_von || f.lehrkraft, typ: a.p_typ, datum: a.p_datum, text: a.p_text, created_at: iso(new Date()) }); return true; },
+      schule_add: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null;
+        if (['anwesend', 'fehltag'].includes(a.p_typ)) DB.schul_eintraege = DB.schul_eintraege.filter(e => !(e.freigabe_id === f.id && e.datum === a.p_datum && ['anwesend', 'fehltag'].includes(e.typ) && !e.nachweis && e.status !== 'entschuldigt'));
+        DB.schul_eintraege.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, freigabe_id: f.id, von: a.p_von || f.lehrkraft, typ: a.p_typ, datum: a.p_datum, text: a.p_text, created_at: iso(new Date()), status: a.p_typ === 'fehltag' ? 'offen' : null, nachweis: null }); return true; },
+      schule_note_add: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null; DB.schul_noten.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, lf_nr: a.p_lf, fach: a.p_fach || null, art: a.p_art, titel: a.p_titel || null, datum: a.p_datum, note: a.p_note, quelle: 'schule', von: a.p_von || f.lehrkraft, freigabe_id: f.id, created_by: null, created_at: iso(new Date()) }); return true; },
+      schule_note_del: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); DB.schul_noten = DB.schul_noten.filter(n => !(n.id === a.p_id && n.freigabe_id === f?.id)); return true; },
+      schule_lf_set: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null; const ex = DB.schul_lf_stand.find(s => s.azubi_id === f.azubi_id && s.lf_nr === a.p_lf);
+        if (!a.p_status) { DB.schul_lf_stand = DB.schul_lf_stand.filter(s => s !== ex); return true; }
+        if (ex) Object.assign(ex, { status: a.p_status, von: a.p_von || f.lehrkraft, updated_at: iso(new Date()) }); else DB.schul_lf_stand.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, lf_nr: a.p_lf, status: a.p_status, note: a.p_note, von: a.p_von || f.lehrkraft, seit: ymd(new Date()), updated_at: iso(new Date()) }); return true; },
+      schule_msg: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null; DB.schul_nachrichten.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, freigabe_id: f.id, richtung: 'schule', von: a.p_von || f.lehrkraft, text: a.p_text, created_at: iso(new Date()) }); return true; },
+      schul_nachweis: a => { const e = DB.schul_eintraege.find(x => x.id === a.p_id); if (e) e.nachweis = a.p_path; return true; },
       beurteilung_gelesen: a => { const b = DB.beurteilungen.find(x => x.id === a.p_id); if (b) b.gelesen_at = iso(new Date()); return null; },
       admin_users: () => DB.profiles.map(p => ({ id: p.id, email: p.full_name.split(' ')[0].toLowerCase() + '@seeblick.example', last_sign_in_at: iso(day(-1)), created_at: p.created_at })),
       get_invite_code: () => 'SEEB-DEMO', admin_quiz: () => DB.quiz_questions,

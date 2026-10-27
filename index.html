@@ -259,6 +259,7 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
+<script src="./schule.js"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -425,7 +426,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-27c';
+const APP_VERSION = '2026-10-27d';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -917,7 +918,7 @@ function exportIcs() {
   toast(`${ev.length} Termine exportiert – Datei öffnen, um sie in den Kalender zu übernehmen`);
 }
 function initDays(r, w, abs, prof) {
-  if (r?.tage?.length === 7) return r.tage.map(d => ({ tag: d.tag, bereich: d.bereich, eintraege: OFF.includes(d.bereich) ? [] : (d.eintraege?.length ? d.eintraege.map(e => ({ text: e.text || '', min: +e.min || 0, ...(e.rp ? { rp: +e.rp } : {}) })) : [{ text: '', min: 0 }]) }));
+  if (r?.tage?.length === 7) return r.tage.map(d => ({ tag: d.tag, bereich: d.bereich, eintraege: OFF.includes(d.bereich) ? [] : (d.eintraege?.length ? d.eintraege.map(e => ({ text: e.text || '', min: +e.min || 0, ...(e.rp ? { rp: +e.rp } : {}), ...(e.lf ? { lf: +e.lf } : {}) })) : [{ text: '', min: 0 }]) }));
   return weekDates(w).map((dt, i) => {
     const iso = localDate(dt), a = (abs || []).find(x => x.von <= iso && x.bis >= iso && (x.status || 'genehmigt') === 'genehmigt');
     const bereich = a ? (a.typ === 'Sonstiges' ? 'Frei' : a.typ) : (i < 5 ? (prof?.abteilung || ABTEILUNGEN[0]) : 'Frei');
@@ -932,16 +933,17 @@ function mainArea(days, prof) {
 }
 /* Stunden-Hinweise: Soll und gesetzliche Höchstgrenzen (JArbSchG unter 18: 8 Std/Tag, 40 Std/Woche; ArbZG: 10 Std/Tag, 48 Std/Woche) */
 function hoursInfo(days, prof) {
+  const anr = schAnrechnungHTML(days, prof);
   const jung = !!prof?.unter18, dayMax = (jung ? 8 : 10) * 60, weekMax = (jung ? 40 : 48) * 60;
   const total = weekMin(days), soll = (+APP.wochenSoll || 0) * 60;
   const warn = [];
   (days || []).forEach((d, i) => { const m = dayMin(d); if (m > dayMax) warn.push(`${DAYS[i]}: ${fmtMin(m)} – mehr als ${dayMax / 60} Std am Tag`); });
   if (total > weekMax) warn.push(`Woche: ${fmtMin(total)} – mehr als ${weekMax / 60} Std`);
   const sollTxt = !soll ? '' : total < soll ? `Soll ${fmtMin(soll)} · noch ${fmtMin(soll - total)} offen` : total === soll ? `Soll ${fmtMin(soll)} erreicht` : `Soll ${fmtMin(soll)} · ${fmtMin(total - soll)} darüber`;
-  return `${sollTxt ? `<div class="text-[12px] text-muted tnum text-right px-1">${sollTxt}</div>` : ''}${warn.length ? `<div class="rounded-xl p-3 text-[13px]" style="background:var(--warn-soft);color:var(--warn)"><b>${jung ? 'Jugendarbeitsschutz' : 'Arbeitszeitgesetz'}:</b> bitte prüfen.<ul class="mt-1">${warn.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}`;
+  return `${sollTxt && !anr ? `<div class="text-[12px] text-muted tnum text-right px-1">${sollTxt}</div>` : ''}${anr}${warn.length ? `<div class="rounded-xl p-3 text-[13px]" style="background:var(--warn-soft);color:var(--warn)"><b>${jung ? 'Jugendarbeitsschutz' : 'Arbeitszeitgesetz'}:</b> bitte prüfen.<ul class="mt-1">${warn.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}`;
 }
 function weekEditorHTML(days, w) {
-  const dates = weekDates(w), rpOpts = rpPositions(S.me);
+  const dates = weekDates(w), rpOpts = rpPositions(S.me), lfOpts = schLernfelder(S.me);
   const opt = (v, cur, label) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${label}</option>`;
   return `<div class="flex flex-col gap-3 mt-3" id="weekEd">${days.map((d, i) => {
     const off = OFF.includes(d.bereich), school = d.bereich === 'Berufsschule';
@@ -957,7 +959,7 @@ function weekEditorHTML(days, w) {
         <input class="field py-2 flex-1 min-w-0 text-[14px]" style="background:var(--surface);padding-left:10px;padding-right:8px;flex-basis:100%" data-txt="${i}-${j}" value="${esc(e.text)}" placeholder="${school ? 'Fach oder Thema' : 'Tätigkeit'}" maxlength="200" aria-label="${school ? 'Fach' : 'Tätigkeit'} ${j + 1} am ${DAYS[i]}">
         <select class="field py-2 px-1.5 flex-none tnum text-[14px]" style="background:var(--surface);width:62px;padding:8px 2px 8px 8px" data-h="${i}-${j}" aria-label="Stunden">${[...Array(13).keys()].map(h => opt(h, Math.floor(e.min / 60), h + ' h')).join('')}</select>
         <select class="field py-2 px-1.5 flex-none tnum text-[14px]" style="background:var(--surface);width:84px;padding:8px 2px 8px 8px" data-m="${i}-${j}" aria-label="Minuten">${MIN_STEPS.map(m => opt(m, e.min % 60, m + ' min')).join('')}</select>
-        ${!school && rpOpts.length ? `<select class="field py-2 flex-1 min-w-0 text-[13px]" style="background:var(--surface);padding:8px 4px 8px 8px;${e.rp ? '' : 'color:var(--muted)'}" data-rp="${i}-${j}" aria-label="Position im Ausbildungsrahmenplan"><option value="">Rahmenplan: automatisch</option>${rpOpts.map(x => `<option value="${x.id}" ${x.id === e.rp ? 'selected' : ''}>${esc(x.nr)} · ${esc(rpShort(x.titel))}</option>`).join('')}</select>` : '<span class="flex-1"></span>'}<button type="button" class="xbtn" data-delentry="${i}-${j}" aria-label="Eintrag entfernen">${svg('x', 'w-4 h-4')}</button></div>`).join('')}
+        ${!school && rpOpts.length ? `<select class="field py-2 flex-1 min-w-0 text-[13px]" style="background:var(--surface);padding:8px 4px 8px 8px;${e.rp ? '' : 'color:var(--muted)'}" data-rp="${i}-${j}" aria-label="Position im Ausbildungsrahmenplan"><option value="">Rahmenplan: automatisch</option>${rpOpts.map(x => `<option value="${x.id}" ${x.id === e.rp ? 'selected' : ''}>${esc(x.nr)} · ${esc(rpShort(x.titel))}</option>`).join('')}</select>` : school && lfOpts.length ? `<select class="field py-2 flex-1 min-w-0 text-[13px]" style="background:var(--surface);padding:8px 4px 8px 8px;${e.lf ? '' : 'color:var(--muted)'}" data-lf="${i}-${j}" aria-label="Lernfeld"><option value="">Lernfeld: automatisch</option>${lfOpts.map(l => `<option value="${l.nr}" ${l.nr === e.lf ? 'selected' : ''}>LF ${l.nr} · ${esc(rpShort(l.titel))}</option>`).join('')}</select>` : '<span class="flex-1"></span>'}<button type="button" class="xbtn" data-delentry="${i}-${j}" aria-label="Eintrag entfernen">${svg('x', 'w-4 h-4')}</button></div>`).join('')}
         <button type="button" class="text-[13px] font-semibold text-accent self-start" data-addentry="${i}">+ ${school ? 'Fach' : 'Tätigkeit'}</button></div>`}
     </div>`; }).join('')}
     <div class="flex items-center justify-between px-1"><span class="text-[13px] font-semibold">Summe der Woche</span><span class="font-display font-bold text-[18px] tnum" id="weekTot">${fmtMin(weekMin(days))}</span></div>
@@ -969,7 +971,7 @@ function weekTableHTML(days, w) {
   const dates = weekDates(w);
   return `<div class="mt-3 rounded-xl overflow-hidden" style="border:1px solid var(--line)">${days.map((d, i) => `<div class="p-3 ${i ? 'border-t border-line' : ''}">
       <div class="flex items-baseline justify-between gap-2"><div class="text-[13px] font-semibold">${DAYS[i]}, ${ddmm(dates[i])}</div><div class="text-[12px] text-muted tnum text-right">${esc(d.bereich)}${OFF.includes(d.bereich) ? '' : ' · ' + fmtMin(dayMin(d))}</div></div>
-      ${(d.eintraege || []).filter(e => e.text || e.min).map(e => `<div class="flex justify-between gap-3 text-[13px] mt-1"><span class="min-w-0">${esc(e.text) || '–'}${e.rp && rpById(e.rp) ? ` <span class="chip tnum" style="padding:1px 6px;font-size:11px" title="${esc(rpById(e.rp).titel)}">${esc(rpById(e.rp).nr)}</span>` : ''}</span><span class="tnum text-muted flex-none">${fmtMin(+e.min || 0)}</span></div>`).join('')}
+      ${(d.eintraege || []).filter(e => e.text || e.min).map(e => `<div class="flex justify-between gap-3 text-[13px] mt-1"><span class="min-w-0">${esc(e.text) || '–'}${e.rp && rpById(e.rp) ? ` <span class="chip tnum" style="padding:1px 6px;font-size:11px" title="${esc(rpById(e.rp).titel)}">${esc(rpById(e.rp).nr)}</span>` : ''}${e.lf ? ` <span class="chip accent tnum" style="padding:1px 6px;font-size:11px">LF ${+e.lf}</span>` : ''}</span><span class="tnum text-muted flex-none">${fmtMin(+e.min || 0)}</span></div>`).join('')}
     </div>`).join('')}
     <div class="p-3 border-t border-line flex justify-between text-[13px] font-semibold" style="background:var(--sunk)"><span>Summe der Woche</span><span class="tnum">${fmtMin(weekMin(days))}</span></div></div>`;
 }
@@ -1156,6 +1158,7 @@ const Bericht = {
           en.min = h * 60 + m; totals();
         }
         if (t.dataset.rp) { const [i, j] = ij(t.dataset.rp), en = days[i].eintraege[j]; if (t.value) en.rp = +t.value; else delete en.rp; t.style.color = t.value ? '' : 'var(--muted)'; }
+        if (t.dataset.lf) { const [i, j] = ij(t.dataset.lf), en = days[i].eintraege[j]; if (t.value) en.lf = +t.value; else delete en.lf; t.style.color = t.value ? '' : 'var(--muted)'; }
         if (t.dataset.bereich) {
           const i = +t.dataset.bereich, d = days[i]; d.bereich = t.value;
           if (OFF.includes(d.bereich)) d.eintraege = []; else if (!d.eintraege.length) d.eintraege = [{ text: '', min: 0 }];
@@ -1171,13 +1174,15 @@ const Bericht = {
     }
     const save = async status => {
       const inhalt = ($('#repText')?.value || '').trim();
-      const tage = S.rep.days.map(d => ({ tag: d.tag, bereich: d.bereich, eintraege: OFF.includes(d.bereich) ? [] : d.eintraege.filter(e => e.text.trim() || e.min).map(e => ({ text: e.text.trim().slice(0, 200), min: +e.min || 0, ...(e.rp && d.bereich !== 'Berufsschule' ? { rp: e.rp } : {}) })) }));
+      const tage = S.rep.days.map(d => ({ tag: d.tag, bereich: d.bereich, eintraege: OFF.includes(d.bereich) ? [] : d.eintraege.filter(e => e.text.trim() || e.min).map(e => ({ text: e.text.trim().slice(0, 200), min: +e.min || 0, ...(e.rp && d.bereich !== 'Berufsschule' ? { rp: e.rp } : {}), ...(e.lf && d.bereich === 'Berufsschule' ? { lf: e.lf } : {}) })) }));
       if (status === 'eingereicht') {
         const noTime = tage.find(d => d.eintraege.some(e => e.text && !e.min)), noText = tage.find(d => d.eintraege.some(e => e.min && !e.text));
         if (noTime) return toast(`${DAYS[noTime.tag]}: Bei einer Tätigkeit fehlt die Zeit.`);
         if (noText) return toast(`${DAYS[noText.tag]}: Bei einer Zeit fehlt die Tätigkeit.`);
         const empty = tage.find(d => !OFF.includes(d.bereich) && !dayMin(d));
         if (empty) return toast(`${DAYS[empty.tag]}: Trag Tätigkeiten mit Zeit ein oder wähle Frei, Urlaub oder Krank.`);
+        const vague = tage.find(d => d.bereich === 'Berufsschule' && d.eintraege.some(e => /^(berufs)?schule|unterricht|schultag|bs$/i.test(e.text.trim())));
+        if (vague) return toast(`${DAYS[vague.tag]}: Schreib bei der Berufsschule Fach oder Thema auf (z. B. „LF 6 Check-in und Meldeschein“), nicht nur „Berufsschule“.`);
       }
       const row = { user_id: S.me.id, jahr: S.rep.week.jahr, kw: S.rep.week.kw, abteilung: mainArea(tage, S.me), inhalt, tage, status };
       if (navigator.onLine === false) { localDraft.set(S.rep.daysKey, S.rep.days, inhalt); return toast('Keine Verbindung. Dein Entwurf ist auf diesem Gerät gesichert – sende ihn, sobald du wieder online bist.'); }
@@ -1653,7 +1658,8 @@ async function loadContent() {
     q(sb.from('unterweisungen').select('*').order('sort')),
     q(sb.from('rahmenplan').select('*').order('sort'))
   ]);
-  S.content = { goals, sops, checklists, tasks, contacts, faq, quiz, uw, rp };
+  const lf = await sb.from('lernfelder').select('*').order('beruf').order('nr').then(r => r.data || [], () => []);
+  S.content = { goals, sops, checklists, tasks, contacts, faq, quiz, uw, rp, lf };
   if (!S.content.checklists.some(c => c.id === S.wiki.cl)) S.wiki.cl = checklists[0]?.id ?? null;
 }
 
@@ -2209,7 +2215,7 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-foto
    ===================================================================== */
 const scriptCache = {};
 /* Vollständiger Datenexport des Betriebs (Art. 20 DSGVO, Vertragsende laut AVV) */
-const EXPORT_TABLES = ['profiles', 'reports', 'absences', 'goal_progress', 'talks', 'beurteilungen', 'rp_vermittelt', 'unterweisungen', 'unterweisung_bestaetigungen', 'ankuendigungen', 'ankuendigung_gelesen',
+const EXPORT_TABLES = ['schul_noten', 'schul_zeugnisse', 'schul_lf_stand', 'schul_nachrichten', 'profiles', 'reports', 'absences', 'goal_progress', 'talks', 'beurteilungen', 'rp_vermittelt', 'unterweisungen', 'unterweisung_bestaetigungen', 'ankuendigungen', 'ankuendigung_gelesen',
   'chat_gruppen', 'chat_mitglieder', 'messages', 'shift_notes', 'open_items', 'checklists', 'checklist_checks', 'onboarding_tasks', 'onboarding_done', 'learning_goals', 'quiz_questions', 'quiz_answers',
   'sops', 'contacts', 'bot_faq', 'rahmenplan', 'schul_freigaben', 'schul_eintraege', 'karriere', 'bewerbungen', 'app_config', 'zahlungen', 'report_log', 'exam_results', 'plan_stationen'];
 const csvOf = rows => {
@@ -3215,6 +3221,9 @@ async function homeExtras() {
     if (mod('bericht').on !== false && (S.content.rp || []).length) { jobs.rpReps = sb.from('reports').select('user_id,status,tage,inhalt').neq('status', 'entwurf'); jobs.rpvAll = sb.from('rp_vermittelt').select('*'); }
     if (can('abwesenheiten')) jobs.krank = sb.from('absences').select('user_id,von,bis,typ,status').eq('typ', 'Krank').gte('bis', `${NOW.jahr}-01-01`);
     if (can('unterweisungen')) jobs.allub = sb.from('unterweisung_bestaetigungen').select('user_id,unterweisung_id,bestaetigt_at');
+    jobs.schE = sb.from('schul_eintraege').select('azubi_id,typ,datum,status').gte('datum', localDate(new Date(Date.now() - 120 * 864e5)));
+    jobs.schN = sb.from('schul_noten').select('azubi_id,note,datum').gte('datum', localDate(new Date(Date.now() - 180 * 864e5)));
+    jobs.schAbs = sb.from('absences').select('user_id,typ,von,bis,status').eq('typ', 'Berufsschule').gte('bis', localDate(new Date(Date.now() - 60 * 864e5)));
   }
   if (S.betrieb?.gruppen_leitung) jobs.grp = sb.rpc('gruppe_overview');
   if (isAdmin() && !setupDismissed()) jobs.kar = sb.from('karriere').select('aktiv').maybeSingle();
@@ -3309,6 +3318,7 @@ function ampelData(p) {
   }
   const ex = [['ZP', p.zp_datum], ['AP', p.ap_datum]].map(([l, d]) => [l, daysUntil(d)]).find(x => x[1] !== null && x[1] >= 0 && x[1] <= 90);
   out.exam = ex;
+  const sc = schAmpel(p, H); if (sc) { out.schule = sc.level; out.schuleInfo = sc.title; }
   const lv = Object.values(out).filter(v => typeof v === 'string');
   out.level = lv.includes('crit') ? 2 : lv.includes('warn') ? 1 : 0;
   return out;
@@ -3318,12 +3328,12 @@ function ampelHTML(list, obTotal) {
   if (!list.length) return `${secTitle('Dein Team')}${empty('Noch keine Azubis registriert. Gib ihnen den Code aus Verwaltung › Team.')}`;
   const rows = list.map(p => ({ p, a: ampelData(p) })).sort((x, y) => y.a.level - x.a.level || x.p.full_name.localeCompare(y.p.full_name));
   const dot = (lvl, label, title) => lvl ? `<span class="inline-flex items-center gap-1 text-[11px] text-muted" title="${esc(title)}"><i style="width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--${lvl === 'ok' ? 'ok' : lvl})"></i>${label}</span>` : '';
-  return `${secTitle('Ampel', `<span class="text-[12px] text-muted tnum">${list.length} Azubis</span>`)}
+  return `${secTitle('Ampel', `<span class="flex items-center gap-3">${isAdmin() || can('team') ? '<button id="schPdf" class="text-[13px] font-semibold text-accent">Schulbericht (PDF)</button>' : ''}<span class="text-[12px] text-muted tnum">${list.length} Azubis</span></span>`)}
   <div class="card">${rows.map(({ p, a }, i) => { const d = H.obByUser[p.id] || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-ampel="${p.id}">${avatar(p, 38)}
     <div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name || 'Ohne Namen')}</div><div class="text-[12px] text-muted truncate">${p.lehrjahr}. LJ · ${esc(p.abteilung)}${betreuerOf(p) ? ' · bei ' + esc(firstName(betreuerOf(p).full_name)) : ''}</div>
-    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">${dot(a.berichte, 'Berichte', a.miss ? `${a.miss} Wochen ohne Bericht` : 'Berichte vollständig')}${dot(a.pruefen, 'Prüfen', a.old ? `${a.old} Berichte warten > 7 Tage` : 'nichts liegen geblieben')}${dot(a.krank, 'Fehltage', `${a.krankTage || 0} Krankheitstage ${NOW.jahr}`)}${dot(a.uw, 'Unterweisung', a.uwDue ? `${a.uwDue} fällig` : 'alle erledigt')}${pct(d, obTotal) < 100 && obTotal ? `<span class="text-[11px] text-muted tnum">Onboarding ${pct(d, obTotal)}%</span>` : ''}</div>${H.reps ? berichtMiniHTML(berichtStand(p, H.reps.filter(r => r.user_id === p.id))) : ''}${H.rpReps ? rpMiniHTML(rpStand(H.rpReps.filter(r => r.user_id === p.id), p)) : ''}</div>
+    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">${dot(a.berichte, 'Berichte', a.miss ? `${a.miss} Wochen ohne Bericht` : 'Berichte vollständig')}${dot(a.pruefen, 'Prüfen', a.old ? `${a.old} Berichte warten > 7 Tage` : 'nichts liegen geblieben')}${dot(a.krank, 'Fehltage', `${a.krankTage || 0} Krankheitstage ${NOW.jahr}`)}${dot(a.uw, 'Unterweisung', a.uwDue ? `${a.uwDue} fällig` : 'alle erledigt')}${dot(a.schule, 'Schule', a.schuleInfo || '')}${pct(d, obTotal) < 100 && obTotal ? `<span class="text-[11px] text-muted tnum">Onboarding ${pct(d, obTotal)}%</span>` : ''}</div>${H.reps ? berichtMiniHTML(berichtStand(p, H.reps.filter(r => r.user_id === p.id))) : ''}${H.rpReps ? rpMiniHTML(rpStand(H.rpReps.filter(r => r.user_id === p.id), p)) : ''}</div>
     ${a.exam ? `<span class="chip ${a.exam[1] <= 30 ? 'warn' : ''} tnum flex-none">${a.exam[0]} ${a.exam[1]} T.</span>` : ''}</button>`; }).join('')}</div>
-  <p class="text-[12px] text-muted mt-2">Grün = alles gut, Gelb = bitte ansehen, Rot = handeln. Berichte: letzte 8 Wochen. Der Balken zeigt das ganze Berichtsheft: grün abgezeichnet, orange zur Prüfung, rot fehlt. Rahmenplan: Anteil erledigter Positionen je Ausbildungsjahr (grün komplett, orange laufendes Jahr, rot vergangenes Jahr mit offenen Positionen). Antippen öffnet den Azubi.</p>`;
+  <p class="text-[12px] text-muted mt-2">Grün = alles gut, Gelb = bitte ansehen, Rot = handeln. Berichte: letzte 8 Wochen. Der Balken zeigt das ganze Berichtsheft: grün abgezeichnet, orange zur Prüfung, rot fehlt. Rahmenplan: Anteil erledigter Positionen je Ausbildungsjahr (grün komplett, orange laufendes Jahr, rot vergangenes Jahr mit offenen Positionen). Schule: Fehltage, Noten und Abgleich mit dem Wochenbericht. Antippen öffnet den Azubi.</p>`;
 }
 function extraTilesHTML() {
   const H = S.home, uwOff = H.uwOffen?.length || 0, neu = H.ankNeu?.length || 0;
@@ -3364,6 +3374,7 @@ function bindHomeExtras() {
   $$('[data-absok]').forEach(b => b.onclick = () => decide(b.dataset.absok, 'genehmigt'));
   $$('[data-absno]').forEach(b => b.onclick = () => confirmInline(b, () => decide(b.dataset.absno, 'abgelehnt')));
   $$('[data-ampel]').forEach(b => b.onclick = () => { S.rev.selUser = b.dataset.ampel; S.rev.open = null; go('bericht'); });
+  if ($('#schPdf')) $('#schPdf').onclick = () => schMonatPDF($('#schPdf'));
   $$('[data-bewgo]').forEach(b => b.onclick = () => { S.adm.tab = 'karriere'; go('admin'); });
   $$('[data-training]').forEach(b => b.onclick = () => openTraining());
 }
@@ -3960,31 +3971,9 @@ const SCHUL_TYP = { fehltag: ['crit', 'Fehltag'], verspaetung: ['warn', 'Verspä
 const SCHOOL_SLUG = new URLSearchParams(location.search).get('schule');
 const schoolUrl = tok => `${location.origin}${location.pathname}?schule=${tok}`;
 const canSchool = a => !!a && a.role === 'azubi' && (can('team') || (can('berichte') && inScope(a.abteilung)) || a.betreuer_id === S.me.id);
-async function loadSchool(azubiId) {
-  const [f, e] = await Promise.all([
-    q(sb.from('schul_freigaben').select('*').eq('azubi_id', azubiId).order('created_at', { ascending: false })),
-    q(sb.from('schul_eintraege').select('*').eq('azubi_id', azubiId).order('created_at', { ascending: false }).limit(50))
-  ]);
-  S.school = { azubi: azubiId, f, e };
-}
-function schoolHTML(a, manage) {
-  const Sc = S.school; if (!Sc || Sc.azubi !== a.id) return '';
-  const active = Sc.f.filter(f => !f.widerrufen && f.gueltig_bis >= localDate());
-  return `${secTitle('Berufsschule', manage ? '<button id="scNew" class="text-[13px] font-semibold text-accent">+ Zugang für Lehrkraft</button>' : '')}
-    <div class="card p-4 flex flex-col gap-3">
-      ${active.length ? active.map(f => `<div class="flex items-center gap-3"><span class="ico" style="width:34px;height:34px">${svg('book', 'w-4 h-4')}</span><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(f.schule)}${f.lehrkraft ? ' · ' + esc(f.lehrkraft) : ''}</div><div class="text-[12px] text-muted">Zugang bis ${fmtDate(f.gueltig_bis)} · ${f.last_access ? 'zuletzt geöffnet ' + when(f.last_access) : 'noch nicht geöffnet'}</div></div>${manage ? `<button class="btn ghost py-1.5 px-3 text-[13px]" data-scshow="${f.id}">Link</button>` : ''}</div>`).join('')
-        : `<p class="text-[14px] text-muted">${manage ? 'Noch kein Zugang. Die Lehrkraft sieht damit Berichtsheft und Fehlzeiten (nur lesen) und kann Fehltage oder Notizen melden – ohne Konto.' : 'Deine Berufsschule hat keinen Zugang zu deinem Berichtsheft.'}</p>`}
-      ${!manage && active.length ? '<p class="text-[12px] text-muted">Die Schule sieht deine eingereichten Wochenberichte und Fehlzeiten, aber keine Nachrichten, Gespräche oder Lernziele.</p>' : ''}
-      <div class="grid ${manage || isAzubi() ? 'grid-cols-1' : ''} gap-2"><label class="btn ghost py-2 text-[13px] cursor-pointer">${svg('copy', 'w-4 h-4')} Stundenplan importieren (.ics)<input type="file" accept=".ics,text/calendar" id="scIcs" hidden></label></div>
-      <p class="text-[12px] text-muted -mt-1">Kalender-Datei aus WebUntis oder vom Schul-Kalender. Schultage werden als „Berufsschule“ eingetragen und im Wochenbericht vorbelegt.</p>
-    </div>
-    ${Sc.e.length ? `<div class="card mt-3">${Sc.e.map((e, i) => `<div class="p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex items-center gap-2"><span class="chip ${SCHUL_TYP[e.typ][0]}">${SCHUL_TYP[e.typ][1]}</span><span class="text-[13px] font-semibold tnum">${fmtDate(e.datum)}</span><span class="text-[12px] text-muted ms-auto truncate">${esc(e.von || 'Berufsschule')}</span></div>${e.text ? `<p class="text-[14px] mt-1 whitespace-pre-line">${esc(e.text)}</p>` : ''}</div>`).join('')}</div>` : ''}`;
-}
-function bindSchool(a, onDone) {
-  if ($('#scNew')) $('#scNew').onclick = () => openSchoolSheet(a, null, onDone);
-  $$('[data-scshow]').forEach(b => b.onclick = () => openSchoolSheet(a, S.school.f.find(f => f.id === b.dataset.scshow), onDone));
-  if ($('#scIcs')) $('#scIcs').onchange = async e => { const f = e.target.files?.[0]; if (f) { await importIcs(f, a.id); onDone(); } };
-}
+async function loadSchool(azubiId) { await schLoad(azubiId); }
+function schoolHTML(a, manage) { return schHTML(a, manage); }
+function bindSchool(a, onDone) { schBind(a, onDone); }
 function openSchoolSheet(a, f, onDone) {
   if (!f) {
     const end = new Date(); end.setFullYear(end.getFullYear() + 1);
@@ -4074,7 +4063,9 @@ async function showSchool(tok) {
       <div><label class="lbl" for="spVon">Ihr Name</label><input id="spVon" class="field" maxlength="120" value="${esc(D.lehrkraft || '')}"></div>
       <button class="btn">Senden</button>
     </form>
-    ${D.eintraege.length ? `<h2 class="text-[18px] font-bold mt-6 mb-2">Bisherige Meldungen</h2><div class="card">${D.eintraege.map((e, i) => `<div class="p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex items-center gap-2"><span class="chip ${SCHUL_TYP[e.typ][0]}">${SCHUL_TYP[e.typ][1]}</span><span class="text-[13px] font-semibold tnum">${fmtDate(e.datum)}</span></div>${e.text ? `<p class="text-[14px] mt-1 whitespace-pre-line">${esc(e.text)}</p>` : ''}</div>`).join('')}</div>` : ''}
+    ${schPortalHTML(D, tok)}
+    ${D.eintraege.filter(e => e.typ !== 'anwesend').length ? `<h2 class="text-[18px] font-bold mt-6 mb-2">Bisherige Meldungen</h2><div class="card">${D.eintraege.filter(e => e.typ !== 'anwesend').map((e, i) => `<div class="p-3.5 ${i ? 'border-t border-line' : ''}"><div class="flex items-center gap-2 flex-wrap"><span class="chip ${(SCH_TYP[e.typ] || ['', ''])[0]}">${(SCH_TYP[e.typ] || ['', e.typ])[1]}</span><span class="text-[13px] font-semibold tnum">${fmtDate(e.datum)}</span>${e.typ === 'fehltag' && e.status ? `<span class="chip ${SCH_STATUS[e.status][0]}">${e.status === 'offen' ? 'Betrieb prüft noch' : SCH_STATUS[e.status][1]}</span>` : ''}${e.nachweis ? '<span class="chip accent">Nachweis liegt dem Betrieb vor</span>' : ''}</div>${e.text ? `<p class="text-[14px] mt-1 whitespace-pre-line">${esc(e.text)}</p>` : ''}</div>`).join('')}</div>` : ''}
+    ${D.eintraege.some(e => e.typ === 'anwesend') ? `<p class="text-[13px] text-muted mt-2">Anwesenheit gemeldet an ${D.eintraege.filter(e => e.typ === 'anwesend').length} Tag(en), zuletzt am ${fmtDate(D.eintraege.find(e => e.typ === 'anwesend').datum)}.</p>` : ''}
     <h2 class="text-[18px] font-bold mt-6 mb-2">Fehlzeiten & Schultage</h2>
     ${D.abwesenheiten.length ? `<div class="card">${D.abwesenheiten.map((x, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><span class="chip ${absTone[x.typ] || ''}">${x.typ}</span><span class="text-[14px] tnum">${fmtDate(x.von)}${x.bis !== x.von ? ' – ' + fmtDate(x.bis) : ''}</span></div>`).join('')}</div>` : empty('Keine Einträge.')}
     <h2 class="text-[18px] font-bold mt-6 mb-2">Wochenberichte</h2>
@@ -4082,6 +4073,7 @@ async function showSchool(tok) {
       <div class="px-3.5 pb-3.5">${r.tage?.length ? weekTableHTML(r.tage, r) : ''}${r.inhalt ? `<p class="text-[14px] mt-3 whitespace-pre-line">${esc(r.inhalt)}</p>` : ''}</div></details>`).join('')}</div>` : empty('Noch keine eingereichten Berichte.')}
     <p class="text-[12px] text-muted text-center mt-6 mb-10">Zugang gültig bis ${fmtDate(D.gueltig_bis)} · bereitgestellt von ${esc(D.betrieb)} mit AzubiHub · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
   $('#spKlasse').onclick = () => showClass();
+  schPortalBind(D, tok, () => { const y = scrollY; showSchool(tok).then(() => scrollTo(0, y)); });
   $('#spForm').onsubmit = async e => {
     e.preventDefault();
     const btn = $('#spForm button.btn'); btn.disabled = true;
@@ -4149,10 +4141,12 @@ async function showClass() {
       <div><label class="lbl" for="klVon">Ihr Name</label><input id="klVon" class="field" maxlength="120" value="${esc(good[0]?.D.lehrkraft || '')}"></div>
       <button class="btn" id="klSend">An Auswahl senden</button>
     </div>` : ''}</form>` : `<div class="card p-4 mt-4 text-[14px] text-muted">Noch keine Auszubildenden. Öffnen Sie den Link, den Sie vom Ausbildungsbetrieb bekommen haben, oder fügen Sie ihn unten ein.</div>`}
+    ${schClassAttendanceHTML(good)}
     <h2 class="text-[18px] font-bold mt-6 mb-2">Weiteren Zugang hinzufügen</h2>
     <form id="klAdd" class="card p-4 flex gap-2"><label for="klLink" class="sr-only">Link vom Ausbildungsbetrieb</label><input id="klLink" class="field flex-1" placeholder="Link vom Ausbildungsbetrieb einfügen" autocomplete="off"><button class="btn flex-none">Hinzufügen</button></form>
     <p class="text-[12px] text-muted text-center mt-6 mb-10">AzubiHub · <button type="button" class="font-semibold" data-privacy>Datenschutz</button> · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
   $$('[data-klopen]').forEach(b => b.onclick = () => showSchool(b.dataset.klopen));
+  schClassAttendanceBind(() => showClass());
   $$('[data-kldel]').forEach(b => b.onclick = () => { klSave(klList().filter(x => x.token !== b.dataset.kldel)); showClass(); });
   const boxes = () => $$('#klForm input[type=checkbox]');
   if ($('#klAll')) { $('#klAll').onclick = () => boxes().forEach(c => c.checked = true); $('#klNone').onclick = () => boxes().forEach(c => c.checked = false); }
