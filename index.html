@@ -425,7 +425,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-27b';
+const APP_VERSION = '2026-10-27c';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -2301,10 +2301,13 @@ async function printNachweis(userId, opts = {}) {
       <table><caption>Tätigkeiten KW ${r.kw}/${r.jahr}</caption><thead><tr><th scope="col">Tag</th><th scope="col">Bereich</th><th scope="col">Tätigkeit</th><th scope="col">Stunden</th></tr></thead><tbody>
       ${(r.tage || []).map((d, i) => (d.eintraege || []).length ? d.eintraege.map((x, j) => `<tr>${j ? '' : `<th scope="row" rowspan="${d.eintraege.length}">${DAYS[i]}</th><td rowspan="${d.eintraege.length}">${e(d.bereich)}</td>`}<td>${e(x.text)}</td><td>${fmtMin(+x.min || 0)}</td></tr>`).join('') : `<tr><th scope="row">${DAYS[i]}</th><td>${e(d.bereich)}</td><td>–</td><td>–</td></tr>`).join('')}
       </tbody></table>${r.inhalt ? `<p><strong>Zusammenfassung:</strong> ${e(r.inhalt)}</p>` : ''}<p>Status: ${e(STATUS[r.status][1])}${r.feedback ? ` · Rückmeldung: ${e(r.feedback)}` : ''}</p></section>`; }).join('');
-    const rpT = pos.length ? `<section><h2>Abgleich mit dem Ausbildungsrahmenplan</h2><table><caption>Berufsbildpositionen</caption><thead><tr><th scope="col">Nr.</th><th scope="col">Position</th><th scope="col">Stand</th></tr></thead><tbody>${pos.map(x => { const c = cov[x.id]; return `<tr><th scope="row">${e(x.nr)}</th><td>${e(x.titel)}</td><td>${c.verm ? 'vermittelt ' + fmtDate(c.verm.datum) : c.hits ? (c.min ? Math.round(c.min / 6) / 10 + ' Std' : 'erwähnt') : 'offen'}</td></tr>`; }).join('')}</tbody></table></section>` : '';
+    const rpG = rpGroups(pos, cov, p), rgb = a => `rgb(${a.join(',')})`;
+    const rpT = pos.length ? `<section><h2>Abgleich mit dem Ausbildungsrahmenplan</h2>
+      <table><caption>Stand je Ausbildungsjahr</caption><thead><tr><th scope="col">Ausbildungsjahr</th><th scope="col">Erledigt</th><th scope="col">Anteil</th></tr></thead><tbody>${rpG.groups.map(g => `<tr><th scope="row">${g.y}. Ausbildungsjahr${g.y === rpG.cur ? ' (aktuell)' : ''}</th><td>${g.d} von ${g.n}</td><td><span style="display:inline-block;width:90px;height:8px;background:#e5e5e5;border-radius:4px;vertical-align:middle;margin-right:8px;overflow:hidden"><span style="display:block;height:100%;width:${g.pc}%;background:${rgb(rpRGB(g.pc, g.y, rpG.cur))}"></span></span><strong>${g.pc} %</strong></td></tr>`).join('')}</tbody></table>
+      ${rpG.groups.map(g => `<h3>${g.y}. Ausbildungsjahr – ${g.d} von ${g.n} erledigt (${g.pc} %)</h3><table><caption class="sr">Positionen ${g.y}. Ausbildungsjahr</caption><thead><tr><th scope="col">Nr.</th><th scope="col">Position</th><th scope="col">Stand</th></tr></thead><tbody>${g.list.map(x => `<tr><th scope="row">${e(x.nr)}</th><td>${e(x.titel)}</td><td>${rpStateText(cov[x.id], g.y <= (p.lehrjahr || 1))}</td></tr>`).join('')}</tbody></table>`).join('')}</section>` : '';
     w.document.open();
     w.document.write(`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(title)}</title><style>
-      body{font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#111;max-width:56rem;margin:0 auto;padding:24px}h1{font-size:24px}h2{font-size:18px;margin-top:28px;break-after:avoid}
+      body{font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:#111;max-width:56rem;margin:0 auto;padding:24px}h1{font-size:24px}h2{font-size:18px;margin-top:28px;break-after:avoid}h3{font-size:16px;margin-top:20px;break-after:avoid}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
       table{border-collapse:collapse;width:100%;margin:8px 0}th,td{border:1px solid #888;padding:6px 8px;text-align:left;vertical-align:top}thead th{background:#eee}caption{text-align:left;font-weight:600;padding:4px 0}
       section{break-inside:avoid-page}.no-print{margin:16px 0;padding:10px 14px;font:inherit;font-weight:600;border-radius:8px;border:2px solid #0f5c5f;background:#0f5c5f;color:#fff;cursor:pointer}
       @media print{.no-print{display:none}body{padding:0}}</style></head><body>
@@ -2426,15 +2429,36 @@ async function exportPDF(userId, btn, opts = {}) {
         doc.setFont(FONT, 'bold'); doc.setFontSize(16); doc.text('Abgleich mit dem Ausbildungsrahmenplan', M, 22);
         doc.setFont(FONT, 'normal'); doc.setFontSize(9); doc.setTextColor(100);
         doc.text(pdfSafe('Aus den Tätigkeiten der Wochenberichte (zugeordnete Position oder Stichwortabgleich) und den Vermerken der Ausbilder/innen.'), M, 28); doc.setTextColor(0);
-        let y = 38; doc.setFontSize(10);
-        pos.forEach(x => {
-          if (y > 275) { doc.addPage(); y = 22; }
-          const c = cov[x.id];
-          doc.setFont(FONT, 'normal');
-          const lines = doc.splitTextToSize(pdfSafe(`${x.nr} ${x.titel}`), CW - 62);
-          lines.forEach((l, li) => doc.text(l, M, y + li * 5));
-          doc.setFont(FONT, 'bold'); doc.text(pdfSafe(c.verm ? `vermittelt ${fmtDate(c.verm.datum)}` + (c.min ? ` · ${Math.round(c.min / 6) / 10} Std` : '') : c.hits ? (c.min ? `${Math.round(c.min / 6) / 10} Std` : 'erwähnt') : 'offen'), W - M, y, { align: 'right' });
-          y += lines.length * 5 + 2; doc.setDrawColor(230); doc.line(M, y - 3, W - M, y - 3);
+        const G = rpGroups(pos, cov, p);
+        let y = 38;
+        // Übersicht je Ausbildungsjahr mit Balken
+        G.groups.forEach(g => {
+          const c = rpRGB(g.pc, g.y, G.cur);
+          doc.setFont(FONT, 'bold'); doc.setFontSize(10); doc.text(pdfSafe(`${g.y}. Ausbildungsjahr${g.y === G.cur ? ' (aktuell)' : ''}`), M, y);
+          doc.setFillColor(229, 229, 229); doc.rect(M + 58, y - 3.2, 70, 3.6, 'F');
+          if (g.pc) { doc.setFillColor(...c); doc.rect(M + 58, y - 3.2, 70 * g.pc / 100, 3.6, 'F'); }
+          doc.setTextColor(...c); doc.text(`${g.pc} %`, M + 132, y); doc.setTextColor(0);
+          doc.setFont(FONT, 'normal'); doc.text(pdfSafe(`${g.d} von ${g.n}`), W - M, y, { align: 'right' });
+          y += 7;
+        });
+        y += 4;
+        G.groups.forEach(g => {
+          if (y > 262) { doc.addPage(); y = 22; }
+          doc.setFont(FONT, 'bold'); doc.setFontSize(12); doc.setTextColor(...rpRGB(g.pc, g.y, G.cur));
+          doc.text(pdfSafe(`${g.y}. Ausbildungsjahr – ${g.d} von ${g.n} erledigt (${g.pc} %)`), M, y); doc.setTextColor(0);
+          y += 7; doc.setFontSize(10);
+          g.list.forEach(x => {
+            if (y > 275) { doc.addPage(); y = 22; }
+            const c = cov[x.id], due = g.y <= (p.lehrjahr || 1);
+            doc.setFont(FONT, 'normal');
+            const lines = doc.splitTextToSize(pdfSafe(`${x.nr} ${x.titel}`), CW - 62);
+            lines.forEach((l, li) => doc.text(l, M, y + li * 5));
+            const st = rpStateText(c, due);
+            doc.setFont(FONT, 'bold'); if (st === 'offen') doc.setTextColor(214, 69, 69); else if (st === 'später') doc.setTextColor(120);
+            doc.text(pdfSafe(st), W - M, y, { align: 'right' }); doc.setTextColor(0);
+            y += lines.length * 5 + 2; doc.setDrawColor(230); doc.line(M, y - 3, W - M, y - 3);
+          });
+          y += 5;
         });
       }
     }
@@ -3578,6 +3602,16 @@ function rpStand(reports, p) {
   const all = pos.filter(x => done(cov[x.id])).length;
   return { ys, cur, all, n: pos.length, pc: Math.round(all * 100 / pos.length) };
 }
+/* Positionen nach Ausbildungsjahr gruppiert, mit Stand (für PDF/Druck) */
+function rpGroups(pos, cov, p) {
+  const yr = x => x.lehrjahr || 1, done = c => !!(c.hits || c.verm);
+  const years = [...new Set(pos.map(yr))].sort();
+  const cur = years.length ? Math.min(Math.max(p?.lehrjahr || 1, years[0]), years[years.length - 1]) : 1;
+  return { cur, groups: years.map(y => { const list = pos.filter(x => yr(x) === y), d = list.filter(x => done(cov[x.id])).length; return { y, list, d, n: list.length, pc: list.length ? Math.round(d * 100 / list.length) : 0 }; }) };
+}
+const rpStd = m => String(Math.round(m / 6) / 10).replace('.', ',') + ' Std';
+const rpStateText = (c, due) => c.verm ? `vermittelt ${fmtDate(c.verm.datum)}` + (c.min ? ` · ${rpStd(c.min)}` : '') : c.hits ? (c.min ? rpStd(c.min) : 'erwähnt') : due ? 'offen' : 'später';
+const rpRGB = (pc, y, cur) => pc >= 100 ? [46, 157, 90] : y < cur ? [214, 69, 69] : y === cur ? [232, 146, 44] : [150, 150, 150];
 const rpCol = (pc, y, cur) => pc >= 100 ? 'var(--st-ok)' : y < cur ? 'var(--st-crit)' : y === cur ? 'var(--st-warn)' : 'var(--muted)';
 function rpMiniHTML(st) {
   if (!st) return '';
