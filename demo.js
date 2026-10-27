@@ -113,9 +113,31 @@
   // Persönlicher Ausbildungsplan (Stationen)
   const st = (u, abteilung, a, b, notiz = '', author = P.fom.id) => ({ id: uuid(), betrieb_id: B, azubi_id: u, abteilung, von: ymd(day(a)), bis: ymd(day(b)), notiz, author_id: author, created_at: iso(day(-70)) });
   DB.plan_stationen = [
-    st(P.lena.id, 'Rezeption', -66, 18, 'Ansprechperson: Julia Weber'), st(P.lena.id, 'Housekeeping', 19, 74, 'Etagenkontrolle mit der Hausdame'), st(P.lena.id, 'Service', 75, 158),
+    st(P.lena.id, 'Housekeeping', -66, -38, 'Einstieg Etage'), st(P.lena.id, 'Rezeption', -37, 18, 'Ansprechperson: Julia Weber'), st(P.lena.id, 'Housekeeping', 19, 74, 'Etagenkontrolle mit der Hausdame'), st(P.lena.id, 'Service', 75, 158),
     st(P.tom.id, 'Küche', -430, -40, 'Posten Garde-manger und Saucier', P.koch.id), st(P.tom.id, 'Service', -39, -12, 'Einblick Restaurant', P.koch.id), st(P.tom.id, 'Küche', -11, 300, 'Posten Entremetier', P.koch.id),
     st(P.aylin.id, 'Rezeption', -790, -600), st(P.aylin.id, 'Housekeeping', -599, -520), st(P.aylin.id, 'Service', -519, -300), st(P.aylin.id, 'Küche', -299, -270), st(P.aylin.id, 'Rezeption', -269, -60), st(P.aylin.id, 'Service', -59, 220)];
+  // Ausbildungsverträge, Dienstplan (diese und letzte Woche, mit typischen Verstößen bei Lena, unter 18), Feedback, Eltern-Zugang
+  const av = (a, beginn, ende, verg, extra = {}) => ({ id: uuid(), betrieb_id: B, azubi_id: a.id, beginn, ende, probezeit_monate: 4, verguetung: verg, urlaubstage: 26, tage_pro_woche: 5, wochenstunden: 40, vertragsnr: 'OWL-' + (1000 + a.id.length * 37), ihk_eingetragen: beginn, checkliste: {}, updated_at: iso(day(-3)), ...extra });
+  DB.ausbildungsvertraege = [
+    av(P.lena, ymd(day(-66)), ymd(day(-66 + 3 * 365)), { 1: 1050, 2: 1150, 3: 1250 }, { urlaubstage: 25, zp_anmeldeschluss: ymd(day(40)) }),
+    av(P.tom, ymd(day(-430)), ymd(day(-430 + 3 * 365)), { 1: 1050, 2: 1150, 3: 1250 }, { zp_anmeldeschluss: ymd(day(12)), checkliste: { formular: ymd(day(-2)), nachweis: ymd(day(-2)) } }),
+    av(P.aylin, ymd(day(-790)), ymd(day(-790 + 3 * 365)), { 1: 1000, 2: 1100, 3: 1200 }, { ap_anmeldeschluss: ymd(day(75)) })];
+  const mon = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; })();
+  const dd = n => { const d = new Date(mon); d.setDate(d.getDate() + n); return ymd(d); };
+  const sh = (u, n, beginn, ende, pause_min = 30, abteilung = u.abteilung) => ({ id: uuid(), betrieb_id: B, user_id: u.id, datum: dd(n), beginn, ende, pause_min, abteilung, notiz: null, created_by: P.fom.id, created_at: iso(day(-8)) });
+  DB.dienstplan = [];
+  [-7, 0].forEach(o => {
+    [0, 1, 3, 4].forEach(i => DB.dienstplan.push(sh(P.lena, o + i, '07:00', '16:00', 60)));
+    [1, 2, 3, 4, 5].forEach(i => DB.dienstplan.push(sh(P.tom, o + i, '14:00', '22:30', 30)));
+    [0, 1, 2, 4, 5].forEach(i => DB.dienstplan.push(sh(P.aylin, o + i, '11:00', '19:30')));
+    [2, 3, 4, 5, 6].forEach(i => DB.dienstplan.push(sh(P.piotr, o + i, '16:00', '23:00', 30)));
+  });
+  // Diese Woche: Lena (unter 18) am Freitag Spätdienst bis 22:30 und am Samstag früh – Nachtruhe, Ruhezeit und 6. Tag
+  DB.dienstplan = DB.dienstplan.filter(r => !(r.user_id === P.lena.id && r.datum === dd(4)));
+  DB.dienstplan.push(sh(P.lena, 4, '14:00', '22:30', 60, 'Service'), sh(P.lena, 5, '07:00', '12:00', 30));
+  DB.stationen_feedback = [];
+  DB.eltern_freigaben = [{ id: uuid(), betrieb_id: B, azubi_id: P.lena.id, token: 'demo', name: 'Mama und Papa', gueltig_bis: ymd(day(300)), widerrufen: false, created_at: iso(day(-20)), last_access: iso(day(-2, 19)) }];
+  DB.stimmung = [];
   // Ergebnisse der Prüfungssimulation (Lena: zwei Durchgänge mit Schwächen bei Rezeption und Gästekommunikation)
   DB.exam_results = [
     { id: uuid(), betrieb_id: B, user_id: P.lena.id, teil: 'teil1', punkte: 55, fragen: 20, richtig: 11, by_rp: { I5: [1, 3], H6: [0, 2], I1: [2, 2], H5: [1, 2], I2: [2, 2], '–': [5, 9] }, created_at: iso(day(-12, 18)) },
@@ -213,7 +235,8 @@
       then(res, rej) { return Promise.resolve().then(run).then(res, rej); }
     };
     const defaults = () => ({ id: uuid(), created_at: iso(new Date()), betrieb_id: B,
-      ...(['reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions', 'exam_results'].includes(table) ? { user_id: me } : {}),
+      ...(table === 'eltern_freigaben' ? { azubi_id: me, token: uuid().replace(/-/g, '') + uuid().replace(/-/g, ''), gueltig_bis: ymd(day(365)), widerrufen: false } : {}),
+      ...(['stimmung', 'stationen_feedback', 'reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions', 'exam_results'].includes(table) ? { user_id: me } : {}),
       ...(table === 'shift_notes' || table === 'ankuendigungen' || table === 'talks' || table === 'plan_stationen' ? { author_id: me } : {}),
       ...(table === 'open_items' || table === 'absences' || table === 'chat_gruppen' || table === 'schul_noten' || table === 'schul_zeugnisse' ? { created_by: me } : {}),
       ...(table === 'messages' ? { sender_id: me, read_at: null } : {}) });
@@ -320,6 +343,27 @@
         if (ex) Object.assign(ex, { status: a.p_status, von: a.p_von || f.lehrkraft, updated_at: iso(new Date()) }); else DB.schul_lf_stand.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, lf_nr: a.p_lf, status: a.p_status, note: a.p_note, von: a.p_von || f.lehrkraft, seit: ymd(new Date()), updated_at: iso(new Date()) }); return true; },
       schule_msg: a => { const f = DB.schul_freigaben.find(x => x.token === a.p_token); if (!f) return null; DB.schul_nachrichten.push({ id: uuid(), betrieb_id: B, azubi_id: f.azubi_id, freigabe_id: f.id, richtung: 'schule', von: a.p_von || f.lehrkraft, text: a.p_text, created_at: iso(new Date()) }); return true; },
       ihk_mein: () => ({ ihknr: 108, name: 'Industrie- und Handelskammer Ostwestfalen zu Bielefeld', kurz: 'Bielefeld', street: 'Elsa-Brändström-Straße 1-3', zip: '33602', city: 'Bielefeld', land: 'Nordrhein-Westfalen', phone: '+49 521 554-0', email: 'info@ostwestfalen.ihk.de', homepage: 'https://www.ostwestfalen.ihk.de', quelle: 'Berufsbildende Schulen Warburg' }),
+      stimmung_offen: () => me().role === 'azubi' && !DB.stimmung.some(x => x.user_id === meId),
+      stimmung_auswertung: () => { const m = k => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - k); return ymd(d); }; const own = DB.stimmung.length ? DB.stimmung[0].wert : null;
+        return [[0, 4.0, 3], [1, 3.7, 3], [2, 3.3, 3], [3, 3.8, 3], [4, 4.2, 3]].map(([k, v, n]) => ({ monat: m(k), schnitt: k === 0 && own ? Math.round((v * n + own) / (n + 1) * 10) / 10 : v, anzahl: k === 0 && own ? n + 1 : n })); },
+      feedback_auswertung: () => [
+        { abteilung: 'Küche', anzahl: 4, anleitung: 4.5, aufgaben: 4.3, team: 4.8, kommentare: ['Marco erklärt super, auch wenn viel los ist.', 'Mehr Zeit am Saucenposten wäre gut.'] },
+        { abteilung: 'Housekeeping', anzahl: 3, anleitung: 3.0, aufgaben: 2.7, team: 3.7, kommentare: ['Oft nur Betten machen, wenig Neues gelernt.'] },
+        { abteilung: 'Rezeption', anzahl: 5, anleitung: 4.2, aufgaben: 4.6, team: 4.4, kommentare: [] },
+        ...(DB.stationen_feedback || []).map(f => ({ abteilung: f.abteilung + ' (deins, neu)', anzahl: 1, anleitung: f.anleitung, aufgaben: f.aufgaben, team: f.team, kommentare: f.kommentar ? [f.kommentar] : [] }))],
+      exam_questions_lf: a => { const me = DB.profiles.find(p => p.id === meId), ok = q => !q.berufe?.length || q.berufe.includes(me?.beruf), keys = (a.p_keys || []).map(k => k.toLowerCase());
+        return DB.quiz_questions.filter(q => ok(q) && ((a.p_nrs || []).includes(q.rp_nr) || keys.some(k => (q.frage + ' ' + (q.erklaerung || '')).toLowerCase().includes(k)))).sort(() => Math.random() - .5).slice(0, a.p_limit || 10)
+          .map(q => ({ id: q.id, frage: q.frage, optionen: q.optionen, richtig: q.richtig, erklaerung: q.erklaerung, rp_nr: q.rp_nr || null })); },
+      eltern_view: a => {
+        const f = DB.eltern_freigaben.find(x => x.token === a.p_token && !x.widerrufen); if (!f) return null;
+        const az = DB.profiles.find(x => x.id === f.azubi_id), be = DB.profiles.find(x => x.id === az.betreuer_id), v = DB.ausbildungsvertraege.find(x => x.azubi_id === az.id);
+        f.last_access = iso(new Date());
+        return { azubi: { name: az.full_name, beruf: az.beruf, lehrjahr: az.lehrjahr, start: az.start_datum, zp: az.zp_datum || null, ap: az.ap_datum || null }, betrieb: 'Hotel Seeblick',
+          ausbilder: be ? { name: be.full_name, position: be.position, email: be.kontakt_email, telefon: be.telefon } : null,
+          vertrag: v ? { beginn: v.beginn, ende: v.ende, probezeit_monate: v.probezeit_monate } : null,
+          berichte: { abgezeichnet: DB.reports.filter(r => r.user_id === az.id && r.status === 'abgezeichnet').length, eingereicht: DB.reports.filter(r => r.user_id === az.id && r.status === 'eingereicht').length },
+          fehltage: DB.schul_eintraege.filter(e => e.azubi_id === az.id && e.typ === 'fehltag').sort((x, y) => y.datum.localeCompare(x.datum)).map(e => ({ datum: e.datum, status: e.status || 'offen' })), gueltig_bis: f.gueltig_bis };
+      },
       ihk_info: () => RPC.ihk_mein(), ihk_suche: () => [RPC.ihk_mein()],
       schul_nachweis: a => { const e = DB.schul_eintraege.find(x => x.id === a.p_id); if (e) e.nachweis = a.p_path; return true; },
       beurteilung_gelesen: a => { const b = DB.beurteilungen.find(x => x.id === a.p_id); if (b) b.gelesen_at = iso(new Date()); return null; },

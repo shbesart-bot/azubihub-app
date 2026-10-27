@@ -527,12 +527,14 @@ const SchoolView = {
       ${!isAzubi() && (isAdmin() || can('team')) ? '<button id="schPdf2" class="btn ghost w-full">Schulbericht für alle Azubis (PDF)</button>' : ''}
       ${isAzubi() ? '' : schSelectorHTML(a)}
       ${isAzubi() ? '' : `<div class="card p-3.5 mt-3 flex items-center gap-3">${avatar(a, 40)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(a.full_name)}</div><div class="text-[12px] text-muted truncate">${esc(a.beruf || '')} · ${a.lehrjahr || 1}. Ausbildungsjahr</div></div></div>`}
-      ${schoolHTML(a, !isAzubi()) || empty('Die Daten der Berufsschule konnten nicht geladen werden.')}`;
+      ${schoolHTML(a, !isAzubi()) || empty('Die Daten der Berufsschule konnten nicht geladen werden.')}
+      ${lfTrainHTML(a)}`;
   },
   bind() {
     const a = schPerson(); if (a) bindSchool(a, () => go('schule'));
     $$('[data-schsel]').forEach(b => b.onclick = () => { S.rev.selUser = b.dataset.schsel; go('schule'); });
     if ($('#schPdf2')) $('#schPdf2').onclick = () => schMonatPDF($('#schPdf2'));
+    $$('[data-lfex]').forEach(b => b.onclick = () => lfExam(a, +b.dataset.lfex));
   }
 };
 
@@ -544,7 +546,7 @@ const IhkView = {
     await Bericht.load();
     const p = ihkPerson();
     if (p && (isAzubi() || canSchool(p))) { if (!isAzubi()) S.rev.selUser = p.id; await loadSchool(p.id).catch(() => { S.school = null; }); }
-    await ihkLoad();
+    await Promise.all([ihkLoad(), avLoad(p && (isAzubi() || canSchool(p)) ? p : null)]);
   },
   html() {
     const p = ihkPerson(), ihk = APP.ihk || {};
@@ -562,7 +564,7 @@ const IhkView = {
       [firstDone ? 'ok' : p.zp_datum ? 'warn' : '', `${names[0]} abgelegt`, p.zp_datum ? (firstDone ? `am ${fmtDate(p.zp_datum)}` : `geplant am ${fmtDate(p.zp_datum)}`) : 'noch kein Termin eingetragen', ZWEIJ(p.beruf) ? 'Die Teilnahme an der Zwischenprüfung ist Voraussetzung für die Zulassung zur Abschlussprüfung.' : 'Teil 1 zählt bereits zur Gesamtnote der Abschlussprüfung.'],
       [rs ? (rs.pc >= 80 ? 'ok' : rs.pc >= 50 ? 'warn' : 'crit') : '', 'Ausbildungsrahmenplan vermittelt', rs ? `${rs.pc} % der Positionen erledigt` : 'kein Rahmenplan hinterlegt', 'Prüfungsstoff ist, was im Rahmenplan und in der Berufsschule vermittelt wird.'],
       [sc ? (unent ? 'crit' : offen ? 'warn' : 'ok') : '', 'Berufsschule ohne offene Fehltage', sc ? (unent || offen ? `${unent ? unent + ' unentschuldigt' : ''}${unent && offen ? ', ' : ''}${offen ? offen + ' ungeklärt' : ''}` : 'keine offenen Fehltage') : 'nicht verfügbar', ''],
-      ['', 'Anmeldung zur Prüfung', 'Fristen, Formular und Anmeldeweg legt eure IHK fest.', 'Links und Kontakt findest du unten bei „Eure IHK“.']
+      ihkAnmeldeCheck(p)
     ];
     const dot = c => `<span class="flex-none mt-1" style="width:12px;height:12px;border-radius:50%;display:inline-block;background:${c === 'ok' ? 'var(--st-ok)' : c === 'warn' ? 'var(--st-warn)' : c === 'crit' ? 'var(--st-crit)' : 'var(--line)'}"></span>`;
     return `${head('Industrie- und Handelskammer', 'IHK', intro)}
@@ -574,6 +576,7 @@ const IhkView = {
 
       ${secTitle('Zulassung zur Prüfung', '<span class="text-[12px] text-muted">automatisch geprüft</span>')}
       <div class="card">${checks.map(([c, t, d, h], i) => `<div class="p-3.5 flex gap-3 ${i ? 'border-t border-line' : ''}">${dot(c)}<div class="min-w-0"><div class="text-[14px] font-semibold">${t}</div><div class="text-[13px] mt-0.5" style="color:${c === 'crit' ? 'var(--st-crit)' : c === 'warn' ? 'var(--st-warn)' : 'var(--muted)'}">${esc(d)}</div>${h ? `<div class="text-[12px] text-muted mt-0.5">${h}</div>` : ''}</div></div>`).join('')}</div>
+      ${avHTML(p)}
 
       ${secTitle('Unterlagen für die IHK')}
       <div class="grid gap-2">
@@ -599,8 +602,18 @@ const IhkView = {
     if ($('#ihkEdit')) $('#ihkEdit').onclick = ihkEditSheet;
     if ($('#ihkPick')) $('#ihkPick').onclick = ihkPickSheet;
     if ($('[data-examstats]')) fillExamStats();
+    if (p) avBind(p, () => go('ihk'));
   }
 };
+// Zulassungs-Check „Anmeldung“: nutzt Anmeldeschluss und Checkliste aus dem Ausbildungsvertrag
+function ihkAnmeldeCheck(p) {
+  const v = S.av && S.av._for === p.id && !S.av._neu ? S.av : null, names = EXN(p.beruf);
+  const next = v ? [[names[0], v.zp_anmeldeschluss], [names[1], v.ap_anmeldeschluss]].map(([l, d]) => [l, d, daysUntil(d)]).find(x => x[2] !== null && x[2] >= 0) : null;
+  const cl = v?.checkliste || {}, done = AV_CHECK.filter(([k]) => cl[k]).length;
+  if (!next) return ['', 'Anmeldung zur Prüfung', v ? `Checkliste ${done} von ${AV_CHECK.length} erledigt` : 'Fristen, Formular und Anmeldeweg legt eure IHK fest.', 'Anmeldeschluss beim Ausbildungsvertrag eintragen – dann erinnert AzubiHub rechtzeitig. Links und Kontakt unten bei „Eure IHK“.'];
+  const lvl = done === AV_CHECK.length ? 'ok' : next[2] <= 7 ? 'crit' : next[2] <= 28 ? 'warn' : '';
+  return [lvl, `Anmeldung ${next[0]}`, `Anmeldeschluss ${fmtDate(next[1])} (${avIn(next[2])}) · Checkliste ${done}/${AV_CHECK.length}`, 'Die Checkliste steht unten beim Ausbildungsvertrag.'];
+}
 /* Eure IHK: wird automatisch über die Berufsschulen (Ort oder Name) erkannt. Daten aus dem öffentlichen IHK-Verzeichnis von ihk.de,
    monatlich aktualisiert. Die Leitung kann eine andere Kammer wählen und Ansprechpartner ergänzen. */
 async function ihkLoad() {
