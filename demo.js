@@ -359,7 +359,7 @@
         { abteilung: 'Rezeption', anzahl: 5, anleitung: 4.2, aufgaben: 4.6, team: 4.4, kommentare: [] },
         ...(DB.stationen_feedback || []).map(f => ({ abteilung: f.abteilung + ' (deins, neu)', anzahl: 1, anleitung: f.anleitung, aufgaben: f.aufgaben, team: f.team, kommentare: f.kommentar ? [f.kommentar] : [] }))],
       exam_questions_lf: a => { const me = DB.profiles.find(p => p.id === meId), ok = q => !q.berufe?.length || q.berufe.includes(me?.beruf), keys = (a.p_keys || []).map(k => k.toLowerCase());
-        return DB.quiz_questions.filter(q => ok(q) && ((a.p_nrs || []).includes(q.rp_nr) || keys.some(k => (q.frage + ' ' + (q.erklaerung || '')).toLowerCase().includes(k)))).sort(() => Math.random() - .5).slice(0, a.p_limit || 10)
+        return DB.quiz_questions.filter(q => ok(q) && ((a.p_lf && q.lernfeld === a.p_lf) || (a.p_nrs || []).includes(q.rp_nr) || keys.some(k => (q.frage + ' ' + (q.erklaerung || '')).toLowerCase().includes(k)))).sort(() => Math.random() - .5).slice(0, a.p_limit || 10)
           .map(q => ({ id: q.id, frage: q.frage, optionen: q.optionen, richtig: q.richtig, erklaerung: q.erklaerung, rp_nr: q.rp_nr || null })); },
       eltern_view: a => {
         const f = DB.eltern_freigaben.find(x => x.token === a.p_token && !x.widerrufen); if (!f) return null;

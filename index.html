@@ -430,7 +430,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-28a';
+const APP_VERSION = '2026-10-28b';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -2763,7 +2763,7 @@ function openExamPicker() {
 async function openExam(mode = 'teil2', maxLj = null, nrs = null, keys = null, title = null) {
   const n = mode === 'schwaechen' || mode === 'lernfeld' ? 10 : 20;
   let qs;
-  if (mode === 'lernfeld') qs = await q(sb.rpc('exam_questions_lf', { p_nrs: nrs || [], p_keys: keys || [], p_limit: n })).catch(() => []);
+  if (mode === 'lernfeld') qs = await q(sb.rpc('exam_questions_lf', { p_nrs: nrs || [], p_keys: keys || [], p_limit: n, p_lf: S.lfExamNr || null })).catch(() => []);
   else {
     qs = await q(sb.rpc('exam_questions2', { p_limit: n, p_max_lj: maxLj, p_nrs: nrs })).catch(() => null);
     if (!qs) qs = await q(sb.rpc('exam_questions', { p_limit: n })).catch(() => []);

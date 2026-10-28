@@ -368,10 +368,11 @@ function lfTrainHTML(p) {
   const list = (cur.length ? cur : lfs).slice(0, 8);
   return `${secTitle('Lernfelder üben', '<span class="text-[12px] text-muted">Fragen passend zum Unterricht</span>')}
     <div class="card">${list.map((l, i) => `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-lfex="${l.nr}"><span class="chip accent tnum flex-none">LF ${l.nr}</span><span class="flex-1 min-w-0 text-[14px] font-semibold truncate">${esc(l.titel)}</span>${st?.by[l.nr]?.status === 'laeuft' ? '<span class="chip brass flex-none">läuft</span>' : ''}${svg('arrow', 'w-4 h-4 text-muted flex-none')}</button>`).join('')}</div>
-    <p class="text-[12px] text-muted mt-2">10 Fragen aus den Rahmenplan-Positionen, die zum Lernfeld passen. Übungsfragen aus deinem Betrieb, keine echten IHK-Aufgaben.</p>`;
+    <p class="text-[12px] text-muted mt-2">10 Übungsfragen zum Lernfeld und zu den passenden Rahmenplan-Positionen. Falsche Antworten kommen später als Lernkarten wieder. Keine echten IHK-Prüfungsaufgaben.</p>`;
 }
 function lfExam(p, nr) {
   const lf = schLfByNr(p, nr); if (!lf) return;
+  S.lfExamNr = lf.nr;
   openExam('lernfeld', null, schLfMatch(lf, p).map(r => r.nr), (lf.stichworte || []).filter(k => k.length > 3), `LF ${lf.nr} · ${lf.titel}`);
 }
 
