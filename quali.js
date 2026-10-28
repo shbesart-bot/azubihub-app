@@ -9,6 +9,9 @@ const qCfg = () => { try { return APP.quali || {}; } catch { return {}; } };
 const qAuswertungAn = () => !isQuali() || qCfg().auswertungen === true;
 
 const Q_KUK = 'Kunststoff- und Kautschuktechnologe/-in', Q_MAF = 'Maschinen- und Anlagenführer/-in';
+const Q_IEL = 'Industrieelektriker/-in Betriebstechnik', Q_LAG = 'Fachkraft für Lagerlogistik';
+const Q_STD = { zeit: 'Vollzeit, 37,5 Std./Woche, Mo–Fr', zert: 'IHK-Zertifikat nach jedem Modul', abschluss: 'IHK-Berufsabschluss über die Externenprüfung',
+  lernorte: 'Je Modul mindestens ein Drittel Praxis in der C1TT-Werkstatt, zwei Drittel Theorie virtuell auf dem iPad oder im Schulungsraum.' };
 /* Maßnahmen nach den öffentlichen Angaben auf c1tt.de (Stand Oktober 2026). Modulnamen gekürzt; die genaue Zuordnung
    der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag und muss von C1TT bestätigt werden. */
 const Q_KATALOG = {
@@ -24,6 +27,35 @@ const Q_KATALOG = {
       { nr: 4, titel: 'Verfahrenstechniken für Formteile, Halbzeuge oder Mehrschichtkautschukteile', monate: 5, rp: ['M1', 'M2', 'M3', 'M5'] },
       { nr: 5, titel: 'Produkt- und Prozessqualität planen, überwachen und optimieren', monate: 5, rp: ['A6', 'A7', 'I5', 'I7'] }
     ]
+  },
+  'tq-iel': {
+    ...Q_STD, art: 'Teilqualifizierung', kurz: 'TQ Betriebselektriker', beruf: Q_IEL, fachrichtung: 'Betriebstechnik', dauer: '16 Monate (mit Urlaubsphasen)', ausbildungsjahre: 2,
+    module: [
+      { nr: 1, titel: 'Elektronische Komponenten analysieren, auswählen, aufbauen, messen und prüfen', monate: 4, rp: ['E2', 'EI1', 'EI2', 'EI3', 'EI4'] },
+      { nr: 2, titel: 'Elektronische Schaltungen erstellen und prüfen, IT-Systeme installieren und konfigurieren', monate: 4, rp: ['E4', 'EI5'] },
+      { nr: 3, titel: 'Elektrotechnische Anlagenteile installieren', monate: 3, rp: ['E1', 'B1', 'EI6'] },
+      { nr: 4, titel: 'Elektrotechnische Anlagen in Betrieb nehmen', monate: 3, rp: ['E3', 'B2'] },
+      { nr: 5, titel: 'Elektrotechnische Anlagen warten und kundenspezifisch anpassen', monate: 3, rp: ['B3', 'EI7'] }
+    ]
+  },
+  'tq-lag': {
+    ...Q_STD, art: 'Teilqualifizierung', kurz: 'TQ Lagerlogistik', beruf: Q_LAG, dauer: '24 Monate (um ein Drittel verkürzt)', ausbildungsjahre: 3,
+    module: [
+      { nr: 1, titel: 'Wareneingang', monate: 4, rp: ['L8', 'L1', 'L2', 'L3', 'L4'] },
+      { nr: 2, titel: 'Innerbetrieblicher Transport', monate: 3, rp: ['L7'] },
+      { nr: 3, titel: 'Lagern von Gütern', monate: 4, rp: ['L9'] },
+      { nr: 4, titel: 'Kommissionierung', monate: 3, rp: ['L10'] },
+      { nr: 5, titel: 'Versand', monate: 3, rp: ['L11'] },
+      { nr: 6, titel: 'Disponieren', monate: 3, rp: ['L5'] },
+      { nr: 7, titel: 'Logistik', monate: 4, rp: ['L6'] }
+    ]
+  },
+  'ik-lag': {
+    ...Q_STD, art: 'Intensivkurs', kurz: 'Intensivkurs Lagerlogistik', beruf: Q_LAG, dauer: '4 Monate', ausbildungsjahre: 3,
+    lernorte: '81 Tage Theorie virtuell auf dem iPad und 2 Tage Praxis am Schulungsort.',
+    zert: 'kein Modul-Zertifikat, der Kurs endet kurz vor der Externenprüfung',
+    voraussetzung: 'Mindestens 3 Jahre als Fachlagerist/-in oder 4,5 Jahre im Lager bzw. in der Logistik, vom Betrieb bescheinigt',
+    module: [{ nr: 1, titel: 'Intensivkurs: Theorie und Praxis bis zur Externenprüfung', monate: 4, rp: ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11'] }]
   },
   'ik-maf': {
     art: 'Intensivkurs', kurz: 'Intensivkurs Maschinen- und Anlagenführer', beruf: Q_MAF,
@@ -80,7 +112,34 @@ const Q_RP = [
     ['F12', 'Materialfluss steuern', ['materialfluss', 'fifo', 'kanban', 'lager', 'nachschub']],
     ['F13', 'Maschinen und Anlagen warten und inspizieren', ['wartung', 'inspektion', 'schmier', 'tpm']],
     ['F14', 'Qualitätssichernde Maßnahmen durchführen', ['qualität', 'regelkarte', 'stichprobe', 'reklamation']]
-  ].map(([nr, titel, sw], i) => ({ nr, titel, beruf: Q_MAF, lehrjahr: 1, stichworte: sw, abteilungen: [], sort: 950 + i }))
+  ].map(([nr, titel, sw], i) => ({ nr, titel, beruf: Q_MAF, lehrjahr: 1, stichworte: sw, abteilungen: [], sort: 950 + i })),
+  ...[['E1', 'Mechanische Komponenten und elektrische Betriebsmittel bearbeiten, montieren und verbinden', 3, ['montier', 'verdraht', 'klemme', 'kabel', 'leitung', 'schaltschrank']],
+    ['E2', 'Elektrische Funktionen und Systeme messen und analysieren', 1, ['messen', 'multimeter', 'oszilloskop', 'spannung', 'strom', 'widerstand', 'bauteil']],
+    ['E3', 'Sicherheit elektrischer Anlagen und Betriebsmittel beurteilen', 4, ['vde', 'isolation', 'schutzleiter', 'rcd', 'fi-schalter', 'prüfprotokoll', 'sicherheitsregel']],
+    ['E4', 'IT-Systeme installieren und konfigurieren', 2, ['netzwerk', 'ip-adresse', 'konfigur', 'software', 'sps', 'programm']],
+    ['B1', 'Technische Auftragsanalyse (Fachrichtung Betriebstechnik)', 3, ['auftrag', 'schaltplan', 'stromlaufplan', 'materialliste', 'planung']],
+    ['B2', 'Elektrische Anlagen installieren und in Betrieb nehmen', 4, ['inbetriebnahme', 'anschließ', 'motor', 'drehfeld', 'installier']],
+    ['B3', 'Anlagen und Systeme instand halten', 5, ['wartung', 'störung', 'fehlersuche', 'instand', 'thermografie', 'dguv']],
+    ['EI1', 'Berufsbildung, Arbeits- und Tarifrecht', 1, ['tarif', 'betriebsrat', 'arbeitszeit']],
+    ['EI2', 'Aufbau und Organisation des Betriebes', 1, ['organisation', 'abteilung']],
+    ['EI3', 'Sicherheit und Gesundheitsschutz bei der Arbeit', 1, ['arbeitsschutz', 'unterweisung', 'psa', 'erste hilfe']],
+    ['EI4', 'Umweltschutz', 1, ['umwelt', 'entsorg', 'elektroschrott', 'energie']],
+    ['EI5', 'Betriebliche und technische Kommunikation', 2, ['dokumentation', 'schaltzeichen', 'datenblatt', 'übergabe']],
+    ['EI6', 'Arbeit planen und organisieren', 3, ['planen', 'arbeitsablauf', 'werkzeug']],
+    ['EI7', 'Qualitätsmanagement', 5, ['qualität', 'protokoll', 'prüfen', 'kunde']]
+  ].map(([nr, titel, lj, sw], i) => ({ nr, titel, beruf: Q_IEL, lehrjahr: lj, stichworte: sw, abteilungen: [], sort: 970 + i })),
+  ...[['L1', 'Berufsbildung, Arbeits- und Tarifrecht', 1, ['tarif', 'betriebsrat', 'arbeitszeit']],
+    ['L2', 'Aufbau und Organisation des Betriebes', 1, ['organisation', 'abteilung']],
+    ['L3', 'Sicherheit und Gesundheitsschutz bei der Arbeit', 1, ['arbeitsschutz', 'unterweisung', 'sicherheitsschuhe', 'psa']],
+    ['L4', 'Umweltschutz', 1, ['umwelt', 'entsorg', 'verpackungsmüll', 'recycling']],
+    ['L5', 'Arbeitsorganisation; Information und Kommunikation', 6, ['disponier', 'bestand', 'meldebestand', 'bestellung', 'lagerverwaltung', 'sap', 'scanner']],
+    ['L6', 'Logistische Prozesse; qualitätssichernde Maßnahmen', 7, ['prozess', 'kennzahl', 'qualität', 'just-in-time', 'kvp']],
+    ['L7', 'Einsatz von Arbeitsmitteln', 2, ['stapler', 'gabelstapler', 'hubwagen', 'flurförder', 'transport', 'kran']],
+    ['L8', 'Annahme von Gütern', 1, ['wareneingang', 'lieferschein', 'annahme', 'entladen', 'prüfen']],
+    ['L9', 'Lagerung von Gütern', 3, ['einlager', 'lagerplatz', 'regal', 'fifo', 'inventur', 'gefahrstoff']],
+    ['L10', 'Kommissionierung und Verpackung von Gütern', 4, ['kommission', 'picken', 'pick', 'verpack', 'auftrag']],
+    ['L11', 'Versand von Gütern', 5, ['versand', 'verlad', 'ladungssicherung', 'tour', 'frachtbrief', 'packliste']]
+  ].map(([nr, titel, lj, sw], i) => ({ nr, titel, beruf: Q_LAG, lehrjahr: lj, stichworte: sw, abteilungen: [], sort: 990 + i }))
 ];
 
 /* ---------- Laufzeit-Anpassungen ---------- */
@@ -89,12 +148,13 @@ function qApplyConfig() {
   try {
     const krit = ['Fachkenntnisse', 'Arbeitsqualität', 'Arbeitstempo', 'Zuverlässigkeit & Pünktlichkeit', 'Teamarbeit', 'Umgang mit Maschinen und Anlagen', 'Selbstständigkeit', 'Lernbereitschaft', 'Arbeitssicherheit & Ordnung'];
     BEU_KRIT.splice(0, BEU_KRIT.length, ...krit);
+    const i = ABS_TYPES.indexOf('Berufsschule'); if (i >= 0) ABS_TYPES.splice(i, 1);
   } catch {}
 }
 /* Begriffe im Qualifizierungsmodus: Teilnehmende statt Azubis, Trainer statt Ausbilder, Modul statt Lehrjahr */
 const Q_TERMS = [
   [/\bAzubis\b/g, 'Teilnehmende'], [/\bAzubi\b/g, 'Teilnehmer/in'],
-  [/\bAusbilder\/innen\b/g, 'Trainer/innen'], [/\bAusbilder\/in\b/g, 'Trainer/in'], [/\bAusbilderin oder deines Ausbilders\b/g, 'Trainerin oder deines Trainers'], [/\bAusbilder\b/g, 'Trainer'],
+  [/\bAusbilder\/innen\b/g, 'Trainer/innen'], [/\bAusbilder\/in\b/g, 'Trainer/in'], [/\bAusbilderin oder deines Ausbilders\b/g, 'Trainerin oder deines Trainers'], [/\bdeine Ausbilderin oder dein Trainer\b/g, 'deine Trainerin oder dein Trainer'], [/\bAusbilderin\b/g, 'Trainerin'], [/\bAktuelle Abteilung\b/g, 'Aktueller Lernort'], [/\bAusbilder\b/g, 'Trainer'],
   [/\bAusbildungsleitung\b/g, 'Koordination'], [/\bAusbildungsteam\b/g, 'Trainerteam'],
   [/(\d)\. LJ\b/g, 'Modul $1'], [/(\d)\. Ausbildungsjahr(es)?\b/g, 'Modul $1'], [/\bAusbildungsjahr(es)?\b/g, 'Modul'], [/\bLehrjahr\b/g, 'Modul'],
   [/\bim Haus\b/g, 'in der Maßnahme'], [/\bDein Berichtsheft\b/g, 'Dein Nachweis'], [/\bStand Berichtsheft\b/g, 'Stand Nachweis']

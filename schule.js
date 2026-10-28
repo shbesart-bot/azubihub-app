@@ -709,5 +709,6 @@ function schoolTilesHTML() {
       <div><div class="font-display font-bold text-[16px] leading-snug">IHK</div><div class="text-[13px] text-muted mt-0.5">${esc(subI)}</div></div></button>`;
 }
 function schoolLinkHTML() {
+  if (isQuali()) return '';
   return `<button class="card w-full p-3.5 mt-6 flex items-center gap-3 text-left" data-go="schule"><span class="ico" style="width:34px;height:34px">${svg('school', 'w-4 h-4')}</span><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold">Berufsschule</div><div class="text-[12px] text-muted">Fehltage, Noten, Zeugnisse, Lernfelder und Nachrichten – jetzt unter „Schule“</div></div>${svg('arrow', 'w-4 h-4')}</button>`;
 }

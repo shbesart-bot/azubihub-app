@@ -299,7 +299,7 @@
 
   /* ---------- C1TT-Demo: Qualifizierung für Erwachsene (Teilqualifizierung, Intensivkurs). Alle Personen sind erfunden. ---------- */
   function c1ttApply() {
-    const KUK = 'Kunststoff- und Kautschuktechnologe/-in', MAF = 'Maschinen- und Anlagenführer/-in';
+    const KUK = 'Kunststoff- und Kautschuktechnologe/-in', MAF = 'Maschinen- und Anlagenführer/-in', IEL = 'Industrieelektriker/-in Betriebstechnik', LAG = 'Fachkraft für Lagerlogistik';
     const LO = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'C1TT-Werkstatt', 'Arbeitsplatz im Werk'];
     const Q = {
       koord: { id: 'demo-q-koord', full_name: 'Katrin Vogt', role: 'admin', position: 'Koordination Qualifizierung', kontakt_email: 'katrin.vogt@example.com', telefon: '0511 000-100', abteilung: LO[1] },
@@ -308,6 +308,11 @@
       dennis: { id: 'demo-q-dennis', full_name: 'Dennis Krause', role: 'azubi', beruf: KUK, lehrjahr: 3, abteilung: LO[2], start_datum: ymd(day(-305)), betreuer_id: 'demo-q-trainer' },
       olga: { id: 'demo-q-olga', full_name: 'Olga Schmidt', role: 'azubi', beruf: KUK, lehrjahr: 1, abteilung: LO[0], start_datum: ymd(day(-45)), betreuer_id: 'demo-q-trainer' },
       mehmet: { id: 'demo-q-mehmet', full_name: 'Mehmet Yılmaz', role: 'azubi', beruf: MAF, lehrjahr: 1, abteilung: LO[0], start_datum: ymd(day(-70)), betreuer_id: 'demo-q-trainer', ap_datum: ymd(day(58)) },
+      frank: { id: 'demo-q-frank', full_name: 'Frank Neumann', role: 'ausbilder', position: 'Trainer Elektrotechnik', kontakt_email: 'frank.neumann@example.com', telefon: '0511 000-130', rechte: ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'team'], bereiche: LO, abteilung: LO[2] },
+      petra: { id: 'demo-q-petra', full_name: 'Petra Hahn', role: 'ausbilder', position: 'Trainerin Lagerlogistik', kontakt_email: 'petra.hahn@example.com', telefon: '0511 000-140', rechte: ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'team'], bereiche: LO, abteilung: LO[1] },
+      tobias: { id: 'demo-q-tobias', full_name: 'Tobias Lange', role: 'azubi', beruf: IEL, lehrjahr: 2, abteilung: LO[2], start_datum: ymd(day(-150)), betreuer_id: 'demo-q-frank' },
+      svetlana: { id: 'demo-q-svetlana', full_name: 'Svetlana Petrova', role: 'azubi', beruf: LAG, lehrjahr: 4, abteilung: LO[3], start_datum: ymd(day(-430)), betreuer_id: 'demo-q-petra' },
+      juergen: { id: 'demo-q-juergen', full_name: 'Jürgen Maier', role: 'azubi', beruf: LAG, lehrjahr: 1, abteilung: LO[0], start_datum: ymd(day(-40)), betreuer_id: 'demo-q-petra', ap_datum: ymd(day(82)) },
       andrzej: { id: 'demo-q-andrzej', full_name: 'Andrzej Nowicki', role: 'azubi', beruf: KUK, lehrjahr: 5, abteilung: LO[3], start_datum: ymd(day(-640)), betreuer_id: 'demo-q-trainer', ap_datum: ymd(day(96)) }
     };
     const base = { betrieb_id: B, aktiv: true, foto: null, rechte: [], bereiche: [], lehrjahr: 1, beruf: '', start_datum: ymd(day(-900)), unter18: false, position: '', kontakt_email: '', telefon: '', betreuer_id: null, zp_datum: null, ap_datum: null, gruppen_leitung: false, sprache: 'de', created_at: iso(day(-700)) };
@@ -329,7 +334,7 @@
           { keys: ['feilen', 'bohren', 'gewinde', 'baugruppe'], satz: 'habe ich in der Werkstatt Bauteile gefertigt und eine Baugruppe montiert ({x}).' }
         ],
         botHello: 'Hallo {name}! Frag mich zu deiner Maßnahme, zum Beispiel zu Modulen, Prüfung oder Lernzeiten.' } },
-      { key: 'branding', value: { loginText: 'Lern- und Tätigkeitsnachweis, Module und Prüfungsvorbereitung für die Qualifizierung.', berufe: [KUK, MAF] } }
+      { key: 'branding', value: { loginText: 'Lern- und Tätigkeitsnachweis, Module und Prüfungsvorbereitung für die Qualifizierung.', berufe: [KUK, IEL, LAG, MAF] } }
     ];
     DB.quali_teilnahmen = [
       { id: uuid(), betrieb_id: B, azubi_id: Q.dennis.id, massnahme: 'tq-kuk', standort: 'Lernstandort Nord', beginn: ymd(day(-305)), ende: ymd(day(425)), guide_id: Q.guide.id, erfahrung_jahre: 6,
@@ -342,7 +347,13 @@
         pruefung: { nachweis: ymd(day(-80)), antrag: ymd(day(-60)), zulassung: ymd(day(-21)), anmeldeschluss: ymd(day(-50)), schriftlich: ymd(day(58)), praktisch: ymd(day(71)) }, updated_at: iso(day(-21)) },
       { id: uuid(), betrieb_id: B, azubi_id: Q.andrzej.id, massnahme: 'tq-kuk', standort: 'Lernstandort Nord', beginn: ymd(day(-640)), ende: ymd(day(90)), guide_id: Q.guide.id, erfahrung_jahre: 9,
         module: [1, 2, 3, 4].map(n => ({ nr: n, status: 'bestanden', zert_datum: ymd(day(-640 + n * 140)) })).concat([{ nr: 5, status: 'laeuft', von: ymd(day(-60)), bis: ymd(day(90)) }]),
-        pruefung: { nachweis: ymd(day(-30)), antrag: ymd(day(-14)), anmeldeschluss: ymd(day(20)), schriftlich: ymd(day(96)), praktisch: ymd(day(110)) }, updated_at: iso(day(-14)) }
+        pruefung: { nachweis: ymd(day(-30)), antrag: ymd(day(-14)), anmeldeschluss: ymd(day(20)), schriftlich: ymd(day(96)), praktisch: ymd(day(110)) }, updated_at: iso(day(-14)) },
+      { id: uuid(), betrieb_id: B, azubi_id: Q.tobias.id, massnahme: 'tq-iel', standort: 'Lernstandort Nord', beginn: ymd(day(-150)), ende: ymd(day(335)), guide_id: Q.guide.id, erfahrung_jahre: 5,
+        module: [{ nr: 1, status: 'bestanden', von: ymd(day(-150)), bis: ymd(day(-30)), zert_datum: ymd(day(-26)) }, { nr: 2, status: 'laeuft', von: ymd(day(-28)), bis: ymd(day(92)) }], pruefung: {}, updated_at: iso(day(-26)) },
+      { id: uuid(), betrieb_id: B, azubi_id: Q.svetlana.id, massnahme: 'tq-lag', standort: 'Lernstandort Nord', beginn: ymd(day(-430)), ende: ymd(day(300)), guide_id: null, erfahrung_jahre: 7,
+        module: [1, 2, 3].map(n => ({ nr: n, status: 'bestanden', zert_datum: ymd(day(-430 + [120, 212, 335][n - 1])) })).concat([{ nr: 4, status: 'laeuft', von: ymd(day(-92)), bis: ymd(day(0)) }]), pruefung: {}, updated_at: iso(day(-95)) },
+      { id: uuid(), betrieb_id: B, azubi_id: Q.juergen.id, massnahme: 'ik-lag', standort: 'Lernstandort Nord', beginn: ymd(day(-40)), ende: ymd(day(80)), guide_id: null, erfahrung_jahre: 6,
+        module: [{ nr: 1, status: 'laeuft', von: ymd(day(-40)), bis: ymd(day(80)) }], pruefung: { nachweis: ymd(day(-60)), antrag: ymd(day(-45)), zulassung: ymd(day(-10)), anmeldeschluss: ymd(day(-30)), schriftlich: ymd(day(82)), praktisch: ymd(day(95)) }, updated_at: iso(day(-10)) }
     ];
     // Rahmenplan-Positionen (aus quali.js), ids ab 9001
     DB.rahmenplan = Q_RP.map((r, i) => ({ ...r, id: 9001 + i, betrieb_id: B }));
@@ -354,17 +365,27 @@
       [LO[2]]: [['Feilen, Bohren und Gewinde schneiden an einer Halterung', 300], ['Baugruppe montiert und nach Zeichnung geprüft', 180], ['Pneumatik-Schaltung aufgebaut und getestet', 240], ['Wartung an der Übungspresse nach Wartungsplan, geschmiert', 180]],
       [LO[3]]: [['Reifenaufbau: Lagen aufgelegt und Rohling aufgebaut', 300], ['Vulkanisationspresse: Heizzeit und Temperatur überwacht', 240], ['Shore-A-Härte geprüft und protokolliert', 90], ['Kalander: Stahlcord gummiert, Bahndicke gemessen', 240]]
     };
+    const TXB = {
+      [IEL]: { [LO[0]]: [['Theorie: Ohmsches Gesetz, Reihen- und Parallelschaltung', 240], ['E-Learning: Fünf Sicherheitsregeln', 120], ['Theorie: Netzwerke und IP-Adressen', 240]],
+        [LO[1]]: [['Unterricht: Stromlaufpläne lesen', 240], ['Unterricht: Schutzmaßnahmen nach VDE', 180]],
+        [LO[2]]: [['Übungsschaltung aufgebaut und mit Multimeter gemessen', 300], ['Schützschaltung mit Selbsthaltung verdrahtet', 240], ['Isolationswiderstand gemessen und protokolliert', 120]],
+        [LO[3]]: [['Mit Elektriker der Instandhaltung Motor angeschlossen, Drehfeld geprüft', 240], ['Störungssuche an Förderband begleitet', 180]] },
+      [LAG]: { [LO[0]]: [['Theorie: Wareneingang und Lieferschein prüfen', 240], ['E-Learning: Ladungssicherung', 120], ['Theorie: Meldebestand und ABC-Analyse', 240]],
+        [LO[1]]: [['Unterricht: Kommissioniermethoden', 240], ['Unterricht: Lagerkennzahlen', 180]],
+        [LO[2]]: [['Staplerübung im Parcours', 240], ['Paletten gepackt und gesichert', 180]],
+        [LO[3]]: [['Wareneingang: Lieferung angenommen, Lieferschein geprüft, eingelagert', 300], ['Aufträge kommissioniert mit Handscanner', 240], ['Versand: Ware verladen und Packliste erstellt', 180]] }
+    };
     const wk = (p, back, status, plan) => {
       const w = isoWeek(day(-7 * back));
       const tage = [0, 1, 2, 3, 4, 5, 6].map(i => {
         if (i >= 5) return { tag: i, bereich: 'Frei', eintraege: [] };
-        const lo = plan[(i + back) % plan.length], list = TX[lo], a = list[(i + back) % list.length], b = list[(i + back + 1) % list.length];
+        const lo = plan[(i + back) % plan.length], list = (TXB[p.beruf] || TX)[lo], a = list[(i + back) % list.length], b = list[(i + back + 1) % list.length];
         return { tag: i, bereich: lo, eintraege: [{ text: a[0], min: Math.min(a[1], 270) }, { text: b[0], min: 450 - Math.min(a[1], 270) }] };
       });
       return { id: uuid(), betrieb_id: B, user_id: p.id, jahr: w.jahr, kw: w.kw, abteilung: plan[(back + 1) % plan.length], tage, status,
         inhalt: status === 'entwurf' ? '' : 'Diese Woche habe ich Theorie und Praxis gut verbinden können.',
         feedback: status === 'zurueck' ? 'Bitte bei Mittwoch genauer beschreiben, welche Werte du an der Presse geprüft hast.' : null,
-        signed_by: status === 'abgezeichnet' ? Q.trainer.id : null, signed_at: status === 'abgezeichnet' ? iso(day(-7 * back + 6)) : null, updated_at: iso(new Date(Math.min(+day(-7 * back + 4), Date.now() - 36e5))) };
+        signed_by: status === 'abgezeichnet' ? (p.betreuer_id || Q.trainer.id) : null, signed_at: status === 'abgezeichnet' ? iso(day(-7 * back + 6)) : null, updated_at: iso(new Date(Math.min(+day(-7 * back + 4), Date.now() - 36e5))) };
     };
     DB.reports = [];
     const weeksOf = p => Math.floor((Date.now() - new Date(p.start_datum + 'T12:00:00')) / 6048e5);
@@ -372,13 +393,16 @@
     DB.reports.push(wk(Q.dennis, 0, 'entwurf', [LO[2], LO[2], LO[0], LO[3], LO[3]]));
     for (let b = 1; b <= weeksOf(Q.olga); b++) DB.reports.push(wk(Q.olga, b, b === 1 ? 'eingereicht' : 'abgezeichnet', [LO[0], LO[0], LO[2], LO[0], LO[1]]));
     for (let b = 1; b <= weeksOf(Q.mehmet); b++) if (b !== 3) DB.reports.push(wk(Q.mehmet, b, 'abgezeichnet', [LO[0], LO[0], LO[1], LO[2], LO[0]]));
+    for (let b = 1; b <= weeksOf(Q.tobias); b++) DB.reports.push(wk(Q.tobias, b, b === 1 ? 'eingereicht' : 'abgezeichnet', [LO[0], LO[2], LO[2], LO[0], LO[1]]));
+    for (let b = 1; b <= weeksOf(Q.svetlana); b++) DB.reports.push(wk(Q.svetlana, b, b === 2 ? 'zurueck' : 'abgezeichnet', [LO[3], LO[0], LO[3], LO[2], LO[3]]));
+    for (let b = 1; b <= weeksOf(Q.juergen); b++) DB.reports.push(wk(Q.juergen, b, 'abgezeichnet', [LO[0], LO[0], LO[1], LO[0], LO[3]]));
     for (let b = 1; b <= weeksOf(Q.andrzej); b++) DB.reports.push(wk(Q.andrzej, b, b <= 2 ? 'eingereicht' : 'abgezeichnet', [LO[3], LO[1], LO[3], LO[2], LO[3]]));
     DB.report_log = [];
     // Lernzeiten (37,5 Std./Woche)
     const mon = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; })();
     const dd = n => { const d = new Date(mon); d.setDate(d.getDate() + n); return ymd(d); };
     DB.dienstplan = [];
-    [-7, 0].forEach(o => [Q.dennis, Q.olga, Q.mehmet, Q.andrzej].forEach((p, k) => [0, 1, 2, 3, 4].forEach(i => DB.dienstplan.push({ id: uuid(), betrieb_id: B, user_id: p.id, datum: dd(o + i), beginn: '07:30', ende: '15:30', pause_min: 30, abteilung: [LO[0], LO[2], LO[2], LO[3], LO[0]][(i + k) % 5], notiz: null, created_by: Q.trainer.id, created_at: iso(day(-8)) }))));
+    [-7, 0].forEach(o => [Q.dennis, Q.olga, Q.mehmet, Q.andrzej, Q.tobias, Q.svetlana, Q.juergen].forEach((p, k) => [0, 1, 2, 3, 4].forEach(i => DB.dienstplan.push({ id: uuid(), betrieb_id: B, user_id: p.id, datum: dd(o + i), beginn: '07:30', ende: '15:30', pause_min: 30, abteilung: [LO[0], LO[2], LO[2], LO[3], LO[0]][(i + k) % 5], notiz: null, created_by: Q.trainer.id, created_at: iso(day(-8)) }))));
     // Andrzej: am Freitag zusätzlich Spätschicht im Werk – die Ruhezeit nach ArbZG wird angezeigt
     DB.dienstplan.push({ id: uuid(), betrieb_id: B, user_id: Q.andrzej.id, datum: dd(3), beginn: '22:00', ende: '23:59', pause_min: 0, abteilung: LO[3], notiz: 'Zusatzschicht', created_by: Q.koord.id, created_at: iso(day(-2)) });
     DB.absences = [
@@ -460,6 +484,61 @@
       qq(7109, MAF, 1, 'F10', 'Ein Sensor meldet der Steuerung, dass ein Bauteil in Position ist. Wie nennt man das Signal für die Steuerung?', ['Eingangssignal', 'Ausgangssignal', 'Stellgröße', 'Störgröße'], 'Sensoren liefern Eingänge, Aktoren wie Ventile oder Motoren werden über Ausgänge angesteuert.'),
       qq(7110, MAF, 1, 'F8', 'Mit welchem Messmittel misst du einen Außendurchmesser auf 0,05 mm genau?', ['Mit dem Messschieber', 'Mit dem Zollstock', 'Mit dem Stahlmaßband', 'Mit der Wasserwaage'], 'Ein Messschieber mit Nonius 1/20 hat eine Ablesegenauigkeit von 0,05 mm.')
     ];
+    const QE = [
+      [IEL, 1, 'E2', 'Wie lautet das ohmsche Gesetz?', ['U = R · I', 'U = R : I', 'P = U : I', 'R = U · I'], 'Spannung ist Widerstand mal Strom. Daraus folgt R = U : I und I = U : R.'],
+      [IEL, 1, 'E2', 'An einem Widerstand liegen 230 V, es fließen 10 A. Wie groß ist der Widerstand?', ['23 Ω', '2 300 Ω', '0,043 Ω', '230 Ω'], 'R = U : I = 230 V : 10 A = 23 Ω.'],
+      [IEL, 1, 'E2', 'Wie wird ein Strommesser (Amperemeter) angeschlossen?', ['In Reihe zum Verbraucher', 'Parallel zum Verbraucher', 'Zwischen Schutzleiter und Neutralleiter', 'Nur an der Steckdose'], 'Der Strom muss durch das Messgerät fließen. Spannung misst man parallel.'],
+      [IEL, 1, 'E2', 'Was macht eine Diode?', ['Sie lässt Strom nur in einer Richtung durch', 'Sie speichert elektrische Ladung', 'Sie verstärkt Spannung', 'Sie misst Temperatur'], 'In Durchlassrichtung leitet die Diode, in Sperrrichtung sperrt sie.'],
+      [IEL, 1, 'EI3', 'Ein Gerät nimmt bei 230 V einen Strom von 5 A auf. Welche Leistung hat es?', ['1 150 W', '46 W', '235 W', '11 500 W'], 'P = U · I = 230 V · 5 A = 1 150 W.'],
+      [IEL, 2, 'E4', 'Wie groß ist der Gesamtwiderstand von 100 Ω und 200 Ω in Reihe?', ['300 Ω', '66,7 Ω', '200 Ω', '20 000 Ω'], 'In Reihe werden die Widerstände addiert.'],
+      [IEL, 2, 'E4', 'Was gilt in einer Parallelschaltung?', ['An allen Zweigen liegt dieselbe Spannung', 'Durch alle Zweige fließt derselbe Strom', 'Der Gesamtwiderstand ist größer als der größte Einzelwiderstand', 'Die Spannungen addieren sich'], 'Die Ströme teilen sich auf, die Spannung ist überall gleich.'],
+      [IEL, 2, 'E4', 'Wozu dient eine IP-Adresse?', ['Sie kennzeichnet ein Gerät eindeutig in einem Netzwerk', 'Sie ist das Passwort des Routers', 'Sie gibt die Schutzart eines Gehäuses an', 'Sie ist die Seriennummer der SPS'], 'Über die IP-Adresse werden Geräte im Netzwerk angesprochen. Die Schutzart heißt IP-Code, das ist etwas anderes.'],
+      [IEL, 2, 'E4', 'Wann ist der Ausgang einer UND-Verknüpfung 1?', ['Nur wenn alle Eingänge 1 sind', 'Wenn mindestens ein Eingang 1 ist', 'Wenn alle Eingänge 0 sind', 'Immer'], 'UND: alle Bedingungen müssen erfüllt sein. ODER: eine reicht.'],
+      [IEL, 2, 'EI5', 'Was ist ein Schütz?', ['Ein elektromagnetisch betätigter Schalter für größere Lasten', 'Ein Sicherungsautomat', 'Ein Messgerät für Isolation', 'Ein Kabelkanal'], 'Mit kleinem Steuerstrom schaltet das Schütz einen großen Laststrom, z. B. für Motoren.'],
+      [IEL, 3, 'E1', 'Welche Farbe hat der Schutzleiter (PE)?', ['Grün-gelb', 'Blau', 'Schwarz', 'Braun'], 'Grün-gelb ist ausschließlich dem Schutzleiter vorbehalten.'],
+      [IEL, 3, 'E1', 'Welche Farbe hat der Neutralleiter (N)?', ['Blau', 'Grün-gelb', 'Schwarz', 'Grau'], 'Der Neutralleiter ist blau. Außenleiter sind braun, schwarz oder grau.'],
+      [IEL, 3, 'B1', 'Was bedeutet B16 auf einem Leitungsschutzschalter?', ['Auslösecharakteristik B, Bemessungsstrom 16 A', '16 Volt, Baujahr B', 'Breite 16 mm', 'Fehlerstrom 16 mA'], 'Die Charakteristik B löst beim 3- bis 5-Fachen des Bemessungsstroms schnell aus.'],
+      [IEL, 3, 'E1', 'Wozu dient ein Fehlerstrom-Schutzschalter (RCD) mit 30 mA?', ['Zum zusätzlichen Schutz von Personen bei Fehlerströmen', 'Zum Schutz der Leitung vor Überlast', 'Zum Messen der Spannung', 'Zum Einschalten großer Motoren'], 'Ein RCD mit höchstens 30 mA Bemessungsdifferenzstrom schaltet ab, bevor ein Fehlerstrom gefährlich wird.'],
+      [IEL, 3, 'EI6', 'Was steht in einem Stromlaufplan?', ['Wie die Bauteile elektrisch verbunden sind und wie die Schaltung funktioniert', 'Nur die Lage der Steckdosen im Raum', 'Die Kosten der Anlage', 'Der Wartungsplan'], 'Der Stromlaufplan zeigt die Funktion. Wo etwas eingebaut ist, steht im Installations- oder Aufbauplan.'],
+      [IEL, 4, 'E3', 'Welche Regel ist die erste der fünf Sicherheitsregeln?', ['Freischalten', 'Erden und kurzschließen', 'Spannungsfreiheit feststellen', 'Benachbarte Teile abdecken'], 'Reihenfolge: Freischalten, gegen Wiedereinschalten sichern, Spannungsfreiheit feststellen, Erden und kurzschließen, benachbarte unter Spannung stehende Teile abdecken oder abschranken.'],
+      [IEL, 4, 'E3', 'Welche drei Schritte gehören zur Erstprüfung einer Anlage vor der Inbetriebnahme?', ['Besichtigen, Erproben, Messen', 'Reinigen, Lackieren, Beschriften', 'Bestellen, Liefern, Montieren', 'Nur Messen'], 'So beschreibt es DIN VDE 0100-600.'],
+      [IEL, 4, 'B2', 'Ein Drehstrommotor läuft falsch herum. Was tust du?', ['Freischalten und zwei Außenleiter tauschen', 'Den Neutralleiter tauschen', 'Den Schutzleiter abklemmen', 'Die Sicherung wechseln'], 'Durch Tausch zweier Außenleiter dreht sich das Drehfeld um.'],
+      [IEL, 4, 'E3', 'Wie wird der Isolationswiderstand gemessen?', ['Mit einem Isolationsmessgerät an der freigeschalteten Anlage', 'Mit dem Multimeter unter Spannung', 'Mit der Prüflampe', 'Gar nicht, das ist nicht nötig'], 'Gemessen wird mit Prüfgleichspannung an der spannungsfreien Anlage.'],
+      [IEL, 4, 'B2', 'Was bedeutet Schutzklasse II?', ['Schutzisolierung – das Gerät hat keinen Schutzleiteranschluss', 'Schutz durch Schutzleiter', 'Schutzkleinspannung', 'Spritzwasserschutz'], 'Schutzklasse I: Schutzleiter, II: Schutzisolierung, III: Schutzkleinspannung.'],
+      [IEL, 5, 'B3', 'Welche Vorschrift regelt die wiederkehrende Prüfung elektrischer Anlagen und Betriebsmittel im Betrieb?', ['DGUV Vorschrift 3', 'Straßenverkehrsordnung', 'Jugendarbeitsschutzgesetz', 'Lebensmittelhygieneverordnung'], 'Die Prüffristen legt der Betrieb nach Gefährdungsbeurteilung fest.'],
+      [IEL, 5, 'B3', 'Wozu nutzt man in der Instandhaltung eine Wärmebildkamera?', ['Um heiße Klemmstellen oder überlastete Bauteile früh zu erkennen', 'Um die Raumtemperatur zu regeln', 'Um Kabel zu verlegen', 'Um Spannungen zu messen'], 'Lose Klemmen und Überlast werden warm, bevor sie ausfallen.'],
+      [IEL, 5, 'B3', 'Ein Drehstrommotor brummt, läuft aber nicht an. Was ist eine typische Ursache?', ['Ein Außenleiter fehlt, z. B. weil eine Sicherung ausgelöst hat', 'Der Neutralleiter ist blau', 'Der Motor ist zu sauber', 'Die Drehrichtung ist falsch'], 'Fehlt eine Phase, entsteht kein vollständiges Drehfeld.'],
+      [IEL, 5, 'EI7', 'Warum dokumentierst du Wartung und Prüfungen im Protokoll?', ['Als Nachweis für Sicherheit und Haftung und für die nächste Wartung', 'Weil Papier billig ist', 'Nur für die Urlaubsplanung', 'Das ist freiwillig und unwichtig'], 'Prüfprotokolle sind Nachweise und zeigen Entwicklungen, z. B. sinkende Isolationswerte.'],
+      [IEL, 5, 'B3', 'Wer darf elektrotechnische Arbeiten selbstständig ausführen?', ['Eine Elektrofachkraft oder unter ihrer Leitung und Aufsicht eine elektrotechnisch unterwiesene Person', 'Jede Person mit Werkzeug', 'Nur der Betriebsrat', 'Jede Person nach einem Video'], 'So regelt es die DGUV Vorschrift 3.'],
+      [LAG, 1, 'L8', 'Was prüfst du bei der Warenannahme noch im Beisein des Fahrers?', ['Anzahl der Packstücke und äußerlich erkennbare Schäden', 'Den Inhalt jedes einzelnen Kartons', 'Die Preise auf der Rechnung', 'Das Mindesthaltbarkeitsdatum jedes Artikels'], 'Äußere Schäden und Fehlmengen werden sofort auf dem Lieferschein bzw. Frachtbrief vermerkt und vom Fahrer bestätigt.'],
+      [LAG, 1, 'L8', 'Womit vergleichst du den Lieferschein beim Wareneingang?', ['Mit der Bestellung und der gelieferten Ware', 'Mit dem Schichtplan', 'Mit der Inventurliste vom Vorjahr', 'Mit der Packliste des Versands'], 'Stimmen Bestellung, Lieferschein und Ware überein, kann eingelagert werden.'],
+      [LAG, 1, 'L3', 'Welche Schutzausrüstung ist im Lager fast immer Pflicht?', ['Sicherheitsschuhe', 'Schutzbrille beim Gehen', 'Atemschutz', 'Gehörschutz im Büro'], 'Welche PSA nötig ist, steht in der Gefährdungsbeurteilung. Sicherheitsschuhe gehören im Lager fast immer dazu.'],
+      [LAG, 2, 'L7', 'Was brauchst du, um im Betrieb einen Gabelstapler zu fahren?', ['Eine Ausbildung mit Fahrausweis und eine schriftliche Beauftragung des Betriebs', 'Nur den Pkw-Führerschein', 'Nur die Erlaubnis eines Kollegen', 'Nichts, wenn man vorsichtig fährt'], 'So sieht es der DGUV Grundsatz 308-001 vor.'],
+      [LAG, 2, 'L7', 'Was zeigt das Tragfähigkeitsdiagramm am Stapler?', ['Wie schwer die Last bei welchem Lastschwerpunkt und welcher Hubhöhe sein darf', 'Den Tankinhalt', 'Die Höchstgeschwindigkeit', 'Die Wartungstermine'], 'Je weiter der Lastschwerpunkt vorne liegt, desto weniger darf die Last wiegen.'],
+      [LAG, 2, 'L7', 'Wie fährt man mit einem Stapler, wenn die Last die Sicht nach vorn versperrt?', ['Rückwärts, oder mit Einweiser', 'Schneller, um schnell durch zu sein', 'Mit hochgehobener Last', 'Mit Warnblinker vorwärts'], 'Die Sicht in Fahrtrichtung muss frei sein.'],
+      [LAG, 3, 'L9', 'Was bedeutet FIFO?', ['First in, first out: Was zuerst eingelagert wurde, wird zuerst ausgelagert', 'Fertig in fünf Minuten', 'Fehler im Fach', 'Last in, first out'], 'FIFO ist wichtig bei Ware mit begrenzter Haltbarkeit, z. B. Kautschukmischungen.'],
+      [LAG, 3, 'L9', 'Was ist chaotische Lagerhaltung?', ['Jede freie Stelle wird genutzt, das Lagerverwaltungssystem merkt sich den Platz', 'Es gibt keine Ordnung und niemand weiß, wo etwas liegt', 'Jeder Artikel hat immer denselben festen Platz', 'Ware wird nur im Freien gelagert'], 'Das spart Platz, funktioniert aber nur mit einem zuverlässigen Lagerverwaltungssystem.'],
+      [LAG, 3, 'L9', 'Was ist bei der Lagerung von Gefahrstoffen zu beachten?', ['Zusammenlagerungsverbote und die Angaben im Sicherheitsdatenblatt', 'Gefahrstoffe immer ganz oben im Regal lagern', 'Sie dürfen neben Lebensmitteln stehen', 'Nichts Besonderes'], 'Manche Stoffe dürfen nicht zusammen gelagert werden, z. B. brennbare und brandfördernde Stoffe.'],
+      [LAG, 4, 'L10', 'Was bedeutet „Person zur Ware“ beim Kommissionieren?', ['Die Kommissioniererin geht oder fährt zum Lagerplatz und entnimmt die Ware', 'Die Ware kommt automatisch zum Arbeitsplatz', 'Der Kunde holt die Ware selbst', 'Die Ware wird nicht entnommen'], 'Beim Prinzip „Ware zur Person“ bringt Fördertechnik die Ware zum Kommissionierplatz.'],
+      [LAG, 4, 'L10', 'Was ist Pick-by-Voice?', ['Kommissionieren mit Sprachanweisungen über ein Headset', 'Kommissionieren nach Zuruf des Kunden', 'Abholen von Ware per Telefon', 'Ein Prüfverfahren für Lautsprecher'], 'Die Hände bleiben frei, Bestätigungen gibt man per Sprache.'],
+      [LAG, 4, 'L10', 'Warum sind Kommissionierfehler teuer?', ['Sie führen zu Reklamationen, Rücksendungen und Nacharbeit', 'Weil Fehler im Lager verboten sind', 'Sie kosten nichts, der Kunde merkt es nicht', 'Weil der Scanner kaputtgeht'], 'Deshalb wird oft mit Scanner gegengeprüft.'],
+      [LAG, 5, 'L11', 'Wer ist für die Ladungssicherung verantwortlich?', ['Verlader und Fahrer, jeweils für ihren Teil', 'Nur der Empfänger', 'Nur die Versicherung', 'Niemand, wenn die Fahrt kurz ist'], 'Der Verlader muss beförderungssicher verladen, der Fahrer muss die Sicherung vor Fahrtantritt prüfen.'],
+      [LAG, 5, 'L11', 'Was gehört zur Versandvorbereitung?', ['Verpacken, kennzeichnen und Versandpapiere erstellen', 'Nur das Wiegen', 'Die Inventur', 'Das Bestellen beim Lieferanten'], 'Dazu gehören z. B. Packliste, Lieferschein und Etiketten.'],
+      [LAG, 5, 'L11', 'Wozu dient eine Packliste?', ['Sie zeigt, was in welchem Packstück enthalten ist', 'Sie ist die Rechnung', 'Sie ist der Dienstplan', 'Sie ersetzt die Ladungssicherung'], 'Mit der Packliste kann der Empfänger den Inhalt prüfen.'],
+      [LAG, 6, 'L5', 'Tagesverbrauch 20 Stück, Lieferzeit 5 Tage, Mindestbestand 50 Stück. Wie hoch ist der Meldebestand?', ['150 Stück', '100 Stück', '70 Stück', '250 Stück'], 'Meldebestand = Tagesverbrauch × Lieferzeit + Mindestbestand = 20 × 5 + 50 = 150.'],
+      [LAG, 6, 'L5', 'Was kennzeichnet A-Güter in der ABC-Analyse?', ['Hoher Wertanteil bei meist geringem Mengenanteil', 'Geringer Wert, große Menge', 'Alle Güter mit A im Namen', 'Güter ohne Bedeutung'], 'A-Güter werden besonders genau disponiert und überwacht.'],
+      [LAG, 6, 'L5', 'Was ist der Mindestbestand?', ['Eine Reserve, die nur bei Störungen angegriffen wird', 'Der höchste erlaubte Bestand', 'Der Bestand am Jahresende', 'Die Bestellmenge'], 'Man nennt ihn auch eisernen Bestand oder Sicherheitsbestand.'],
+      [LAG, 7, 'L6', 'Was bedeutet Just-in-time?', ['Material kommt genau dann, wenn es in der Produktion gebraucht wird', 'Alles wird auf Vorrat gekauft', 'Die Lieferung kommt immer zu spät', 'Ein Pausenmodell'], 'Das senkt Lagerbestände, setzt aber zuverlässige Lieferungen voraus.'],
+      [LAG, 7, 'L6', 'Wie berechnet man die Lagerumschlagshäufigkeit?', ['Jahresverbrauch geteilt durch durchschnittlichen Lagerbestand', 'Lagerbestand mal Preis', 'Anzahl der Mitarbeitenden geteilt durch Regale', 'Lieferzeit mal Tagesverbrauch'], 'Ein hoher Wert bedeutet, dass die Ware nur kurz im Lager liegt.'],
+      [LAG, 7, 'L6', 'Was sagt der Lieferbereitschaftsgrad aus?', ['Wie viel Prozent der Anforderungen sofort aus dem Lager bedient werden konnten', 'Wie schnell der Stapler fährt', 'Wie viele Lkw am Tag kommen', 'Wie voll das Lager ist'], 'Er ist eine wichtige Kennzahl für die Qualität der Lagerlogistik.']
+    ];
+    QE.forEach(([beruf, mod, rp, frage, optionen, erkl], i) => DB.quiz_questions.push(qq(7200 + i, beruf, mod, rp, frage, optionen, erkl)));
+    const rpB = (n, b) => DB.rahmenplan.find(r => r.nr === n && r.beruf === b);
+    DB.praxisaufgaben.push(
+      { id: uuid(), betrieb_id: B, rp_id: rpB('E2', IEL)?.id || null, beruf: IEL, titel: 'Übungsschaltung aufbauen und Spannung, Strom und Widerstand messen', beschreibung: 'Messwerte ins Protokoll, mit Rechnung vergleichen.', lehrjahr: 1, aktiv: true, created_by: Q.frank.id, created_at: iso(day(-140)) },
+      { id: uuid(), betrieb_id: B, rp_id: rpB('E4', IEL)?.id || null, beruf: IEL, titel: 'Schützschaltung mit Selbsthaltung verdrahten', beschreibung: 'Nach Stromlaufplan, mit Frank prüfen.', lehrjahr: 2, aktiv: true, created_by: Q.frank.id, created_at: iso(day(-30)) },
+      { id: uuid(), betrieb_id: B, rp_id: rpB('L8', LAG)?.id || null, beruf: LAG, titel: 'Eine Lieferung komplett annehmen und einlagern', beschreibung: 'Lieferschein prüfen, Mängel vermerken, im System buchen.', lehrjahr: 1, aktiv: true, created_by: Q.petra.id, created_at: iso(day(-400)) },
+      { id: uuid(), betrieb_id: B, rp_id: rpB('L10', LAG)?.id || null, beruf: LAG, titel: '20 Aufträge mit Handscanner fehlerfrei kommissionieren', beschreibung: '', lehrjahr: 4, aktiv: true, created_by: Q.petra.id, created_at: iso(day(-80)) });
     DB.quiz_answers = []; DB.exam_results = [];
     DB.lernkarten = [7004, 7012, 7015].map((qid, i) => ({ user_id: Q.dennis.id, question_id: qid, betrieb_id: B, fach: 1, faellig: ymd(day(i === 2 ? 3 : 0)), updated_at: iso(day(-4)) }));
     return Q;
@@ -467,7 +546,7 @@
 
   window.makeDemoClient = function (role) {
     const QM = String(role || '').startsWith('c1tt');
-    const meId = QM ? ({ c1tt: 'demo-q-dennis', 'c1tt-trainer': 'demo-q-trainer', 'c1tt-koord': 'demo-q-koord', 'c1tt-guide': 'demo-q-guide' })[role] || 'demo-q-dennis'
+    const meId = QM ? ({ c1tt: 'demo-q-dennis', 'c1tt-trainer': 'demo-q-trainer', 'c1tt-koord': 'demo-q-koord', 'c1tt-guide': 'demo-q-guide', 'c1tt-elektro': 'demo-q-tobias', 'c1tt-lager': 'demo-q-svetlana' })[role] || 'demo-q-dennis'
       : ({ azubi: P.lena.id, ausbilder: P.koch.id, leitung: P.lei.id, mitarbeiter: P.piotr.id })[role] || P.lena.id;
     const me = () => DB.profiles.find(p => p.id === meId);
     const RPC = {

@@ -432,7 +432,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-28d';
+const APP_VERSION = '2026-10-28e';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -1133,7 +1133,7 @@ const Bericht = {
     <div class="card p-4 flex flex-col gap-4">${goals.map(g => { const p = S.rep.goals[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><div class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</div><div class="text-[13px] font-bold tnum">${p}%</div></div><div class="text-[11px] text-muted mb-1.5">${esc(g.ref)}</div><div class="bar ${p < 20 ? 'brass' : ''}"><i style="width:${p}%"></i></div></div>`; }).join('')}</div>`}
 
     ${schoolLinkHTML()}
-    ${secTitle('Abwesenheiten & Berufsschule', '<button id="absNew" class="text-[13px] font-semibold text-accent">+ Eintragen</button>')}
+    ${secTitle(isQuali() ? 'Abwesenheiten' : 'Abwesenheiten & Berufsschule', '<button id="absNew" class="text-[13px] font-semibold text-accent">+ Eintragen</button>')}
     ${absenceList(S.rep.abs || [])}
     <button type="button" id="icsOut" class="btn ghost w-full mt-2 text-[13px]">${svg('copy', 'w-4 h-4')} Termine in meinen Kalender übernehmen</button>
     ${S.rep.talks?.length ? secTitle('Meine Gespräche') + talkList(S.rep.talks, false) : ''}
@@ -1328,7 +1328,7 @@ const Review = {
     ${secTitle('Beurteilungen', '<button id="beuNew" class="text-[13px] font-semibold text-accent">+ Neu</button>')}
     ${beuList((S.rev.beu || []).filter(b => b.azubi_id === sel), true)}` : ''}
     ${canSchool(S.profiles[sel]) ? schoolLinkHTML() : ''}
-    ${secTitle('Abwesenheiten & Berufsschule', can('abwesenheiten') ? '<button id="absNew" class="text-[13px] font-semibold text-accent">+ Eintragen</button>' : '')}
+    ${secTitle(isQuali() ? 'Abwesenheiten' : 'Abwesenheiten & Berufsschule', can('abwesenheiten') ? '<button id="absNew" class="text-[13px] font-semibold text-accent">+ Eintragen</button>' : '')}
     ${absenceList(S.rev.abs.filter(a => a.user_id === sel))}` : ''}`;
   },
   bind() {
@@ -1733,7 +1733,7 @@ const Admin = {
         <div class="flex items-center gap-3 mt-1"><div id="admCode" class="font-display font-bold text-[26px] tracking-wider flex-1 select-all">${esc(A.code)}</div><button id="admCopy" class="btn ghost py-2">${svg('copy', 'w-4 h-4')} Kopieren</button></div>
         <p class="text-[12px] text-muted mt-1">Neue Azubis und Ausbilder/innen registrieren sich in der App unter „Neu registrieren“ mit diesem Code. Danach gibst du hier Rolle, Rechte und Ansprechpartner vor.</p>
       </div>
-      <button type="button" class="card w-full p-4 mt-3 flex items-center gap-3 text-left" data-goto-groups><span class="ico">${svg('users')}</span><span class="flex-1 min-w-0"><span class="block font-semibold text-[15px]">Chat-Gruppen</span><span class="block text-[13px] text-muted">Gruppen wie „Küche“ oder „Frühschicht“ anlegen und Mitglieder festlegen</span></span>${svg('arrow', 'w-4 h-4 text-muted')}</button>
+      <button type="button" class="card w-full p-4 mt-3 flex items-center gap-3 text-left" data-goto-groups><span class="ico">${svg('users')}</span><span class="flex-1 min-w-0"><span class="block font-semibold text-[15px]">Chat-Gruppen</span><span class="block text-[13px] text-muted">${isQuali() ? 'Gruppen wie „Werkstatt“ oder „Modul 1“' : 'Gruppen wie „Küche“ oder „Frühschicht“'} anlegen und Mitglieder festlegen</span></span>${svg('arrow', 'w-4 h-4 text-muted')}</button>
       ${A.photos?.length ? `${secTitle('Fotos zur Freigabe', `<span class="chip brass tnum">${A.photos.length}</span>`)}
       <div class="card">${A.photos.map((r, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}">
         <button class="rounded-xl overflow-hidden flex-none" style="width:64px;height:64px;background:var(--sunk)" data-foto-open="${esc(r.path)}" aria-label="Foto groß ansehen"><img data-foto="${esc(r.path)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>
@@ -1768,12 +1768,12 @@ const Admin = {
         <button class="btn" id="expAll">${svg('book', 'w-4 h-4')} ZIP-Datei erstellen</button>
         <p id="expState" class="text-[13px] text-muted" aria-live="polite"></p>
       </div>` : ''}
-      ${secTitle('Übergabebuch aufräumen')}
+      ${isQuali() ? '' : `      ${secTitle('Übergabebuch aufräumen')}
       <div class="card p-4 flex flex-col gap-3">
         <p class="text-[14px] text-muted">Hält die Listen übersichtlich. Gelöscht wird nur, was älter ist als angegeben.</p>
         <button class="btn ghost" data-clean="items">Erledigte Posten älter als 7 Tage löschen</button>
         <button class="btn ghost" data-clean="notes">Übergaben älter als 30 Tage löschen</button>
-      </div>
+      </div>`}
       ${secTitle('Daten')}
       <div class="card p-4 text-[14px] flex flex-col gap-1">
         <div>Die Daten deines Betriebs liegen getrennt von anderen Betrieben in einer Datenbank in Frankfurt am Main. Betreiber: NovaWorks, info@novaworks-it.de</div>
@@ -2034,7 +2034,7 @@ function openUserSheet(id) {
       </div>
       <div id="uAzubi" class="flex flex-col gap-3" ${p.role === 'azubi' ? '' : 'hidden'}>
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="lbl" for="uJahr">Lehrjahr</label><select id="uJahr" class="field">${[1, 2, 3].map(j => `<option value="${j}" ${p.lehrjahr === j ? 'selected' : ''}>${j}. Jahr</option>`).join('')}</select></div>
+        <div><label class="lbl" for="uJahr">Lehrjahr</label><select id="uJahr" class="field">${(isQuali() ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3]).map(j => `<option value="${j}" ${p.lehrjahr === j ? 'selected' : ''}>${isQuali() ? 'Modul ' + j : j + '. Jahr'}</option>`).join('')}</select></div>
         <div><label class="lbl" for="uAbt">Abteilung</label><select id="uAbt" class="field">${ABTEILUNGEN.map(a => `<option ${p.abteilung === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
       </div>
       <div><label class="lbl" for="uBetreuer">Ansprechpartner/in</label><select id="uBetreuer" class="field"><option value="">– noch keine/r –</option>${Object.values(S.profiles).filter(x => x.role !== 'azubi' && x.aktiv !== false && x.id !== p.id).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(x => `<option value="${x.id}" ${p.betreuer_id === x.id ? 'selected' : ''}>${esc(x.full_name)} · ${esc(staffLine(x))}</option>`).join('')}</select>
@@ -2042,7 +2042,7 @@ function openUserSheet(id) {
       <div><label class="lbl" for="uBeruf">Ausbildung</label><input id="uBeruf" class="field" value="${esc(p.beruf)}" maxlength="60"></div>
       <div><label class="lbl" for="uStart">Erster Arbeitstag</label><input id="uStart" type="date" class="field" value="${p.start_datum}"></div>
       <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="uZp">${EXN(p.beruf)[0]}</label><input id="uZp" type="date" class="field" value="${p.zp_datum || ''}"></div><div><label class="lbl" for="uAp">${EXN(p.beruf)[1]}</label><input id="uAp" type="date" class="field" value="${p.ap_datum || ''}"></div></div>
-      <label class="flex items-start gap-2 text-[14px]"><input type="checkbox" id="uU18" ${p.unter18 ? 'checked' : ''} style="accent-color:var(--accent);width:20px;height:20px;margin-top:1px"><span>Unter 18 Jahre <span class="block text-[12px] text-muted">Berichtsheft warnt dann ab 8 Std am Tag und 40 Std in der Woche (Jugendarbeitsschutz).</span></span></label>
+      <label class="flex items-start gap-2 text-[14px]" ${isQuali() ? 'hidden' : ''}><input type="checkbox" id="uU18" ${p.unter18 ? 'checked' : ''} style="accent-color:var(--accent);width:20px;height:20px;margin-top:1px"><span>Unter 18 Jahre <span class="block text-[12px] text-muted">Berichtsheft warnt dann ab 8 Std am Tag und 40 Std in der Woche (Jugendarbeitsschutz).</span></span></label>
       </div>
       <button class="btn">Speichern</button>
     </form>
@@ -2758,6 +2758,7 @@ async function fillExamStats() {
   }
 }
 function openExamPicker() {
+  if (isQuali()) return qExam(0);
   const modes = examModes(S.me);
   sheetShell('Prüfungssimulation', `<p class="text-[14px] text-muted -mt-1 mb-3">${ZWEIJ(S.me?.beruf) ? 'Dein Beruf hat eine Zwischenprüfung und eine Abschlussprüfung.' : 'Seit 2022 ist die Abschlussprüfung in zwei Teile gestreckt: Teil 1 am Ende des 2., Teil 2 am Ende des 3. Ausbildungsjahres.'}</p>
     <div class="card">${modes.map(([k, d], i) => `<button class="w-full flex items-center gap-3 p-4 text-left ${i ? 'border-t border-line' : ''}" data-exmode="${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${EXAM_LABEL[k]}</div><div class="text-[13px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted flex-none')}</button>`).join('')}</div>
@@ -4296,7 +4297,7 @@ async function openProfile() {
       <div><label class="lbl" for="pTel">Telefon</label><input id="pTel" type="tel" class="field" value="${esc(me.telefon)}" maxlength="40" placeholder="z. B. 05641 123456 oder Durchwahl 210"></div>
       <p class="text-[12px] text-muted">Funktion und Kontaktdaten erscheinen bei allen unter „Wer ist wer“.</p>` : `
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="lbl" for="pJahr">Lehrjahr</label><select id="pJahr" class="field">${[1, 2, 3].map(j => `<option value="${j}" ${me.lehrjahr === j ? 'selected' : ''}>${j}. Jahr</option>`).join('')}</select></div>
+        <div><label class="lbl" for="pJahr">Lehrjahr</label><select id="pJahr" class="field">${(isQuali() ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3]).map(j => `<option value="${j}" ${me.lehrjahr === j ? 'selected' : ''}>${isQuali() ? 'Modul ' + j : j + '. Jahr'}</option>`).join('')}</select></div>
         <div><label class="lbl" for="pAbt">Aktuelle Abteilung</label><select id="pAbt" class="field">${ABTEILUNGEN.map(a => `<option ${me.abteilung === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
       </div>
       <div><label class="lbl" for="pBeruf">Ausbildung</label><input id="pBeruf" class="field" value="${esc(me.beruf)}" maxlength="60"></div>
@@ -4477,7 +4478,7 @@ try { const t = localStorage.getItem('azubihub.theme'); if (t) document.document
 
 /* ---------- Demo ---------- */
 const DEMO_ROLES = [['azubi', 'Azubi', 'Lena, 1. Lehrjahr Hotelfach: Berichtsheft, Unterweisungen, Chat'], ['ausbilder', 'Ausbilder', 'Marco, Küchenchef: zeichnet Küchen-Berichte ab, Ampel, Urlaub'], ['leitung', 'Leitung', 'Sabine, Inhaberin: Verwaltung, Rechte, Karriereseite'], ['mitarbeiter', 'Mitarbeiter', 'Piotr, Service: Pinnwand, Unterweisungen, Übergabe']];
-const DEMO_Q_ROLES = [['c1tt', 'Teilnehmer', 'Dennis, Teilqualifizierung Kunststoff/Kautschuk, Modul 3'], ['c1tt-trainer', 'Trainer', 'Michael: Nachweise abzeichnen, Module und Zertifikate'], ['c1tt-koord', 'Koordination', 'Katrin: Teilnehmende, Maßnahmen, Externenprüfung'], ['c1tt-guide', 'Qualifizierungs-Guide', 'Sandra: begleitet drei Kolleg:innen']];
+const DEMO_Q_ROLES = [['c1tt', 'Teilnehmer', 'Dennis, Teilqualifizierung Kunststoff/Kautschuk, Modul 3'], ['c1tt-trainer', 'Trainer', 'Michael: Nachweise abzeichnen, Module und Zertifikate'], ['c1tt-elektro', 'Teilnehmer Elektro', 'Tobias, Teilqualifizierung Betriebselektriker, Modul 2'], ['c1tt-lager', 'Teilnehmerin Lager', 'Svetlana, Teilqualifizierung Lagerlogistik, Modul 4'], ['c1tt-koord', 'Koordination', 'Katrin: alle Teilnehmenden – Kautschuk, Elektro, Lager, Maschinenführer'], ['c1tt-guide', 'Qualifizierungs-Guide', 'Sandra: begleitet drei Kolleg:innen']];
 function openDemoPicker() {
   const list = rs => `<div class="card">${rs.map(([k, l, d], i) => `<a class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}" href="?demo=${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${l}</div><div class="text-[12px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted')}</a>`).join('')}</div>`;
   const qOnly = new URLSearchParams(location.search).get('demo')?.startsWith('c1tt');
