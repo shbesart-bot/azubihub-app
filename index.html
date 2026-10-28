@@ -264,6 +264,7 @@
 <script src="./schule.js"></script>
 <script src="./ausbildung.js"></script>
 <script src="./ausbau2.js"></script>
+<script src="./quali.js"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -390,6 +391,7 @@ function applyConfig() {
   const sel = document.getElementById('aBeruf'); const keep = sel.value;
   sel.innerHTML = BR.berufe.map(b => `<option>${esc(b)}</option>`).join('');
   if (BR.berufe.includes(keep)) sel.value = keep;
+  qApplyConfig();
 }
 async function loadBranding() {
   try { const { data } = await sb.from('app_config').select('value').eq('key', 'branding').maybeSingle(); BR = fixDs(mergeCfg(DEFAULT_BRANDING, data?.value)); } catch {}
@@ -430,7 +432,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-28c';
+const APP_VERSION = '2026-10-28d';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -671,10 +673,10 @@ async function startApp(user) {
 /* =====================================================================
    Navigation
    ===================================================================== */
-const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk']];
+const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school']];
 const EXTRA_VIEWS = ['home', 'admin', 'chat', 'uw', 'news', 'dienst'];
 // Übergabebuch ist seit 27.10.2026 ausgeblendet (Daten bleiben erhalten); Schule und IHK gibt es nicht für Mitarbeiter/innen
-const visible = v => v === 'uebergabe' ? false : (v === 'schule' || v === 'ihk') ? !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
+const visible = v => v === 'uebergabe' ? false : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
 function renderTabs() {
   const tabs = TABS.filter(([id]) => visible(id));
   $('#tabs').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
@@ -690,12 +692,13 @@ async function go(v) {
   try { await VIEWS[v].load?.(); } catch (e) { if (tok === navToken) $('#app').innerHTML = `<div class="card p-4 mt-2 text-[14px]">Laden fehlgeschlagen: ${esc(errText(e))} <button class="btn ghost mt-3 w-full" data-go="${v}">Erneut versuchen</button></div>`; return; }
   if (tok === navToken) { render(); if (S.navByUser) { S.navByUser = false; $('#app').focus({ preventScroll: true }); } }
 }
-const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan' };
+const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung' };
 function render() {
   const V = VIEWS[S.view];
   try { const t = VIEW_TITLES[S.view] || (S.view === 'home' ? 'Start' : mod(S.view)?.tab) || ''; document.title = (t ? t + ' – ' : '') + (BR.appName || 'AzubiHub'); } catch {}
   $('#app').innerHTML = `<div class="view">${V.html()}</div>`;
   V.bind?.();
+  qTerms($('#app'));
   bindRepLog();
   hydrateImgs($('#app'));
   bfHydrate($('#app'));
@@ -819,7 +822,7 @@ const Home = {
     <section class="keycard p-5 mt-1">
       <div class="text-[13px] sub tnum">${today} · KW ${NOW.kw}</div>
       <h1 class="text-[28px] font-bold leading-tight mt-1">${greet}, ${esc(firstName(me.full_name))}</h1>
-      <div class="sub text-[14px] mt-1">${isAusbilder() ? esc(staffLine(me)) : isMA() ? esc(me.position || t('Mitarbeiter/in')) : `${esc(me.beruf)} · ${me.lehrjahr}. ${t('Ausbildungsjahr')} · ${t('Tag')} ${day} ${t('im Haus')}`}</div>
+      <div class="sub text-[14px] mt-1">${isAusbilder() ? esc(staffLine(me)) : isMA() ? esc(me.position || t('Mitarbeiter/in')) : isQuali() ? esc(qLine(me)) : `${esc(me.beruf)} · ${me.lehrjahr}. ${t('Ausbildungsjahr')} · ${t('Tag')} ${day} ${t('im Haus')}`}</div>
       <div class="mt-4 flex flex-wrap gap-2 text-[13px] font-semibold">
         ${isAusbilder() ? '' : `<span class="pill px-3 py-1.5 rounded-full">${esc(me.abteilung)}</span>`}
       </div>
@@ -828,6 +831,7 @@ const Home = {
     ${pushAskCard()}
     ${installCard()}
     ${homeTopHTML()}
+    ${qHomeHTML()}
     ${moodAskHTML()}${fbAskHTML()}${lkHomeHTML()}
     ${isAusbilder() && H.absent?.length ? `${secTitle('Heute nicht im Haus', `<span class="chip tnum">${H.absent.length}</span>`)}<div class="card">${H.absent.map((a, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><span class="chip ${ABS_TONE[a.typ]}">${a.typ}</span><div class="flex-1 min-w-0 text-[14px] font-semibold truncate">${esc(nameOf(a.user_id))}</div><div class="text-[12px] text-muted tnum">bis ${fmtD(a.bis)}</div></div>`).join('')}</div>` : ''}
     ${team}
@@ -837,8 +841,8 @@ const Home = {
     <div class="grid grid-cols-2 gap-3 modgrid">
       ${mod('bericht').on !== false && !isMA() ? `<button class="card modtile" data-go="bericht">
         <div class="flex items-center justify-between gap-2"><span class="ico">${svg('book')}</span>${isAusbilder() ? `<span class="chip ${H.pending.length ? 'brass' : 'ok'}">${H.pending.length} offen</span>` : `<span class="chip ${repChip[0]}">${repChip[1]}</span>`}</div>
-        <div><div class="font-display font-bold text-[16px] leading-snug">${esc(mod('bericht').title)}</div><div class="text-[13px] text-muted mt-0.5">${isAusbilder() ? 'Berichte prüfen, Lernziele pflegen' : `Lernziele ${H.goalsAvg}% erreicht`}</div></div>
-        ${isAusbilder() ? '' : `<div class="bar w-full"><i style="width:${H.goalsAvg}%"></i></div>`}
+        <div><div class="font-display font-bold text-[16px] leading-snug">${esc(mod('bericht').title)}</div><div class="text-[13px] text-muted mt-0.5">${isAusbilder() ? 'Berichte prüfen, Lernziele pflegen' : isQuali() ? 'Woche eintragen und abzeichnen lassen' : `Lernziele ${H.goalsAvg}% erreicht`}</div></div>
+        ${isAusbilder() || isQuali() ? '' : `<div class="bar w-full"><i style="width:${H.goalsAvg}%"></i></div>`}
       </button>` : ''}
       ${mod('wiki').on !== false ? `<button class="card modtile" data-go="wiki">
         <div class="flex items-center justify-between gap-2"><span class="ico">${svg('wiki')}</span><span class="chip ${H.quizTotal && H.quizDone === H.quizTotal ? 'ok' : 'brass'} tnum">Quiz ${H.quizDone}/${H.quizTotal}</span></div>
@@ -850,14 +854,14 @@ const Home = {
         <div><div class="font-display font-bold text-[16px] leading-snug">${esc(mod('buddy').title)}</div><div class="text-[13px] text-muted mt-0.5 tnum">${H.obDone} von ${obTotal} Aufgaben</div></div>
         <div class="bar w-full"><i style="width:${pct(H.obDone, obTotal)}%"></i></div>
       </button>` : ''}
-      ${!isMA() ? schoolTilesHTML() : ''}
+      ${!isMA() ? (isQuali() ? qTileHTML() : schoolTilesHTML()) : ''}
       ${dienstTileHTML()}
       ${extraTilesHTML()}
     </div>
 
     ${isAzubi() ? `${secTitle('Deine Ansprechpartner', '<button data-go="chat" class="text-[13px] font-semibold text-accent">Team & Nachrichten</button>')}${myContactsHTML(me)}` : ''}
     ${elternHTML()}
-    ${isAzubi() && H.stats ? badgesHTML(H.stats) : ''}
+    ${isAzubi() && H.stats && !isQuali() ? badgesHTML(H.stats) : ''}
 `;
   },
   bind() {
@@ -891,7 +895,7 @@ function generateReport(abt, raw, gelernt) {
 /* ---------- Wochenbericht nach Tagen ---------- */
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 const OFF = ['Urlaub', 'Krank', 'Frei'];
-const bereiche = () => [...ABTEILUNGEN, 'Berufsschule', 'Urlaub', 'Krank', 'Frei'];
+const bereiche = () => isQuali() ? [...ABTEILUNGEN, 'Urlaub', 'Krank', 'Frei'] : [...ABTEILUNGEN, 'Berufsschule', 'Urlaub', 'Krank', 'Frei'];
 const MIN_STEPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 function weekDates({ jahr, kw }) {
   const jan4 = new Date(jahr, 0, 4), dow = jan4.getDay() || 7;
@@ -1082,7 +1086,7 @@ const Bericht = {
     const perAbt = ABTEILUNGEN.map(a => [a, done.filter(x => x.abteilung === a).length, done.reduce((s, x) => s + (x.tage || []).filter(d => d.bereich === a).reduce((t, d) => t + dayMin(d), 0), 0)]);
     const goals = S.content.goals;
     return `
-    ${head('Modul 1', esc(mod('bericht').title), esc(mod('bericht').sub))}
+    ${head(isQuali() ? 'Nachweis' : 'Modul 1', esc(mod('bericht').title), esc(mod('bericht').sub))}
 
     <div class="card p-4">
       <div class="flex items-center gap-2">
@@ -1116,8 +1120,8 @@ const Bericht = {
       </div>
     </div>`}
 
-    ${secTitle('Ausbildungsplan', `<span class="text-[12px] text-muted">${me.lehrjahr}. Lehrjahr</span>`)}
-    ${planHTML(S.rep.plan, me, false)}
+    ${isQuali() ? '' : `${secTitle('Ausbildungsplan', `<span class="text-[12px] text-muted">${me.lehrjahr}. Lehrjahr</span>`)}
+    ${planHTML(S.rep.plan, me, false)}`}
     ${praxisHTML(me, false)}
 
     ${secTitle('Wochen je Abteilung')}
@@ -1125,8 +1129,8 @@ const Bericht = {
     ${(me.zp_datum || me.ap_datum) ? '' : `<button class="card w-full p-3.5 mt-3 text-left text-[13px] text-muted" id="examSet">Prüfungstermine eintragen, dann zählt die App die Tage runter ${svg('arrow', 'w-4 h-4 inline')}</button>`}
     ${rpHTML(S.rep.list, me)}
 
-    ${secTitle('Lernziele', '<span class="text-[12px] text-muted">bewertet von der Ausbildungsleitung</span>')}
-    <div class="card p-4 flex flex-col gap-4">${goals.map(g => { const p = S.rep.goals[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><div class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</div><div class="text-[13px] font-bold tnum">${p}%</div></div><div class="text-[11px] text-muted mb-1.5">${esc(g.ref)}</div><div class="bar ${p < 20 ? 'brass' : ''}"><i style="width:${p}%"></i></div></div>`; }).join('')}</div>
+    ${isQuali() && !S.content.goals.length ? '' : `${secTitle('Lernziele', '<span class="text-[12px] text-muted">bewertet von der Ausbildungsleitung</span>')}
+    <div class="card p-4 flex flex-col gap-4">${goals.map(g => { const p = S.rep.goals[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><div class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</div><div class="text-[13px] font-bold tnum">${p}%</div></div><div class="text-[11px] text-muted mb-1.5">${esc(g.ref)}</div><div class="bar ${p < 20 ? 'brass' : ''}"><i style="width:${p}%"></i></div></div>`; }).join('')}</div>`}
 
     ${schoolLinkHTML()}
     ${secTitle('Abwesenheiten & Berufsschule', '<button id="absNew" class="text-[13px] font-semibold text-accent">+ Eintragen</button>')}
@@ -1298,7 +1302,7 @@ const Review = {
     const userReps = S.rev.list.filter(r => r.user_id === sel);
     const gp = Object.fromEntries(S.rev.goalsAll.filter(g => g.user_id === sel).map(g => [g.goal_id, g.prozent]));
     return `
-    ${head('Modul 1 · Ausbildung', esc(mod('bericht').title), can('berichte') ? `Eingereichte Wochenberichte abzeichnen${isAdmin() || !(S.me.bereiche || []).length ? '' : ' – du bist zuständig für ' + esc(S.me.bereiche.join(', '))}.` : 'Stand deiner Azubis.')}
+    ${head(isQuali() ? 'Nachweis' : 'Modul 1 · Ausbildung', esc(mod('bericht').title), can('berichte') ? `Eingereichte Wochenberichte abzeichnen${isAdmin() || !(S.me.bereiche || []).length ? '' : ' – du bist zuständig für ' + esc(S.me.bereiche.join(', '))}.` : 'Stand deiner Azubis.')}
     ${can('berichte') ? `${secTitle('Zu prüfen', `<span class="chip ${pending.length ? 'brass' : 'ok'} tnum">${pending.length}</span>`)}
     ${pending.length ? `<div class="card">${pending.map((r, i) => `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-rev="${r.id}"><div class="font-display font-bold text-[17px] w-16 tnum flex-none">KW ${r.kw}</div><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(nameOf(r.user_id))}</div><div class="text-[12px] text-muted">${esc(r.abteilung)}${inScope(r.abteilung) ? '' : ' · nur ansehen'}</div></div>${svg('arrow', 'w-4 h-4 text-muted flex-none')}</button>`).join('')}</div>` : empty('Nichts zu prüfen.')}` : `<div class="card p-4 text-[14px] text-muted">Zum Abzeichnen von Berichten fehlt dir das Recht. Die Leitung kann es dir unter Verwaltung › Team geben.</div>`}
 
@@ -1306,8 +1310,8 @@ const Review = {
     ${list.length ? `<div class="seg" role="group" aria-label="Azubi">${list.slice().sort((a, b) => (b.betreuer_id === S.me.id || inScope(b.abteilung)) - (a.betreuer_id === S.me.id || inScope(a.abteilung))).map(p => `<button data-sel="${p.id}" aria-pressed="${p.id === sel}">${esc(p.full_name || 'Ohne Namen')}</button>`).join('')}</div>` : empty('Noch keine Azubis registriert.')}
     ${sel ? `
     <div class="card p-3.5 mt-3 flex items-center gap-3">${avatar(S.profiles[sel], 40)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(nameOf(sel))}</div><div class="text-[12px] text-muted truncate">${esc(S.profiles[sel]?.abteilung || '')} · Ansprechpartner: ${esc(betreuerOf(S.profiles[sel])?.full_name || 'noch keiner')}</div></div><button class="btn ghost py-2 text-[13px]" data-chat="${sel}">Nachricht</button></div>
-    ${secTitle('Lernziele', `<span class="text-[12px] text-muted">${can('lernziele') ? 'Schieberegler speichert sofort' : 'nur ansehen'}</span>`)}
-    <div class="card p-4 flex flex-col gap-4">${S.content.goals.map(g => { const p = gp[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><label for="g${g.id}" class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</label><div class="text-[13px] font-bold tnum" id="gv${g.id}">${p}%</div></div>${can('lernziele') ? `<input type="range" id="g${g.id}" min="0" max="100" step="5" value="${p}" data-goal="${g.id}">` : `<div class="bar mt-1.5"><i style="width:${p}%"></i></div>`}</div>`; }).join('')}</div>
+    ${isQuali() && !S.content.goals.length ? '' : `${secTitle('Lernziele', `<span class="text-[12px] text-muted">${can('lernziele') ? 'Schieberegler speichert sofort' : 'nur ansehen'}</span>`)}
+    <div class="card p-4 flex flex-col gap-4">${S.content.goals.map(g => { const p = gp[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><label for="g${g.id}" class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</label><div class="text-[13px] font-bold tnum" id="gv${g.id}">${p}%</div></div>${can('lernziele') ? `<input type="range" id="g${g.id}" min="0" max="100" step="5" value="${p}" data-goal="${g.id}">` : `<div class="bar mt-1.5"><i style="width:${p}%"></i></div>`}</div>`; }).join('')}</div>`}
     ${secTitle('Stand Berichtsheft')}
     ${berichtBarHTML(berichtStand(S.profiles[sel], userReps))}
     ${secTitle('Berichte', `<span class="text-[12px] text-muted tnum">${userReps.length}</span>`)}
@@ -1693,7 +1697,7 @@ function adminTabs() {
   return [
     can('team') && ['team', 'Team'],
     can('inhalte') && ['inhalte', 'Inhalte'],
-    can('bewerbungen') && ['karriere', 'Karriere'],
+    can('bewerbungen') && !isQuali() && ['karriere', 'Karriere'],
     isAdmin() && ['texte', 'Aufbau & Texte'],
     isAdmin() && ['einst', 'Einstellungen'],
     S.betrieb?.plattform && ['anbieter', 'Anbieter']
@@ -1962,7 +1966,7 @@ function sheetShell(title, inner) {
   const s = $('#sheet');
   if (s.hidden) sheetOpener = document.activeElement;
   s.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle"><div class="flex items-center justify-between mb-3 gap-3"><h2 id="shTitle" class="text-[20px] font-bold min-w-0" tabindex="-1">${esc(title)}</h2><button class="xbtn" id="shClose" aria-label="Schließen">${svg('x', 'w-5 h-5')}</button></div>${inner}</div>`;
-  s.hidden = false; $('#shClose').onclick = closeSheet;
+  s.hidden = false; $('#shClose').onclick = closeSheet; qTerms(s);
   ['#appScreen', '#authScreen', '#careerScreen'].forEach(x => $(x)?.setAttribute('aria-hidden', 'true'));
   requestAnimationFrame(() => $('#shTitle')?.focus({ preventScroll: true }));
 }
@@ -2723,7 +2727,7 @@ let examTimer = null;
    die zweijährigen (Fachkraft Küche, Fachkraft für Gastronomie) Zwischen- und Abschlussprüfung. */
 const ZWEIJ = b => /^Fachkraft (Küche|für Gastronomie)/.test(b || '');
 /* Bezeichnung der beiden Prüfungstermine (Feld zp_datum / ap_datum) je nach Beruf */
-const EXN = b => ZWEIJ(b) ? ['Zwischenprüfung', 'Abschlussprüfung'] : ['Abschlussprüfung Teil 1', 'Abschlussprüfung Teil 2'];
+const EXN = b => isQuali() ? ['Modulprüfung', 'Externenprüfung'] : ZWEIJ(b) ? ['Zwischenprüfung', 'Abschlussprüfung'] : ['Abschlussprüfung Teil 1', 'Abschlussprüfung Teil 2'];
 const EXAM_LABEL = { teil1: 'Abschlussprüfung Teil 1', teil2: 'Abschlussprüfung Teil 2', zp: 'Zwischenprüfung', ap: 'Abschlussprüfung', schwaechen: 'Schwächen üben', lernfeld: 'Lernfeld üben' };
 const examModes = p => ZWEIJ(p?.beruf)
   ? [['zp', 'Inhalte des 1. Ausbildungsjahres', 1], ['ap', 'Alle Inhalte der Ausbildung', null]]
@@ -3257,6 +3261,7 @@ async function homeExtras() {
     jobs.schAbs = sb.from('absences').select('user_id,typ,von,bis,status').eq('typ', 'Berufsschule').gte('bis', localDate(new Date(Date.now() - 60 * 864e5)));
   }
   if (S.betrieb?.gruppen_leitung) jobs.grp = sb.rpc('gruppe_overview');
+  if (isQuali()) jobs.qt = sb.from('quali_teilnahmen').select('*');
   jobs.dpMine = sb.from('dienstplan').select('datum,beginn,ende,abteilung').eq('user_id', me.id).gte('datum', localDate()).order('datum').limit(5);
   if (isAzubi()) {
     jobs.moodOpen = sb.rpc('stimmung_offen');
@@ -3392,7 +3397,7 @@ function ampelHTML(list, obTotal) {
   if (!list.length) return `${secTitle('Dein Team')}${empty('Noch keine Azubis registriert. Gib ihnen den Code aus Verwaltung › Team.')}`;
   const rows = list.map(p => ({ p, a: ampelData(p) })).sort((x, y) => y.a.level - x.a.level || x.p.full_name.localeCompare(y.p.full_name));
   const dot = (lvl, label, title) => lvl ? `<span class="inline-flex items-center gap-1 text-[11px] text-muted" title="${esc(title)}"><i style="width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--${lvl === 'ok' ? 'ok' : lvl})"></i>${label}</span>` : '';
-  return `${secTitle('Ampel', `<span class="flex items-center gap-3">${isAdmin() || can('team') ? '<button id="schPdf" class="text-[13px] font-semibold text-accent">Schulbericht (PDF)</button>' : ''}<span class="text-[12px] text-muted tnum">${list.length} Azubis</span></span>`)}
+  return `${secTitle('Ampel', `<span class="flex items-center gap-3">${(isAdmin() || can('team')) && !isQuali() ? '<button id="schPdf" class="text-[13px] font-semibold text-accent">Schulbericht (PDF)</button>' : ''}<span class="text-[12px] text-muted tnum">${list.length} Azubis</span></span>`)}
   <div class="card">${rows.map(({ p, a }, i) => { const d = H.obByUser[p.id] || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-ampel="${p.id}">${avatar(p, 38)}
     <div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name || 'Ohne Namen')}</div><div class="text-[12px] text-muted truncate">${p.lehrjahr}. LJ · ${esc(p.abteilung)}${betreuerOf(p) ? ' · bei ' + esc(firstName(betreuerOf(p).full_name)) : ''}</div>
     <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">${dot(a.berichte, 'Berichte', a.miss ? `${a.miss} Wochen ohne Bericht` : 'Berichte vollständig')}${dot(a.pruefen, 'Prüfen', a.old ? `${a.old} Berichte warten > 7 Tage` : 'nichts liegen geblieben')}${dot(a.krank, 'Fehltage', `${a.krankTage || 0} Krankheitstage ${NOW.jahr}`)}${dot(a.uw, 'Unterweisung', a.uwDue ? `${a.uwDue} fällig` : 'alle erledigt')}${dot(a.schule, 'Schule', a.schuleInfo || '')}${pct(d, obTotal) < 100 && obTotal ? `<span class="text-[11px] text-muted tnum">Onboarding ${pct(d, obTotal)}%</span>` : ''}</div>${H.reps ? berichtMiniHTML(berichtStand(p, H.reps.filter(r => r.user_id === p.id))) : ''}${H.rpReps ? rpMiniHTML(rpStand(H.rpReps.filter(r => r.user_id === p.id), p)) : ''}</div>
@@ -3403,7 +3408,7 @@ function extraTilesHTML() {
   const H = S.home, uwOff = H.uwOffen?.length || 0, neu = H.ankNeu?.length || 0;
   return `<button class="card modtile" data-go="uw">
       <div class="flex items-center justify-between gap-2"><span class="ico">${svg('shield')}</span><span class="chip ${uwOff ? 'crit' : 'ok'} tnum">${uwOff ? uwOff + ' offen' : 'erledigt'}</span></div>
-      <div><div class="font-display font-bold text-[16px] leading-snug">Unterweisungen</div><div class="text-[13px] text-muted mt-0.5">Hygiene, Arbeitsschutz, Brandschutz</div></div></button>
+      <div><div class="font-display font-bold text-[16px] leading-snug">Unterweisungen</div><div class="text-[13px] text-muted mt-0.5">${isQuali() ? 'Arbeitsschutz, Gefahrstoffe, Brandschutz' : 'Hygiene, Arbeitsschutz, Brandschutz'}</div></div></button>
     <button class="card modtile" data-go="news">
       <div class="flex items-center justify-between gap-2"><span class="ico brass">${svg('pin')}</span><span class="chip ${neu ? 'brass' : ''} tnum">${neu ? neu + ' neu' : 'gelesen'}</span></div>
       <div><div class="font-display font-bold text-[16px] leading-snug">Pinnwand</div><div class="text-[13px] text-muted mt-0.5">Infos der Leitung für alle</div></div></button>`;
@@ -3429,7 +3434,7 @@ function setupSteps() {
   ];
 }
 function setupHTML() {
-  if (!isAdmin() || S.demo || setupDismissed()) return '';
+  if (!isAdmin() || S.demo || isQuali() || setupDismissed()) return '';
   const st = setupSteps(), done = st.filter(x => x[3]).length;
   if (done === st.length) return '';
   return `<section class="card p-4 mt-4" aria-labelledby="setupH"><div class="flex items-start gap-3"><div class="flex-1 min-w-0"><h2 id="setupH" class="text-[17px] font-bold">Einrichtung: ${done} von ${st.length} erledigt</h2><p class="text-[13px] text-muted">In wenigen Minuten startklar. Erledigtes wird automatisch abgehakt.</p></div><button class="xbtn" id="setupX" aria-label="Einrichtung ausblenden">${svg('x', 'w-4 h-4')}</button></div>
@@ -3445,7 +3450,7 @@ function bindHomeExtras() {
   $$('[data-ampel]').forEach(b => b.onclick = () => { S.rev.selUser = b.dataset.ampel; S.rev.open = null; go('bericht'); });
   if ($('#schPdf')) $('#schPdf').onclick = () => schMonatPDF($('#schPdf'));
   $$('[data-bewgo]').forEach(b => b.onclick = () => { S.adm.tab = 'karriere'; go('admin'); });
-  $$('[data-training]').forEach(b => b.onclick = () => openTraining());
+  $$('[data-training]').forEach(b => b.onclick = () => isQuali() ? qExam(0) : openTraining());
   $$('[data-mood]').forEach(b => b.onclick = async () => {
     const { error } = await sb.from('stimmung').insert({ wert: +b.dataset.mood, monat: localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), user_id: S.me.id });
     if (error && !/duplicate|unique/i.test(error.message)) return toast(errText(error));
@@ -4253,7 +4258,7 @@ async function showClass() {
   };
 }
 
-const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
+const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
 function updateAdminBtn() { $('#admBtn').hidden = !canManage(); }
 
 /* =====================================================================
@@ -4472,8 +4477,14 @@ try { const t = localStorage.getItem('azubihub.theme'); if (t) document.document
 
 /* ---------- Demo ---------- */
 const DEMO_ROLES = [['azubi', 'Azubi', 'Lena, 1. Lehrjahr Hotelfach: Berichtsheft, Unterweisungen, Chat'], ['ausbilder', 'Ausbilder', 'Marco, Küchenchef: zeichnet Küchen-Berichte ab, Ampel, Urlaub'], ['leitung', 'Leitung', 'Sabine, Inhaberin: Verwaltung, Rechte, Karriereseite'], ['mitarbeiter', 'Mitarbeiter', 'Piotr, Service: Pinnwand, Unterweisungen, Übergabe']];
+const DEMO_Q_ROLES = [['c1tt', 'Teilnehmer', 'Dennis, Teilqualifizierung Kunststoff/Kautschuk, Modul 3'], ['c1tt-trainer', 'Trainer', 'Michael: Nachweise abzeichnen, Module und Zertifikate'], ['c1tt-koord', 'Koordination', 'Katrin: Teilnehmende, Maßnahmen, Externenprüfung'], ['c1tt-guide', 'Qualifizierungs-Guide', 'Sandra: begleitet drei Kolleg:innen']];
 function openDemoPicker() {
-  sheetShell('Demo ansehen', `<p class="text-[14px] text-muted -mt-1 mb-3">Hotel Seeblick mit Beispieldaten. Du kannst alles ausprobieren, nichts wird gespeichert.</p><div class="card">${DEMO_ROLES.map(([k, l, d], i) => `<a class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}" href="?demo=${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${l}</div><div class="text-[12px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted')}</a>`).join('')}</div>`);
+  const list = rs => `<div class="card">${rs.map(([k, l, d], i) => `<a class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}" href="?demo=${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${l}</div><div class="text-[12px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted')}</a>`).join('')}</div>`;
+  const qOnly = new URLSearchParams(location.search).get('demo')?.startsWith('c1tt');
+  sheetShell('Demo ansehen', `<p class="text-[14px] text-muted -mt-1 mb-3">Mit Beispieldaten. Du kannst alles ausprobieren, nichts wird gespeichert.</p>
+    ${qOnly ? '' : `<div class="eyebrow mb-2">Ausbildung · Hotel Seeblick</div>${list(DEMO_ROLES)}`}
+    <div class="eyebrow mt-4 mb-2">Qualifizierung · C1TT (Teilqualifizierung, Intensivkurs)</div>${list(DEMO_Q_ROLES)}
+    <p class="text-[12px] text-muted mt-2">Alle Personen sind erfunden. Maßnahmen nach den öffentlichen Angaben auf c1tt.de.</p>`);
 }
 $('#demoBtn').onclick = openDemoPicker;
 $('#demoRole').onclick = openDemoPicker;

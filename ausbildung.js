@@ -168,7 +168,7 @@ function dpCheck(p, rows, abs, before = [], w = dpInit().w) {
   for (let i = 1; i < seq.length; i++) {
     if (seq[i].datum === seq[i - 1].datum) continue;
     const rest = (dpStartAbs(seq[i]) - dpEndAbs(seq[i - 1])) / 36e5, need = u18 ? 12 : 11;
-    if (rest < need) add(u18 || rest < 10 ? 'crit' : 'warn', seq[i].datum, `nur ${String(Math.round(rest * 10) / 10).replace('.', ',')} Std Ruhe seit der letzten Schicht – mindestens ${need} Std${u18 ? ' (§ 13 JArbSchG)' : ' (§ 5 ArbZG, Gastronomie: 10 Std mit Ausgleich)'}`);
+    if (rest < need) add(u18 || rest < (isQuali() ? 11 : 10) ? 'crit' : 'warn', seq[i].datum, `nur ${String(Math.round(rest * 10) / 10).replace('.', ',')} Std Ruhe seit der letzten Schicht – mindestens ${need} Std${u18 ? ' (§ 13 JArbSchG)' : isQuali() ? ' (§ 5 ArbZG)' : ' (§ 5 ArbZG, Gastronomie: 10 Std mit Ausgleich)'}`);
   }
   const days = Object.keys(byDay).length;
   if (u18) {
@@ -211,7 +211,7 @@ const Dienst = {
         ${a ? `<span class="chip ${ABS_TONE[a.typ] || ''}" style="font-size:10px;padding:1px 6px">${esc(a.typ === 'Berufsschule' ? 'Schule' : a.typ)}</span>` : ''}</div>`;
     };
     const wk = S.dp.w;
-    return `${head('Planung', 'Dienstplan', 'Schichten planen – AzubiHub prüft Jugendarbeitsschutz, Arbeitszeitgesetz und Berufsschultage gleich mit.')}
+    return `${head('Planung', 'Dienstplan', isQuali() ? 'Lernzeiten und Schichten planen – AzubiHub prüft das Arbeitszeitgesetz (Höchstarbeitszeit, Pausen, Ruhezeiten) gleich mit.' : 'Schichten planen – AzubiHub prüft Jugendarbeitsschutz, Arbeitszeitgesetz und Berufsschultage gleich mit.')}
       <div class="flex items-center gap-2"><button class="btn ghost px-3" id="dpPrev" aria-label="Vorige Woche">${svg('left', 'w-4 h-4')}</button><div class="flex-1 text-center"><div class="font-bold text-[16px] tnum">KW ${wk.kw} · ${wk.jahr}</div><div class="text-[12px] text-muted tnum">${weekRange(wk)}</div></div><button class="btn ghost px-3" id="dpNext" aria-label="Nächste Woche">${svg('arrow', 'w-4 h-4')}</button></div>
       ${edit ? `<div class="grid grid-cols-2 gap-2 mt-3"><button class="btn" id="dpNew">+ Schicht</button><button class="btn ghost" id="dpCopy">Vorwoche übernehmen</button></div>` : ''}
       ${nCrit || nWarn ? `<div class="card p-3.5 mt-3" style="border-color:var(--st-${nCrit ? 'crit' : 'warn'})"><div class="font-semibold text-[14px]">${nCrit ? `${nCrit} ${nCrit === 1 ? 'Verstoß' : 'Verstöße'}` : ''}${nCrit && nWarn ? ' · ' : ''}${nWarn ? `${nWarn} Hinweis${nWarn === 1 ? '' : 'e'}` : ''} in dieser Woche</div><div class="text-[12px] text-muted">Details unter dem Plan. Rot = gesetzlich nicht erlaubt, Gelb = nur unter Bedingungen.</div></div>` : S.dp.rows.length ? `<div class="card p-3.5 mt-3 text-[14px]" style="border-color:var(--st-ok)">Keine Verstöße gefunden.</div>` : ''}
@@ -273,7 +273,7 @@ function dienstTileHTML() {
   const chip = mine ? ['', `${mine.datum === localDate() ? 'heute' : fmtD(mine.datum)} ${dpHm(mine.beginn)}`] : dpCan() && H.dpCrit ? ['crit', `${H.dpCrit} Verstöße`] : ['', 'Woche'];
   return `<button class="card modtile" data-go="dienst">
     <div class="flex items-center justify-between gap-2"><span class="ico">${svg('shift')}</span><span class="chip ${chip[0]} tnum">${chip[1]}</span></div>
-    <div><div class="font-display font-bold text-[16px] leading-snug">Dienstplan</div><div class="text-[13px] text-muted mt-0.5">${dpCan() ? 'Schichten mit JArbSchG-Prüfung' : 'Deine Schichten'}</div></div></button>`;
+    <div><div class="font-display font-bold text-[16px] leading-snug">Dienstplan</div><div class="text-[13px] text-muted mt-0.5">${isQuali() && !isMA() ? (dpCan() ? 'Lernzeiten und Schichten mit ArbZG-Prüfung' : 'Deine Lernzeiten') : dpCan() ? 'Schichten mit JArbSchG-Prüfung' : 'Deine Schichten'}</div></div></button>`;
 }
 
 /* ---------- Frühwarnung: Hinweis, wenn sich bei einem Azubi Warnzeichen häufen ---------- */
@@ -295,7 +295,7 @@ function riskOf(p) {
   return { s: Math.min(100, s), why };
 }
 function riskHTML() {
-  if (!isAusbilder()) return '';
+  if (!isAusbilder() || !qAuswertungAn()) return '';
   const rows = azubis().filter(p => canSchool(p)).map(p => ({ p, r: riskOf(p) })).filter(x => x.r.s >= 25).sort((a, b) => b.r.s - a.r.s);
   if (!rows.length) return '';
   return `${secTitle('Frühwarnung', `<span class="chip ${rows.some(x => x.r.s >= 50) ? 'crit' : 'warn'} tnum">${rows.length}</span>`)}
@@ -309,12 +309,12 @@ function riskHTML() {
 const MOODS = [[1, '😣', 'schlecht'], [2, '🙁', 'eher schlecht'], [3, '😐', 'geht so'], [4, '🙂', 'gut'], [5, '😄', 'super']];
 const moodOf = v => MOODS[Math.max(0, Math.min(4, Math.round(v) - 1))];
 function moodAskHTML() {
-  if (!isAzubi() || !S.home?.moodOpen) return '';
+  if (!isAzubi() || !S.home?.moodOpen || !qAuswertungAn()) return '';
   return `<section class="card p-4 mt-4" aria-labelledby="moodH"><h2 id="moodH" class="font-semibold text-[15px]">Wie geht es dir gerade in der Ausbildung?</h2><p class="text-[12px] text-muted">Einmal im Monat, völlig anonym. Der Betrieb sieht nur den Durchschnitt aller Azubis – und erst ab 3 Antworten.</p>
     <div class="grid grid-cols-5 gap-2 mt-3">${MOODS.map(([v, e, l]) => `<button class="card py-2 flex flex-col items-center gap-0.5" data-mood="${v}" aria-label="${l}"><span style="font-size:26px;line-height:1">${e}</span><span class="text-[10px] text-muted">${l}</span></button>`).join('')}</div></section>`;
 }
 function moodStaffHTML() {
-  const list = S.home?.moodAus || []; if (!isAusbilder() || !list.length) return '';
+  const list = S.home?.moodAus || []; if (!isAusbilder() || !list.length || !qAuswertungAn()) return '';
   const [cur, prev] = list, m = moodOf(cur.schnitt), trend = prev ? cur.schnitt - prev.schnitt : 0;
   const mon = d => new Date(d + 'T12:00:00').toLocaleDateString(LOCALE(), { month: 'long' });
   return `${secTitle('Stimmung der Azubis', '<span class="text-[12px] text-muted">anonym</span>')}
@@ -328,7 +328,7 @@ function fbOpen() {
   return (H.myPlan || []).filter(s => s.bis && s.bis <= today && s.bis >= old && !done.has(s.id));
 }
 function fbAskHTML() {
-  if (!isAzubi()) return ''; const st = fbOpen()[0]; if (!st) return '';
+  if (!isAzubi() || !qAuswertungAn()) return ''; const st = fbOpen()[0]; if (!st) return '';
   return `<button class="card w-full p-4 mt-3 text-left flex items-center gap-3" data-fbst="${st.id}"><span style="font-size:24px">⭐</span><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">Wie war deine Zeit in ${esc(st.abteilung)}?</div><div class="text-[12px] text-muted">Kurzes Feedback in 30 Sekunden – die Ausbildungsleitung sieht es ohne deinen Namen.</div></div>${svg('arrow', 'w-4 h-4 text-muted')}</button>`;
 }
 function fbSheet(st) {
@@ -347,7 +347,7 @@ function fbSheet(st) {
   };
 }
 function fbStaffHTML() {
-  const list = S.home?.fbAus || []; if (!isAusbilder() || !list.length) return '';
+  const list = S.home?.fbAus || []; if (!isAusbilder() || !list.length || !qAuswertungAn()) return '';
   const n = list.reduce((s, x) => s + x.anzahl, 0);
   return `<button class="card w-full flex items-center gap-3 p-3.5 mt-3 text-left" id="fbAll"><span style="font-size:20px">⭐</span><span class="flex-1 min-w-0"><span class="block text-[14px] font-semibold">Feedback zu den Stationen</span><span class="block text-[12px] text-muted tnum">${n} Bewertung${n === 1 ? '' : 'en'} aus ${list.length} Abteilung${list.length === 1 ? '' : 'en'}</span></span>${svg('arrow', 'w-4 h-4 text-muted')}</button>`;
 }
@@ -379,7 +379,7 @@ function lfExam(p, nr) {
 /* ---------- Eltern-Zugang (nur unter 18, vom Azubi selbst freigegeben) ---------- */
 const elternUrl = tok => `${location.origin}${location.pathname}?eltern=${tok}`;
 function elternHTML() {
-  if (!isAzubi() || !S.me.unter18) return '';
+  if (!isAzubi() || !S.me.unter18 || isQuali()) return '';
   const list = (S.home?.eltern || []).filter(e => !e.widerrufen && e.gueltig_bis >= localDate());
   return `${secTitle('Zugang für deine Eltern', '<button id="elNew" class="text-[13px] font-semibold text-accent">+ Link erstellen</button>')}
     ${list.length ? `<div class="card">${list.map((e, i) => `<div class="p-3.5 flex items-center gap-3 ${i ? 'border-t border-line' : ''}"><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(e.name || 'Eltern')}</div><div class="text-[12px] text-muted tnum">gültig bis ${fmtDate(e.gueltig_bis)}${e.last_access ? ' · zuletzt geöffnet ' + fmtDate(e.last_access) : ' · noch nicht geöffnet'}</div></div><button class="btn ghost py-1.5 px-3 text-[13px]" data-elcopy="${e.token}">Link</button><button class="btn danger py-1.5 px-3 text-[13px]" data-eloff="${e.id}">Beenden</button></div>`).join('')}</div>`
