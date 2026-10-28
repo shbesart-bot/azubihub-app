@@ -430,7 +430,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-28b';
+const APP_VERSION = '2026-10-28c';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -2794,12 +2794,12 @@ async function openExam(mode = 'teil2', maxLj = null, nrs = null, keys = null, t
       $('#exReview').onclick = () => { E.review = true; draw(); }; $('#exAgain').onclick = () => E.mode === 'schwaechen' || E.mode === 'lernfeld' ? openExam(E.mode, null, nrs, keys, title) : openExamPicker(); return;
     }
     if (E.review) {
-      sheetShell('Prüfungssimulation', `<div class="flex flex-col gap-3">${E.qs.map((x, i) => { const a = E.ans[x.id]; return `<div class="card p-4"><div class="eyebrow mb-1">Frage ${i + 1}${x.rp_nr ? ' · ' + esc(x.rp_nr) : ''}</div><div class="font-semibold text-[15px] mb-3">${esc(x.frage)}</div><div class="flex flex-col gap-2">${x.optionen.map((o, j) => `<div class="quizopt ${j === x.richtig ? 'right' : j === a ? 'wrong' : ''}">${esc(o)}</div>`).join('')}</div>${a == null ? '<p class="text-[13px] mt-2" style="color:var(--crit)">Nicht beantwortet.</p>' : ''}${x.erklaerung ? `<p class="text-[13px] text-muted mt-3">${esc(x.erklaerung)}</p>` : ''}</div>`; }).join('')}
+      sheetShell(title || 'Prüfungssimulation', `<div class="flex flex-col gap-3">${E.qs.map((x, i) => { const a = E.ans[x.id]; return `<div class="card p-4"><div class="eyebrow mb-1">Frage ${i + 1}${x.rp_nr ? ' · ' + esc(x.rp_nr) : ''}</div><div class="font-semibold text-[15px] mb-3">${esc(x.frage)}</div><div class="flex flex-col gap-2">${x.optionen.map((o, j) => `<div class="quizopt ${j === x.richtig ? 'right' : j === a ? 'wrong' : ''}">${esc(o)}</div>`).join('')}</div>${a == null ? '<p class="text-[13px] mt-2" style="color:var(--crit)">Nicht beantwortet.</p>' : ''}${x.erklaerung ? `<p class="text-[13px] text-muted mt-3">${esc(x.erklaerung)}</p>` : ''}</div>`; }).join('')}
         <button id="exBack" class="btn w-full">Zurück zum Ergebnis</button></div>`);
       $('#exBack').onclick = () => { E.review = false; draw(); }; return;
     }
     const x = E.qs[E.i], a = E.ans[x.id], n = Object.keys(E.ans).length;
-    sheetShell('Prüfungssimulation', `
+    sheetShell(title || 'Prüfungssimulation', `
       <div class="flex items-center justify-between mb-2"><span class="eyebrow">Frage ${E.i + 1} von ${E.qs.length}</span><span class="chip tnum" role="timer" aria-label="Restzeit"><span id="exClock">${mmss(left())}</span></span></div>
       <div class="bar mb-4"><i style="width:${pct(n, E.qs.length)}%"></i></div>
       <div class="card p-4"><div class="font-semibold text-[16px] mb-3">${esc(x.frage)}</div>
@@ -3288,7 +3288,7 @@ async function homeExtras() {
   H.uwMine = S.content.uw.map(w => ({ w, st: uwState(me, w, lm[me.id + '|' + w.id]) })).filter(x => x.st);
   H.uwOffen = H.uwMine.filter(x => x.st.state !== 'ok');
   H.moodOpen = H.moodOpen === true;
-  if (isAzubi() && !S.demo) S.lkDue = await lkCount();
+  if (isAzubi()) S.lkDue = await lkCount();
   if (Array.isArray(H.ihkM)) H.ihkM = null;
   ['moodAus', 'fbAus'].forEach(k => { if (!Array.isArray(H[k])) H[k] = []; });
   if (H.dp4) {

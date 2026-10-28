@@ -308,7 +308,7 @@ async function beraterPDF(btn) {
    ===================================================================== */
 const LK_TAGE = [0, 1, 2, 4, 8, 16, 30];
 async function lkRecord(qs, ans) {
-  if (S.demo || !qs?.length) return;
+  if (!qs?.length) return;
   const wrong = qs.filter(x => ans[x.id] != null && ans[x.id] !== x.richtig || ans[x.id] == null);
   if (!wrong.length) return;
   await sb.from('lernkarten').upsert(wrong.map(x => ({ question_id: x.id, fach: 1, faellig: localDate(), updated_at: new Date().toISOString() })), { onConflict: 'user_id,question_id' });

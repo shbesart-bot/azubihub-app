@@ -212,6 +212,9 @@
       { id: uuid(), betrieb_id: B, azubi_id: P.tom.id, freigabe_id: 'demo-sf2', richtung: 'betrieb', user_id: P.koch.id, von: 'Marco Brandt', text: 'Danke! Tom übernimmt nächste Woche die Schmorgerichte am Mittag.', created_at: iso(day(-6, 9)) }];
     const w = isoWeek(new Date());
     DB.quiz_questions = (c.quiz || []).map((q, i) => i < 3 ? { ...q, jahr: w.jahr, kw: w.kw, nur_training: false } : q);
+    // Lernkarten: drei Fragen, die Lena in der letzten Prüfungssimulation falsch hatte
+    DB.lernkarten = DB.quiz_questions.filter(q => q.lernfeld && (q.berufe || []).includes(P.lena.beruf)).filter((q, i) => [2, 9, 17, 40].includes(i))
+      .map((q, i) => ({ user_id: P.lena.id, question_id: q.id, betrieb_id: B, fach: i % 2 + 1, faellig: ymd(day(i === 3 ? 2 : 0)), updated_at: iso(day(-2)) }));
     const uw = DB.unterweisungen, s = n => sig(n);
     const conf = (p, idx, daysAgo) => uw[idx] && DB.unterweisung_bestaetigungen.push({ id: uuid(), unterweisung_id: uw[idx].id, user_id: p.id, name_text: p.full_name, titel_text: uw[idx].titel, unterschrift: s(p.full_name), bestaetigt_at: iso(day(-daysAgo)), betrieb_id: B });
     [0, 1, 2, 3, 4].forEach(i => { conf(P.lei, i, 30); conf(P.koch, i, 40); conf(P.fom, i, 50); conf(P.tom, i, 100); conf(P.piotr, i, 200); });
@@ -243,7 +246,7 @@
     };
     const defaults = () => ({ id: uuid(), created_at: iso(new Date()), betrieb_id: B,
       ...(table === 'eltern_freigaben' ? { azubi_id: me, token: uuid().replace(/-/g, '') + uuid().replace(/-/g, ''), gueltig_bis: ymd(day(365)), widerrufen: false } : {}),
-      ...(['stimmung', 'stationen_feedback', 'reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions', 'exam_results'].includes(table) ? { user_id: me } : {}),
+      ...(['lernkarten', 'stimmung', 'stationen_feedback', 'reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions', 'exam_results'].includes(table) ? { user_id: me } : {}),
       ...(table === 'shift_notes' || table === 'ankuendigungen' || table === 'talks' || table === 'plan_stationen' ? { author_id: me } : {}),
       ...(table === 'open_items' || table === 'absences' || table === 'chat_gruppen' || table === 'schul_noten' || table === 'schul_zeugnisse' ? { created_by: me } : {}),
       ...(table === 'messages' ? { sender_id: me, read_at: null } : {}) });
