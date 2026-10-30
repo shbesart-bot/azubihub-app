@@ -144,6 +144,7 @@ const Q_RP = [
 
 /* ---------- Laufzeit-Anpassungen ---------- */
 function qApplyConfig() {
+  if (typeof qBrand === 'function') qBrand(isQuali());
   if (!isQuali()) return;
   try {
     const krit = ['Fachkenntnisse', 'Arbeitsqualität', 'Arbeitstempo', 'Zuverlässigkeit & Pünktlichkeit', 'Teamarbeit', 'Umgang mit Maschinen und Anlagen', 'Selbstständigkeit', 'Lernbereitschaft', 'Arbeitssicherheit & Ordnung'];
@@ -216,12 +217,12 @@ function qHomeHTML() {
   if (!isQuali()) return '';
   const H = S.home || {}, rows = H.qt || [];
   if (isAzubi()) {
-    const t = rows.find(r => r.azubi_id === S.me.id), k = qKat(t); if (!k) return '';
+    const t = rows.find(r => r.azubi_id === S.me.id), k = qKat(t), live = typeof qLiveHomeHTML === 'function' ? qLiveHomeHTML() : ''; if (!k) return live;
     const c = qCur(t), ex = qExamInfo(t), g = t.guide_id ? S.profiles[t.guide_id] : null;
     return `<button class="card w-full p-4 mt-3 text-left" data-go="quali"><div class="eyebrow">${esc(k.art)} · ${esc(k.beruf)}</div>
       <div class="font-semibold text-[15px] mt-0.5">${c && k.module.length > 1 ? `Modul ${c.nr}: ${esc(c.titel)}` : esc(k.kurz)}</div>
       <div class="text-[13px] text-muted mt-0.5 tnum">${c?.bis ? `bis ${fmtDate(c.bis)}` : ''}${ex?.n != null && ex.n >= 0 ? `${c?.bis ? ' · ' : ''}Externenprüfung in ${ex.n} Tagen` : ''}${g ? ` · Guide: ${esc(g.full_name)}` : ''}</div>
-      ${k.module.length > 1 ? `<div class="bar w-full mt-2"><i style="width:${pct(qDone(t), k.module.length)}%"></i></div>` : ''}</button>`;
+      ${k.module.length > 1 ? `<div class="bar w-full mt-2"><i style="width:${pct(qDone(t), k.module.length)}%"></i></div>` : ''}</button>${live}`;
   }
   if (isMA()) {
     const mine = rows.filter(r => r.guide_id === S.me.id); if (!mine.length) return '';
@@ -237,12 +238,14 @@ const QualiView = {
   async load() {
     await qLoadAll();
     S.quali.tab = S.quali.tab || 'stand';
+    if (typeof qExtraLoad === 'function') await qExtraLoad();
   },
   html() {
     return isAzubi() ? qMineHTML() : qStaffHTML();
   },
   bind() {
-    $$('[data-qtabsel]').forEach(b => b.onclick = () => { S.quali.tab = b.dataset.qtabsel; render(); });
+    $$('[data-qtabsel]').forEach(b => b.onclick = () => { S.quali.tab = b.dataset.qtabsel; go('quali'); });
+    if (typeof qExtraBind === 'function') qExtraBind();
     $$('[data-qex]').forEach(b => b.onclick = () => qExam(+b.dataset.qex));
     $$('[data-qedit]').forEach(b => b.onclick = () => qEditSheet(b.dataset.qedit));
     bindChatLinks();
@@ -280,8 +283,8 @@ function qMineHTML() {
       <div class="text-[20px] font-bold leading-tight mt-1">${esc(k.beruf)}</div>
       <div class="sub text-[13px] mt-1 tnum">${t.standort ? esc(t.standort) + ' · ' : ''}${t.beginn ? fmtDate(t.beginn) : ''}${t.ende ? ' – ' + fmtDate(t.ende) : ''}</div>
       ${k.module.length > 1 ? `<div class="mt-3 text-[13px] font-semibold tnum">${done} von ${k.module.length} Modulen mit IHK-Zertifikat</div><div class="bar w-full mt-1.5" style="background:rgba(255,255,255,.2)"><i style="width:${pct(done, k.module.length)}%;background:#fff"></i></div>` : ''}</section>
-    ${qSegHTML([['stand', 'Module'], ['pruefung', 'Prüfung'], ['info', 'Ablauf']])}
-    ${S.quali.tab === 'pruefung' ? qPruefHTML(t, false) : S.quali.tab === 'info' ? qInfoHTML(k, g) : `${secTitle('Deine Module')}${qModListHTML(t, false)}
+    ${qSegHTML([['stand', 'Module'], ['tests', 'Tests'], ['anw', 'Anwesenheit'], ['pruefung', 'Prüfung'], ['info', 'Ablauf']])}
+    ${typeof qExtraHTML === 'function' && qExtraHTML() != null ? qExtraHTML() : S.quali.tab === 'pruefung' ? qPruefHTML(t, false) : S.quali.tab === 'info' ? qInfoHTML(k, g) : `${secTitle('Deine Module')}${qModListHTML(t, false)}
       <p class="text-[12px] text-muted mt-2">Übungsfragen aus der App, keine echten IHK-Prüfungsaufgaben. Falsche Antworten kommen später als Lernkarten wieder.</p>`}`;
 }
 function qInfoHTML(k, g) {
@@ -302,7 +305,8 @@ function qStaffHTML() {
   const order = [...Object.keys(Q_KATALOG).filter(k => byK[k]), ...(byK._ ? ['_'] : [])];
   return `<h1 class="text-[26px] font-bold mt-1">Qualifizierung</h1>
     <p class="text-[14px] text-muted mt-1">Teilqualifizierungen und Intensivkurse mit Externenprüfung.</p>
-    ${order.length ? order.map(key => { const k = Q_KATALOG[key]; return `${secTitle(k ? esc(k.kurz) : 'Ohne Maßnahme', `<span class="chip tnum">${byK[key].length}</span>`)}
+    ${typeof qStaffTabs === 'function' && qStaffTabs().length > 1 ? qSegHTML(qStaffTabs()) : ''}
+    ${typeof qExtraHTML === 'function' && qExtraHTML() != null ? qExtraHTML() : `${order.length ? order.map(key => { const k = Q_KATALOG[key]; return `${secTitle(k ? esc(k.kurz) : 'Ohne Maßnahme', `<span class="chip tnum">${byK[key].length}</span>`)}
       <div class="card">${byK[key].map(({ p, t }, i) => { const c = t && qCur(t), ex = qExamInfo(t), n = k?.module.length || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" ${canEdit ? `data-qedit="${p.id}"` : ''}>${avatar(p, 38)}
         <div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name)}</div>
         <div class="text-[12px] text-muted truncate">${k ? (n > 1 ? `Modul ${c?.nr || 1} von ${n} · ${qDone(t)} ${qDone(t) === 1 ? 'Zertifikat' : 'Zertifikate'}` : esc(k.art)) : 'Maßnahme zuordnen'}${t?.standort ? ' · ' + esc(t.standort) : ''}</div>
@@ -312,7 +316,7 @@ function qStaffHTML() {
     ${secTitle('Hinweise')}<div class="card p-4 text-[13px] text-muted flex flex-col gap-2">
       <div>Frühwarnung, Stimmungs-Check und Stationsfeedback sind im Qualifizierungsmodus ausgeschaltet. Einschalten erst nach Abstimmung mit dem Betriebsrat (§ 87 Abs. 1 Nr. 6 BetrVG).</div>
       <div>Qualifizierungs-Guides sehen nur den Stand der Maßnahme ihrer Begleitungen, keine Berichte, Noten oder Beurteilungen.</div>
-      <div>Maßnahmen nach den öffentlichen Angaben von C1TT. Die Zuordnung der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag.</div></div>`;
+      <div>Maßnahmen nach den öffentlichen Angaben von C1TT. Die Zuordnung der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag.</div></div>`}`;
 }
 
 /* ---------- Bearbeiten (Koordination / Trainer mit Recht „Team“) ---------- */

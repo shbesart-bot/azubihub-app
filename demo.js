@@ -248,7 +248,7 @@
       ...(table === 'eltern_freigaben' ? { azubi_id: me, token: uuid().replace(/-/g, '') + uuid().replace(/-/g, ''), gueltig_bis: ymd(day(365)), widerrufen: false } : {}),
       ...(['lernkarten', 'stimmung', 'stationen_feedback', 'reports', 'goal_progress', 'onboarding_done', 'checklist_checks', 'quiz_answers', 'photo_requests', 'unterweisung_bestaetigungen', 'ankuendigung_gelesen', 'chat_gelesen', 'push_subscriptions', 'exam_results'].includes(table) ? { user_id: me } : {}),
       ...(table === 'shift_notes' || table === 'ankuendigungen' || table === 'talks' || table === 'plan_stationen' ? { author_id: me } : {}),
-      ...(table === 'open_items' || table === 'absences' || table === 'chat_gruppen' || table === 'schul_noten' || table === 'schul_zeugnisse' ? { created_by: me } : {}),
+      ...(table === 'open_items' || table === 'absences' || table === 'chat_gruppen' || table === 'schul_noten' || table === 'schul_zeugnisse' || table === 'tests' ? { created_by: me } : {}),
       ...(table === 'messages' ? { sender_id: me, read_at: null } : {}) });
     function fix(row) {
       if (table === 'absences' && !row.status) row.status = 'genehmigt';
@@ -295,6 +295,15 @@
       return { data, error: null, count: countOpt ? (data || []).length : null };
     }
     return P;
+  }
+
+  /* Punkte wie die Datenbankfunktion test_punkte_auto */
+  function demoPunkte(fragen, antw, teil) {
+    let sum = 0;
+    (fragen || []).forEach(f => { if (f.typ === 'text') return; const g = (Array.isArray(antw?.[f.id]) ? antw[f.id] : []).slice().sort(), r = (f.richtig || []).slice().sort(), pk = +f.punkte || 1;
+      if (JSON.stringify(g) === JSON.stringify(r)) sum += pk;
+      else if (f.typ === 'multi' && teil && r.length) { const hit = g.filter(v => r.includes(v)).length; sum += pk * Math.max(0, hit - (g.length - hit)) / r.length; } });
+    return Math.round(sum * 100) / 100;
   }
 
   /* ---------- C1TT-Demo: Qualifizierung für Erwachsene (Teilqualifizierung, Intensivkurs). Alle Personen sind erfunden. ---------- */
@@ -541,6 +550,63 @@
       { id: uuid(), betrieb_id: B, rp_id: rpB('L10', LAG)?.id || null, beruf: LAG, titel: '20 Aufträge mit Handscanner fehlerfrei kommissionieren', beschreibung: '', lehrjahr: 4, aktiv: true, created_by: Q.petra.id, created_at: iso(day(-80)) });
     DB.quiz_answers = []; DB.exam_results = [];
     DB.lernkarten = [7004, 7012, 7015].map((qid, i) => ({ user_id: Q.dennis.id, question_id: qid, betrieb_id: B, fach: 1, faellig: ymd(day(i === 2 ? 3 : 0)), updated_at: iso(day(-4)) }));
+
+    /* Anwesenheit: die letzten zehn Werktage, heute teilweise erfasst */
+    DB.anwesenheit = [];
+    const TN = ['dennis', 'olga', 'mehmet', 'tobias', 'svetlana', 'juergen', 'andrzej'];
+    const abw = { 'olga|3': ['entschuldigt', null, 'Krankmeldung liegt vor'], 'olga|4': ['entschuldigt', null, 'Krankmeldung liegt vor'], 'mehmet|2': ['verspaetet', 15, 'Bus ausgefallen'], 'juergen|6': ['verspaetet', 10, ''], 'tobias|8': ['unentschuldigt', null, 'Nicht erreicht, Gespräch geplant'], 'svetlana|5': ['entschuldigt', null, 'Arzttermin, vorher abgesprochen'] };
+    for (let i = 0, n = 0; n < 11; i++) {
+      const d = day(-i, 7), wd = d.getDay(); if (wd === 0 || wd === 6) continue;
+      TN.forEach(k => { if (n === 0 && !['dennis', 'olga', 'andrzej'].includes(k)) return; const a = abw[k + '|' + n] || ['anwesend', null, ''];
+        DB.anwesenheit.push({ id: uuid(), betrieb_id: B, azubi_id: Q[k].id, datum: ymd(d), status: a[0], minuten: a[1], lernort: null, notiz: a[2] || null, erfasst_von: Q[k].betreuer_id, updated_at: iso(d), created_at: iso(d) }); });
+      n++;
+    }
+    /* Tests */
+    const F = (id, typ, frage, optionen, richtig, punkte, loesung) => ({ id, typ, frage, optionen, richtig, punkte, ...(loesung ? { loesung } : {}) });
+    const t1 = { id: 'demo-q-t1', betrieb_id: B, titel: 'Zwischentest Modul 3: Instandhaltung', beschreibung: 'Ohne Hilfsmittel. Bei Mehrfachauswahl kosten falsche Kreuze Punkte.', beruf: KUK, modul: 3, dauer_min: 20, zufall: true, teilpunkte: true, created_by: Q.trainer.id, created_at: iso(day(-9)), updated_at: iso(day(-2)),
+      fragen: [
+        F('k1', 'single', 'Was ist vor jeder Wartung an einer Vulkanisierpresse als Erstes zu tun?', ['Anlage abschalten und gegen Wiedereinschalten sichern', 'Werkzeug bereitlegen', 'Den Schichtleiter informieren und sofort beginnen', 'Die Heizplatten mit Wasser abkühlen'], [0], 1),
+        F('k2', 'multi', 'Welche Energien müssen vor Arbeiten an einer Presse abgebaut oder gesichert werden?', ['Elektrische Energie', 'Hydraulischer Druck', 'Pneumatischer Druck', 'Wärme der Heizplatten', 'Der Lärmpegel der Halle'], [0, 1, 2, 3], 2),
+        F('k3', 'wahr_falsch', 'Ein Wartungsplan legt fest, welche Teile in welchen Abständen geprüft oder getauscht werden.', ['Wahr', 'Falsch'], [0], 1),
+        F('k4', 'single', 'Welcher Begriff beschreibt die vorbeugende Instandhaltung?', ['Wartung und Inspektion in festen Abständen, bevor ein Schaden auftritt', 'Reparatur erst nach dem Ausfall', 'Austausch der kompletten Anlage', 'Nur Reinigung am Schichtende'], [0], 1),
+        F('k5', 'multi', 'Was gehört in ein Wartungsprotokoll?', ['Datum und Name', 'Durchgeführte Arbeiten', 'Festgestellte Mängel', 'Die private Telefonnummer'], [0, 1, 2], 2),
+        F('k6', 'text', 'Beschreibe in zwei bis drei Sätzen, was „Lockout-Tagout“ bedeutet und warum es wichtig ist.', [], [], 3, 'Jede Person, die an der Anlage arbeitet, sichert den Hauptschalter mit ihrem eigenen Schloss und Anhänger. So kann niemand die Anlage versehentlich einschalten, solange noch jemand daran arbeitet.')
+      ] };
+    const t2 = { id: 'demo-q-t2', betrieb_id: B, titel: 'Test Wareneingang und Einlagerung', beschreibung: null, beruf: LAG, modul: 1, dauer_min: 15, zufall: false, teilpunkte: true, created_by: Q.petra.id, created_at: iso(day(-20)), updated_at: iso(day(-20)),
+      fragen: [
+        F('l1', 'single', 'Was prüfst du beim Wareneingang zuerst in Anwesenheit des Fahrers?', ['Anzahl der Packstücke und äußerlich erkennbare Schäden', 'Den Inhalt jedes einzelnen Kartons', 'Die Rechnung', 'Das Mindesthaltbarkeitsdatum aller Artikel'], [0], 1),
+        F('l2', 'multi', 'Welche Einlagerungsprinzipien gibt es?', ['Feste Lagerplatzvergabe', 'Chaotische Lagerhaltung', 'Fifo (first in, first out)', 'Zufallsentnahme ohne System'], [0, 1, 2], 2),
+        F('l3', 'wahr_falsch', 'Ein Mangel muss auf dem Lieferschein vermerkt und vom Fahrer gegengezeichnet werden.', ['Wahr', 'Falsch'], [0], 1),
+        F('l4', 'text', 'Ein Karton ist eingedrückt und nass. Wie gehst du vor?', [], [], 3, 'Mangel auf dem Lieferschein vermerken, vom Fahrer gegenzeichnen lassen, fotografieren, Ware gesperrt einlagern oder zurückweisen, Einkauf bzw. Vorgesetzte informieren.')
+      ] };
+    const t3 = { id: 'demo-q-t3', betrieb_id: B, titel: 'Kurztest Elektrische Sicherheit', beschreibung: 'Fünf Regeln und Schutzmaßnahmen.', beruf: IEL, modul: 1, dauer_min: 10, zufall: false, teilpunkte: true, created_by: Q.frank.id, created_at: iso(day(-5)), updated_at: iso(day(-5)),
+      fragen: [
+        F('e1', 'single', 'Welche ist die erste der fünf Sicherheitsregeln?', ['Freischalten', 'Erden und kurzschließen', 'Spannungsfreiheit feststellen', 'Benachbarte Teile abdecken'], [0], 1),
+        F('e2', 'multi', 'Welche Maßnahmen gehören zu den fünf Sicherheitsregeln?', ['Gegen Wiedereinschalten sichern', 'Spannungsfreiheit feststellen', 'Erden und kurzschließen', 'Sicherung mit Draht überbrücken'], [0, 1, 2], 2),
+        F('e3', 'wahr_falsch', 'Eine Fehlerstrom-Schutzeinrichtung (RCD) schützt auch vor Überlast.', ['Wahr', 'Falsch'], [1], 1)
+      ] };
+    DB.tests = [t1, t2, t3];
+    const sAct = { id: 'demo-q-s-live', betrieb_id: B, test_id: t1.id, titel: t1.titel, teilnehmer: [Q.dennis.id, Q.olga.id, Q.andrzej.id], status: 'laeuft', gestartet_at: iso(new Date(Date.now() - 6 * 60e3)), endet_at: iso(new Date(Date.now() + 14 * 60e3)), freigegeben: false, created_at: iso(new Date(Date.now() - 6 * 60e3)) };
+    const sLag = { id: 'demo-q-s-lag', betrieb_id: B, test_id: t2.id, titel: t2.titel, teilnehmer: [Q.svetlana.id, Q.juergen.id], status: 'beendet', gestartet_at: iso(day(-2, 10)), endet_at: iso(new Date(day(-2, 10).getTime() + 15 * 60e3)), freigegeben: false, created_at: iso(day(-2, 10)) };
+    const sOld = { id: 'demo-q-s-old', betrieb_id: B, test_id: t1.id, titel: 'Eingangstest Modul 3: Instandhaltung', teilnehmer: [Q.dennis.id, Q.andrzej.id], status: 'beendet', gestartet_at: iso(day(-14, 9)), endet_at: iso(new Date(day(-14, 9).getTime() + 20 * 60e3)), freigegeben: true, created_at: iso(day(-14, 9)) };
+    DB.test_sitzungen = [sAct, sLag, sOld];
+    const ab = (s, uid, antworten, done, man) => { const t = DB.tests.find(x => x.id === s.test_id); const r = { id: uuid(), betrieb_id: B, sitzung_id: s.id, azubi_id: uid, antworten, beantwortet: Object.values(antworten).filter(v => Array.isArray(v) ? v.length : String(v).trim()).length, punkte_auto: done ? demoPunkte(t.fragen, antworten, t.teilpunkte) : null, punkte_manuell: man || {}, started_at: s.gestartet_at, abgegeben_at: done ? iso(new Date(new Date(s.gestartet_at).getTime() + 11 * 60e3)) : null, updated_at: iso(new Date()) }; return r; };
+    DB.test_abgaben = [
+      ab(sAct, Q.olga.id, { k1: [0], k3: [0], k2: [0, 1] }, false),
+      ab(sAct, Q.andrzej.id, { k1: [0], k2: [0, 1, 2, 3], k3: [0], k4: [0], k5: [0, 1, 2], k6: 'Jeder hängt sein eigenes Schloss an den Hauptschalter. Dann kann keiner die Presse einschalten, während wir daran arbeiten.' }, true),
+      ab(sLag, Q.svetlana.id, { l1: [0], l2: [0, 1, 2], l3: [0], l4: 'Auf dem Lieferschein vermerken, Fahrer unterschreiben lassen, Foto machen und Ware sperren. Dann Einkauf informieren.' }, true),
+      ab(sLag, Q.juergen.id, { l1: [1], l2: [0, 2, 3], l3: [0], l4: 'Ich würde den Karton trotzdem einlagern.' }, true),
+      ab(sOld, Q.dennis.id, { k1: [0], k2: [0, 1, 2], k3: [0], k4: [1], k5: [0, 1, 2], k6: 'Man schließt den Schalter ab, damit keiner die Maschine anmacht.' }, true, { k6: 2 }),
+      ab(sOld, Q.andrzej.id, { k1: [0], k2: [0, 1, 2, 3], k3: [0], k4: [0], k5: [0, 1, 3], k6: 'Eigenes Schloss an den Hauptschalter, damit niemand einschaltet, solange jemand an der Anlage ist.' }, true, { k6: 3 })
+    ];
+    /* Live-Test simulieren: Olga beantwortet nach und nach, gibt nach etwa zwei Minuten ab */
+    clearInterval(window.__demoTestSim);
+    window.__demoTestSim = setInterval(() => {
+      const x = DB.test_abgaben.find(a => a.sitzung_id === sAct.id && a.azubi_id === Q.olga.id); if (!x || x.abgegeben_at || sAct.status !== 'laeuft') return;
+      const next = [['k4', [0]], ['k5', [0, 1]], ['k6', 'Schalter abschließen, damit keiner einschaltet.']].find(([k]) => !(k in x.antworten));
+      if (next) { x.antworten[next[0]] = next[1]; x.beantwortet++; }
+      else { x.abgegeben_at = iso(new Date()); x.punkte_auto = demoPunkte(t1.fragen, x.antworten, true); }
+    }, 30000);
     return Q;
   }
 
@@ -636,11 +702,38 @@
       get_invite_code: () => 'SEEB-DEMO', admin_quiz: () => DB.quiz_questions,
       admin_set_password: () => null, admin_set_active: a => { const p = DB.profiles.find(x => x.id === a.p_user); if (p) p.aktiv = a.p_active; return null; },
       admin_photo_decide: () => null, clear_profile_photo: () => null, redeem_code: () => null,
-      gruppe_overview: () => [], transfer_user: () => null, switch_betrieb: () => null
+      gruppe_overview: () => [], transfer_user: () => null, switch_betrieb: () => null,
+      test_live: () => (DB.test_sitzungen || []).filter(s => s.teilnehmer.includes(meId)).sort((a, b) => b.gestartet_at.localeCompare(a.gestartet_at)).map(s => { const t = DB.tests.find(x => x.id === s.test_id), a = DB.test_abgaben.find(x => x.sitzung_id === s.id && x.azubi_id === meId);
+        return { id: s.id, titel: s.titel, status: s.status, gestartet_at: s.gestartet_at, endet_at: s.endet_at, freigegeben: s.freigegeben, fragen: t.fragen.length, dauer_min: t.dauer_min, abgegeben_at: a?.abgegeben_at || null, now: iso(new Date()) }; }),
+      test_fragen: a => { const s = DB.test_sitzungen.find(x => x.id === a.p_sitzung && x.teilnehmer.includes(meId)); if (!s) throw new Error('Kein Zugriff auf diesen Test');
+        const t = DB.tests.find(x => x.id === s.test_id), ab = DB.test_abgaben.find(x => x.sitzung_id === s.id && x.azubi_id === meId), offen = s.status === 'laeuft' && Date.now() <= new Date(s.endet_at) && !ab?.abgegeben_at;
+        const base = { sitzung: s.id, titel: s.titel, status: s.status, endet_at: s.endet_at, now: iso(new Date()), abgegeben_at: ab?.abgegeben_at || null, antworten: JSON.parse(JSON.stringify(ab?.antworten || {})) };
+        if (!offen && !s.freigegeben) return { ...base, freigegeben: false, fragen: [] };
+        const rel = s.freigegeben && !offen;
+        return { ...base, zufall: t.zufall, freigegeben: rel, punkte_auto: ab?.punkte_auto ?? null, punkte_manuell: ab?.punkte_manuell || {}, fragen: t.fragen.map(f => { const c = JSON.parse(JSON.stringify(f)); if (!rel) { delete c.richtig; delete c.loesung; } return c; }) }; },
+      test_speichern: a => { const s = DB.test_sitzungen.find(x => x.id === a.p_sitzung && x.teilnehmer.includes(meId)); if (!s) throw new Error('Kein Zugriff auf diesen Test');
+        if (s.status !== 'laeuft' || Date.now() > new Date(s.endet_at).getTime() + 30e3) throw new Error('Die Zeit für diesen Test ist abgelaufen');
+        const t = DB.tests.find(x => x.id === s.test_id); let ab = DB.test_abgaben.find(x => x.sitzung_id === s.id && x.azubi_id === meId);
+        if (ab?.abgegeben_at) throw new Error('Der Test wurde schon abgegeben');
+        if (!ab) { ab = { id: uuid(), betrieb_id: B, sitzung_id: s.id, azubi_id: meId, punkte_manuell: {}, started_at: iso(new Date()) }; DB.test_abgaben.push(ab); }
+        ab.antworten = JSON.parse(JSON.stringify(a.p_antworten || {})); ab.beantwortet = Object.values(ab.antworten).filter(v => Array.isArray(v) ? v.length : String(v).trim()).length;
+        ab.abgegeben_at = a.p_abgeben ? iso(new Date()) : null; ab.punkte_auto = a.p_abgeben ? demoPunkte(t.fragen, ab.antworten, t.teilpunkte) : null; ab.updated_at = iso(new Date());
+        return { ok: true, abgegeben: !!a.p_abgeben, now: iso(new Date()) }; },
+      test_beenden: a => { const s = DB.test_sitzungen.find(x => x.id === a.p_sitzung); if (!s) throw new Error('Nicht gefunden'); const t = DB.tests.find(x => x.id === s.test_id);
+        s.status = 'beendet'; if (new Date(s.endet_at) > Date.now()) s.endet_at = iso(new Date());
+        DB.test_abgaben.filter(x => x.sitzung_id === s.id).forEach(x => { x.abgegeben_at = x.abgegeben_at || iso(new Date()); x.punkte_auto = demoPunkte(t.fragen, x.antworten, t.teilpunkte); }); return null; },
+      test_starten: a => { const t = DB.tests.find(x => x.id === a.p_test); if (!t) throw new Error('Test nicht gefunden'); const id = uuid(), now = new Date();
+        DB.test_sitzungen.push({ id, betrieb_id: B, test_id: t.id, titel: t.titel, teilnehmer: a.p_teilnehmer, status: 'laeuft', gestartet_at: iso(now), endet_at: iso(new Date(now.getTime() + Math.max(1, Math.min(300, a.p_dauer || t.dauer_min)) * 60e3)), freigegeben: false, created_at: iso(now) });
+        a.p_teilnehmer.filter(u => u !== meId).forEach((u, i) => setTimeout(() => { const s = DB.test_sitzungen.find(x => x.id === id); if (s?.status !== 'laeuft') return;
+          const ans = {}; t.fragen.slice(0, Math.max(1, t.fragen.length - (i % 2))).forEach(f => { ans[f.id] = f.typ === 'text' ? 'Antwort aus der Demo.' : f.richtig.slice(0, f.typ === 'multi' ? f.richtig.length : 1); });
+          DB.test_abgaben.push({ id: uuid(), betrieb_id: B, sitzung_id: id, azubi_id: u, antworten: ans, beantwortet: Object.keys(ans).length, punkte_auto: null, punkte_manuell: {}, started_at: iso(new Date()), abgegeben_at: null, updated_at: iso(new Date()) }); }, 4000 + i * 3000));
+        return id; },
+      test_verlaengern: a => { const s = DB.test_sitzungen.find(x => x.id === a.p_sitzung); s.endet_at = iso(new Date(new Date(s.endet_at).getTime() + (a.p_min || 5) * 60e3)); return s.endet_at; }
     };
     const client = {
       from: t => makeQuery(t, meId),
-      rpc: (n, a = {}) => Promise.resolve().then(() => n in RPC ? { data: RPC[n](a), error: null } : { data: null, error: { message: 'In der Demo nicht verfügbar' } }),
+      rpc: (n, a = {}) => Promise.resolve().then(() => { if (!(n in RPC)) return { data: null, error: { message: 'In der Demo nicht verfügbar' } }; try { return { data: RPC[n](a), error: null }; } catch (e) { return { data: null, error: { message: e.message } }; } }),
+      functions: { invoke: async () => ({ data: { ok: true }, error: null }) },
       channel: () => { const c = { on() { return c; }, subscribe() { return c; } }; return c; },
       removeChannel() {},
       storage: { from: () => ({ upload: async p => ({ data: { path: p }, error: null }), remove: async () => ({ error: null }), createSignedUrls: async () => ({ data: [], error: null }), createSignedUrl: async () => ({ data: null, error: { message: 'In der Demo nicht verfügbar' } }) }) },
