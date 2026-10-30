@@ -53,6 +53,7 @@ const qLogoURL = () => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
 })();
 let qBrandOrig = null;
 function qBrand(on) {
+  qIcons();
   const root = document.documentElement, imgs = [...document.querySelectorAll('img[src="icon-192.png"], img[data-qlogo]')];
   qBrandOrig ||= { favicon: [...document.querySelectorAll('link[rel=icon]')].map(l => l.href) };
   if (!on) {
@@ -82,7 +83,17 @@ const qAddDays = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.ge
 const qMonday = d => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return localDate(x); };
 const qCanTests = () => isAdmin() || can('team') || can('lernziele');
 const qTnList = () => azubis().filter(p => p.aktiv !== false).sort((a, b) => a.full_name.localeCompare(b.full_name));
-function qStaffTabs() { const t = [['stand', 'Teilnehmende']]; if (qTnList().some(p => canSchool(p))) t.push(['anwesenheit', 'Anwesenheit']); if (qCanTests()) t.push(['tests', 'Tests']); return t; }
+function qStaffTabs() { return [['stand', 'Teilnehmende']]; }
+/* Eigene Reiter unten in der Leiste: Anwesenheit und Tests */
+function qViewVisible(v) {
+  try { if (!isQuali() || !S.me || isMA()) return false; if (isAzubi()) return true;
+    return v === 'qanw' ? qTnList().some(p => canSchool(p)) : qCanTests(); } catch { return false; }
+}
+const qViewOf = v => ({ async load() { await qLoadAll(); S.quali.tab = v === 'qanw' ? (isAzubi() ? 'anw' : 'anwesenheit') : 'tests'; await qExtraLoad(); },
+  html() { return `<h1 class="text-[26px] font-bold mt-1">${v === 'qanw' ? 'Anwesenheit' : 'Tests'}</h1>${v === 'qtests' && !isAzubi() ? '<p class="text-[14px] text-muted mt-1">Tests erstellen, live mit Timer durchführen und auswerten.</p>' : ''}${qExtraHTML() ?? ''}`; },
+  bind() { qExtraBind(); } });
+const QAnwView = qViewOf('qanw'), QTestsView = qViewOf('qtests');
+function qIcons() { try { Object.keys(Q_ICONS).forEach(k => { if (!I[k]) I[k] = Q_ICONS[k]; }); } catch {} }
 function qConfirm(btn, action, label) {
   if (btn.dataset.armed) { delete btn.dataset.armed; action(); return; }
   const old = btn.textContent; btn.dataset.armed = '1'; btn.textContent = label || 'Sicher? Nochmal tippen';
@@ -165,7 +176,7 @@ function qAnwHTML() {
     </div>`;
 }
 function qAnwBind() {
-  $$('[data-anwday]').forEach(b => b.onclick = () => { const n = +b.dataset.anwday; S.quali.anwTag = n === 0 ? localDate() : qAddDays(S.quali.anwTag, n); go('quali'); });
+  $$('[data-anwday]').forEach(b => b.onclick = () => { const n = +b.dataset.anwday; S.quali.anwTag = n === 0 ? localDate() : qAddDays(S.quali.anwTag, n); go(S.view); });
   const fl = $('#anwFilter'); if (fl) fl.onchange = () => { S.quali.anwFilter = fl.value; render(); };
   const save = async (uid, patch) => {
     const cur = (S.quali.anw || []).find(a => a.azubi_id === uid);
@@ -332,7 +343,7 @@ function qTestsBind() {
   $('#qtNew') && ($('#qtNew').onclick = () => qTestEditor(null));
   $$('[data-qtedit]').forEach(b => b.onclick = () => qTestEditor((S.quali.tests || []).find(t => t.id === b.dataset.qtedit)));
   $$('[data-qtcopy]').forEach(b => b.onclick = async () => { const t = (S.quali.tests || []).find(x => x.id === b.dataset.qtcopy); if (!t) return;
-    try { await q(sb.from('tests').insert({ titel: (t.titel + ' (Kopie)').slice(0, 160), beschreibung: t.beschreibung, beruf: t.beruf, modul: t.modul, dauer_min: t.dauer_min, fragen: t.fragen, zufall: t.zufall, teilpunkte: t.teilpunkte, created_by: S.me.id })); toast('Kopie angelegt'); go('quali'); } catch (e) { toast(errText(e)); } });
+    try { await q(sb.from('tests').insert({ titel: (t.titel + ' (Kopie)').slice(0, 160), beschreibung: t.beschreibung, beruf: t.beruf, modul: t.modul, dauer_min: t.dauer_min, fragen: t.fragen, zufall: t.zufall, teilpunkte: t.teilpunkte, created_by: S.me.id })); toast('Kopie angelegt'); go(S.view); } catch (e) { toast(errText(e)); } });
   $$('[data-qtstart]').forEach(b => b.onclick = () => qStartSheet((S.quali.tests || []).find(t => t.id === b.dataset.qtstart)));
   $$('[data-qsess]').forEach(b => b.onclick = () => qLiveSheet(b.dataset.qsess));
 }
@@ -391,7 +402,7 @@ function qTestEditor(t0) {
     $$('[data-fup]').forEach(b => b.onclick = () => keepScroll(() => { const i = +b.dataset.fup; [T.fragen[i - 1], T.fragen[i]] = [T.fragen[i], T.fragen[i - 1]]; }));
     $$('[data-fdown]').forEach(b => b.onclick = () => keepScroll(() => { const i = +b.dataset.fdown; [T.fragen[i + 1], T.fragen[i]] = [T.fragen[i], T.fragen[i + 1]]; }));
     $('#qtImp').onclick = () => { sync(); qImportSheet(T, draw); };
-    if ($('#qtDel')) $('#qtDel').onclick = () => confirmInline($('#qtDel'), async () => { try { await q(sb.from('tests').delete().eq('id', t0.id)); closeSheet(); toast('Test gelöscht'); go('quali'); } catch (e) { toast(errText(e)); } });
+    if ($('#qtDel')) $('#qtDel').onclick = () => confirmInline($('#qtDel'), async () => { try { await q(sb.from('tests').delete().eq('id', t0.id)); closeSheet(); toast('Test gelöscht'); go(S.view); } catch (e) { toast(errText(e)); } });
     $('#qtForm').onsubmit = async e => {
       e.preventDefault(); sync();
       const err = T.fragen.map((f, i) => !f.frage.trim() ? `Frage ${i + 1}: Text fehlt.` : f.typ === 'text' ? null : f.optionen.filter(o => o.trim()).length < 2 ? `Frage ${i + 1}: mindestens zwei Antworten.` : f.optionen.some(o => !o.trim()) ? `Frage ${i + 1}: leere Antwort entfernen oder ausfüllen.` : !f.richtig.length ? `Frage ${i + 1}: richtige Antwort markieren.` : null).find(Boolean);
@@ -400,7 +411,7 @@ function qTestEditor(t0) {
       if (err) return toast(err);
       const row = { titel: T.titel.trim(), beschreibung: T.beschreibung.trim() || null, beruf: T.beruf, modul: T.modul, dauer_min: T.dauer_min, zufall: T.zufall, teilpunkte: T.teilpunkte,
         fragen: T.fragen.map(f => ({ id: f.id, typ: f.typ, frage: f.frage.trim(), optionen: f.typ === 'text' ? [] : f.optionen.map(o => o.trim()), richtig: f.typ === 'text' ? [] : f.richtig, punkte: f.punkte, ...(f.typ === 'text' && f.loesung?.trim() ? { loesung: f.loesung.trim() } : {}) })), updated_at: new Date().toISOString() };
-      try { if (t0) await q(sb.from('tests').update(row).eq('id', t0.id)); else await q(sb.from('tests').insert({ ...row, created_by: S.me.id })); closeSheet(); toast('Test gespeichert'); go('quali'); } catch (er) { toast(errText(er)); }
+      try { if (t0) await q(sb.from('tests').update(row).eq('id', t0.id)); else await q(sb.from('tests').insert({ ...row, created_by: S.me.id })); closeSheet(); toast('Test gespeichert'); go(S.view); } catch (er) { toast(errText(er)); }
     };
   };
   draw();
@@ -489,7 +500,7 @@ async function qLiveSheet(sid) {
     qLiveTimer = setInterval(async () => {
       const c = $('#qlClock'); if (!c) return qStopLive();
       const left = new Date(L.s.endet_at) - Date.now(); c.textContent = qClock(left); c.classList.toggle('low', left < 60e3);
-      if (left <= -15e3 && !ended) { ended = true; try { await q(sb.rpc('test_beenden', { p_sitzung: sid })); L = await load(); draw(); qStopLive(); go('quali'); } catch {} }
+      if (left <= -15e3 && !ended) { ended = true; try { await q(sb.rpc('test_beenden', { p_sitzung: sid })); L = await load(); draw(); qStopLive(); go(S.view); } catch {} }
     }, 1000);
     qLivePoll = setInterval(async () => { if (!$('#qlClock')) return qStopLive(); try { L = await load(); if (L.s.status !== 'laeuft') qStopLive(); draw(); } catch {} }, 4000);
   }
@@ -558,7 +569,7 @@ const Q_ICONS = {
 };
 function qExtraTilesHTML() {
   try { Object.keys(Q_ICONS).forEach(k => { if (!I[k]) I[k] = Q_ICONS[k]; }); } catch {}
-  const H = S.home || {}, tile = (tab, ico, tone, chip, title, sub) => `<button class="card modtile" data-go="quali" data-qtab="${tab}">
+  const H = S.home || {}, tile = (tab, ico, tone, chip, title, sub) => `<button class="card modtile" data-go="${tab === 'tests' ? 'qtests' : 'qanw'}">
       <div class="flex items-center justify-between gap-2"><span class="ico ${tone}">${svg(ico)}</span><span class="chip ${chip[0]} tnum">${esc(chip[1])}</span></div>
       <div><div class="font-display font-bold text-[16px] leading-snug">${title}</div><div class="text-[13px] text-muted mt-0.5">${sub}</div></div></button>`;
   let out = '';
@@ -601,7 +612,7 @@ async function qTakeTest(sid) {
   const answered = () => D.fragen.filter(f => { const v = ans[f.id]; return Array.isArray(v) ? v.length : typeof v === 'string' && v.trim(); }).length;
   const save = async final => { try { await q(sb.rpc('test_speichern', { p_sitzung: sid, p_antworten: ans, p_abgeben: !!final })); return true; } catch (e) { toast(errText(e)); return false; } };
   const queueSave = () => { clearTimeout(qSaveT); qSaveT = setTimeout(() => save(false), 1200); };
-  const finish = async auto => { clearInterval(qTakeTimer); clearTimeout(qSaveT); const ok = await save(true); if (ok) { toast(auto ? 'Zeit abgelaufen – automatisch abgegeben' : 'Test abgegeben'); D.abgegeben_at = new Date().toISOString(); drawDone(); if (S.view === 'quali' || S.view === 'home') go(S.view); } };
+  const finish = async auto => { clearInterval(qTakeTimer); clearTimeout(qSaveT); const ok = await save(true); if (ok) { toast(auto ? 'Zeit abgelaufen – automatisch abgegeben' : 'Test abgegeben'); D.abgegeben_at = new Date().toISOString(); drawDone(); if (['quali', 'qtests', 'home'].includes(S.view)) go(S.view); } };
   const drawDone = () => {
     if (D.freigegeben && D.fragen.length) {
       const man = D.punkte_manuell || {}, pts = (+D.punkte_auto || 0) + Object.values(man).reduce((s, v) => s + (+v || 0), 0), max = D.fragen.reduce((s, f) => s + (+f.punkte || 1), 0);
@@ -632,7 +643,7 @@ async function qTakeTest(sid) {
     else if (!c) { clearInterval(qTakeTimer); save(false); }
   }, 1000);
 }
-document.addEventListener('click', e => { const b = e.target.closest('[data-qtake]'); if (b && !(S.view === 'quali' && S.quali?.tab === 'tests')) { e.preventDefault(); qTakeTest(b.dataset.qtake); } });
+document.addEventListener('click', e => { const b = e.target.closest('[data-qtake]'); if (b && S.view !== 'qtests') { e.preventDefault(); qTakeTest(b.dataset.qtake); } });
 
 /* Startseite der Teilnehmenden: alle 20 Sekunden prüfen, ob ein Test gestartet wurde */
 setInterval(async () => {

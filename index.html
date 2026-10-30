@@ -435,7 +435,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-30d';
+const APP_VERSION = '2026-10-30e';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -676,10 +676,10 @@ async function startApp(user) {
 /* =====================================================================
    Navigation
    ===================================================================== */
-const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school']];
+const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock']];
 const EXTRA_VIEWS = ['home', 'admin', 'chat', 'uw', 'news', 'dienst'];
 // Übergabebuch ist seit 27.10.2026 ausgeblendet (Daten bleiben erhalten); Schule und IHK gibt es nicht für Mitarbeiter/innen
-const visible = v => v === 'uebergabe' ? false : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
+const visible = v => v === 'uebergabe' ? false : (v === 'qanw' || v === 'qtests') ? (typeof qViewVisible === 'function' && qViewVisible(v)) : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
 function renderTabs() {
   const tabs = TABS.filter(([id]) => visible(id));
   $('#tabs').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
@@ -4264,7 +4264,7 @@ async function showClass() {
   };
 }
 
-const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
+const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, qanw: QAnwView, qtests: QTestsView, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
 function updateAdminBtn() { $('#admBtn').hidden = !canManage(); }
 
 /* =====================================================================

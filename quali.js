@@ -237,7 +237,7 @@ function qHomeHTML() {
 const QualiView = {
   async load() {
     await qLoadAll();
-    S.quali.tab = S.quali.tab || 'stand';
+    S.quali.tab = !S.quali.tab || ['tests', 'anw', 'anwesenheit'].includes(S.quali.tab) ? 'stand' : S.quali.tab;
     if (typeof qExtraLoad === 'function') await qExtraLoad();
   },
   html() {
@@ -283,7 +283,7 @@ function qMineHTML() {
       <div class="text-[20px] font-bold leading-tight mt-1">${esc(k.beruf)}</div>
       <div class="sub text-[13px] mt-1 tnum">${t.standort ? esc(t.standort) + ' · ' : ''}${t.beginn ? fmtDate(t.beginn) : ''}${t.ende ? ' – ' + fmtDate(t.ende) : ''}</div>
       ${k.module.length > 1 ? `<div class="mt-3 text-[13px] font-semibold tnum">${done} von ${k.module.length} Modulen mit IHK-Zertifikat</div><div class="bar w-full mt-1.5" style="background:rgba(255,255,255,.2)"><i style="width:${pct(done, k.module.length)}%;background:#fff"></i></div>` : ''}</section>
-    ${qSegHTML([['stand', 'Module'], ['tests', 'Tests'], ['anw', 'Anwesenheit'], ['pruefung', 'Prüfung'], ['info', 'Ablauf']])}
+    ${qSegHTML([['stand', 'Module'], ['pruefung', 'Prüfung'], ['info', 'Ablauf']])}
     ${typeof qExtraHTML === 'function' && qExtraHTML() != null ? qExtraHTML() : S.quali.tab === 'pruefung' ? qPruefHTML(t, false) : S.quali.tab === 'info' ? qInfoHTML(k, g) : `${secTitle('Deine Module')}${qModListHTML(t, false)}
       <p class="text-[12px] text-muted mt-2">Übungsfragen aus der App, keine echten IHK-Prüfungsaufgaben. Falsche Antworten kommen später als Lernkarten wieder.</p>`}`;
 }
