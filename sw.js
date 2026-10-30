@@ -1,5 +1,5 @@
 /* AzubiHub Service Worker: App-Start offline aus dem Zwischenspeicher, Push-Benachrichtigungen. */
-const CACHE = 'azubihub-v40';
+const CACHE = 'azubihub-v42';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon-32.png', './demo.js', './i18n.js', './schule.js', './ausbildung.js', './ausbau2.js', './quali.js', './quali2.js', './vendor/supabase.js', './vendor/figtree-latin-400-normal.woff2', './vendor/figtree-latin-600-normal.woff2', './vendor/figtree-latin-700-normal.woff2', './vendor/bricolage-grotesque-latin-700-normal.woff2', './vendor/jspdf.umd.min.js', './vendor/notosans-400Regular.ttf', './vendor/notosans-700Bold.ttf'];
 
 self.addEventListener('install', e => {

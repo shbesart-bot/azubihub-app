@@ -199,12 +199,12 @@ function qTileHTML() {
     sub = 'Module, Zertifikate und Prüfungen aller Teilnehmenden';
   }
   const ex = isAzubi() ? qExamInfo(rows.find(r => r.azubi_id === S.me.id)) : null;
-  return `<button class="card modtile" data-go="quali">
+  return `<button class="card modtile" data-go="quali" data-qtab="stand">
       <div class="flex items-center justify-between gap-2"><span class="ico">${svg('school')}</span><span class="chip ${chip[0]} tnum">${esc(chip[1])}</span></div>
       <div><div class="font-display font-bold text-[16px] leading-snug">Qualifizierung</div><div class="text-[13px] text-muted mt-0.5">${esc(sub)}</div></div></button>
     <button class="card modtile" data-go="quali" data-qtab="pruefung">
       <div class="flex items-center justify-between gap-2"><span class="ico brass">${svg('ihk')}</span><span class="chip ${ex?.n != null ? (ex.n <= 30 ? 'crit' : ex.n <= 90 ? 'warn' : '') : ''} tnum">${ex?.n != null ? `in ${ex.n} Tagen` : 'IHK'}</span></div>
-      <div><div class="font-display font-bold text-[16px] leading-snug">Externenprüfung</div><div class="text-[13px] text-muted mt-0.5">Zulassung nach § 45 Abs. 2 BBiG, Termine</div></div></button>`;
+      <div><div class="font-display font-bold text-[16px] leading-snug">Externenprüfung</div><div class="text-[13px] text-muted mt-0.5">Zulassung nach § 45 Abs. 2 BBiG, Termine</div></div></button>${typeof qExtraTilesHTML === 'function' ? qExtraTilesHTML() : ''}`;
 }
 function qExamInfo(t) {
   if (!t) return null;

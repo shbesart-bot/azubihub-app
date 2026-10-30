@@ -29,8 +29,12 @@
    Gilt nur, solange der Betrieb Name und Farben nicht selbst geändert hat.
    ===================================================================== */
 const Q_BRAND = { name: 'Stufenwerk', brand: '#1d3c6e', brand2: '#b8643a', text: 'Lern- und Tätigkeitsnachweis, Module, Anwesenheit und Tests für die Qualifizierung.' };
-function qLogoSVG(bg = Q_BRAND.brand, step = '#ffffff', top = '#d98a5c') {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="116" fill="${bg}"/><path d="M92 420V340h80v-72h80v-72h80v224z" fill="${step}"/><path d="M340 420V124h80v296z" fill="${top}"/><path d="m356 196 20 20 34-38" fill="none" stroke="${bg}" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function qLogoSVG(bg = Q_BRAND.brand, ring = '#ffffff', last = '#d98a5c') {
+  const cx = 256, cy = 256, r1 = 150, r2 = 112, n = 5, gap = 7 * Math.PI / 180, pt = (r, a) => `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
+  let seg = '';
+  for (let i = 0; i < n; i++) { const a0 = -Math.PI / 2 + i * 2 * Math.PI / n + gap / 2, a1 = a0 + 2 * Math.PI / n - gap;
+    seg += `<path d="M${pt(r1, a0)} A${r1} ${r1} 0 0 1 ${pt(r1, a1)} L${pt(r2, a1)} A${r2} ${r2} 0 0 0 ${pt(r2, a0)}Z" fill="${i === n - 1 ? last : ring}"/>`; }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="116" fill="${bg}"/>${seg}<path d="m212 258 30 30 60-66" fill="none" stroke="${ring}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 const qLogoURL = () => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qLogoSVG());
 (() => {
@@ -546,6 +550,36 @@ function qMyTestsHTML() {
     ${rest.length ? `<div class="card">${rest.map((s, i) => `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" data-qtake="${s.id}"><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(s.titel)}</div><div class="text-[12px] text-muted tnum">${new Date(s.gestartet_at).toLocaleDateString('de-DE')} · ${s.fragen} Fragen</div></div>
       <span class="chip ${s.freigegeben ? 'ok' : ''}">${s.freigegeben ? 'Ergebnis da' : s.abgegeben_at ? 'abgegeben' : 'beendet'}</span></button>`).join('')}</div>` : live.length ? '' : empty('Hier erscheinen Tests, sobald deine Trainerin oder dein Trainer einen startet.')}`;
 }
+
+/* Eigene Kacheln auf der Startseite: Anwesenheit und Tests */
+const Q_ICONS = {
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  checklist: '<path d="M4 6.5l1.6 1.6L8.5 5"/><path d="M4 12.5l1.6 1.6L8.5 11"/><path d="M4 18.5l1.6 1.6L8.5 17"/><path d="M11.5 7h8.5M11.5 13h8.5M11.5 19h8.5"/>'
+};
+function qExtraTilesHTML() {
+  try { Object.keys(Q_ICONS).forEach(k => { if (!I[k]) I[k] = Q_ICONS[k]; }); } catch {}
+  const H = S.home || {}, tile = (tab, ico, tone, chip, title, sub) => `<button class="card modtile" data-go="quali" data-qtab="${tab}">
+      <div class="flex items-center justify-between gap-2"><span class="ico ${tone}">${svg(ico)}</span><span class="chip ${chip[0]} tnum">${esc(chip[1])}</span></div>
+      <div><div class="font-display font-bold text-[16px] leading-snug">${title}</div><div class="text-[13px] text-muted mt-0.5">${sub}</div></div></button>`;
+  let out = '';
+  if (isAzubi()) {
+    const live = (H.qLive || []).filter(x => x.status === 'laeuft' && new Date(x.endet_at) > Date.now() && !x.abgegeben_at).length, res = (H.qLive || []).filter(x => x.freigegeben).length;
+    out += tile('anw', 'checklist', '', ['', 'Deine Tage'], 'Anwesenheit', 'Deine erfassten Tage und deine Quote');
+    out += tile('tests', 'clock', 'brass', live ? ['crit', 'läuft jetzt'] : res ? ['ok', `${res} Ergebnis${res === 1 ? '' : 'se'}`] : ['', 'Tests'], 'Tests', live ? 'Ein Test läuft – jetzt starten' : 'Tests mit Zeitlimit und deine Ergebnisse');
+    return out;
+  }
+  const tn = qTnList().filter(p => canSchool(p));
+  if (tn.length) {
+    const done = new Set((H.qAnw || []).map(a => a.azubi_id)), offen = tn.filter(p => !done.has(p.id)).length, wd = new Date().getDay(), we = wd === 0 || wd === 6;
+    out += tile('anwesenheit', 'checklist', '', we ? ['', 'Wochenende'] : offen ? ['warn', `${offen} offen heute`] : ['ok', 'heute erfasst'], 'Anwesenheit', 'Tagesliste erfassen, als PDF oder per E-Mail');
+  }
+  if (qCanTests()) {
+    const live = (H.qSitz || []).filter(x => new Date(x.endet_at) > Date.now() - 45e3).length;
+    out += tile('tests', 'clock', 'brass', live ? ['crit', `${live} läuft`] : ['', 'Tests'], 'Tests', 'Erstellen, live mit Timer durchführen, auswerten');
+  }
+  return out;
+}
+
 /* Home-Hinweis: laufender Test */
 function qLiveHomeHTML() {
   const s = (S.home?.qLive || []).find(x => x.status === 'laeuft' && new Date(x.endet_at) > Date.now() && !x.abgegeben_at);

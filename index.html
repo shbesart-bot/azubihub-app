@@ -435,7 +435,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-30b';
+const APP_VERSION = '2026-10-30d';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -3267,6 +3267,7 @@ async function homeExtras() {
   if (S.betrieb?.gruppen_leitung) jobs.grp = sb.rpc('gruppe_overview');
   if (isQuali()) jobs.qt = sb.from('quali_teilnahmen').select('*');
   if (isQuali() && isAzubi()) jobs.qLive = sb.rpc('test_live');
+  if (isQuali() && !isAzubi()) { jobs.qAnw = sb.from('anwesenheit').select('azubi_id').eq('datum', localDate()); if (isAdmin() || can('team') || can('lernziele')) jobs.qSitz = sb.from('test_sitzungen').select('id,endet_at').eq('status', 'laeuft'); }
   jobs.dpMine = sb.from('dienstplan').select('datum,beginn,ende,abteilung').eq('user_id', me.id).gte('datum', localDate()).order('datum').limit(5);
   if (isAzubi()) {
     jobs.moodOpen = sb.rpc('stimmung_offen');
