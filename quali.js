@@ -283,7 +283,7 @@ function qMineHTML() {
       <div class="text-[20px] font-bold leading-tight mt-1">${esc(k.beruf)}</div>
       <div class="sub text-[13px] mt-1 tnum">${t.standort ? esc(t.standort) + ' · ' : ''}${t.beginn ? fmtDate(t.beginn) : ''}${t.ende ? ' – ' + fmtDate(t.ende) : ''}</div>
       ${k.module.length > 1 ? `<div class="mt-3 text-[13px] font-semibold tnum">${done} von ${k.module.length} Modulen mit IHK-Zertifikat</div><div class="bar w-full mt-1.5" style="background:rgba(255,255,255,.2)"><i style="width:${pct(done, k.module.length)}%;background:#fff"></i></div>` : ''}</section>
-    ${qSegHTML([['stand', 'Module'], ['pruefung', 'Prüfung'], ['info', 'Ablauf']])}
+    ${qSegHTML([['stand', 'Module'], ['praktikum', 'Praktikum'], ['pruefung', 'Prüfung'], ['info', 'Ablauf']])}
     ${typeof qExtraHTML === 'function' && qExtraHTML() != null ? qExtraHTML() : S.quali.tab === 'pruefung' ? qPruefHTML(t, false) : S.quali.tab === 'info' ? qInfoHTML(k, g) : `${secTitle('Deine Module')}${qModListHTML(t, false)}
       <p class="text-[12px] text-muted mt-2">Übungsfragen aus der App, keine echten IHK-Prüfungsaufgaben. Falsche Antworten kommen später als Lernkarten wieder.</p>`}`;
 }
@@ -309,7 +309,7 @@ function qStaffHTML() {
     ${typeof qExtraHTML === 'function' && qExtraHTML() != null ? qExtraHTML() : `${order.length ? order.map(key => { const k = Q_KATALOG[key]; return `${secTitle(k ? esc(k.kurz) : 'Ohne Maßnahme', `<span class="chip tnum">${byK[key].length}</span>`)}
       <div class="card">${byK[key].map(({ p, t }, i) => { const c = t && qCur(t), ex = qExamInfo(t), n = k?.module.length || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" ${canEdit ? `data-qedit="${p.id}"` : ''}>${avatar(p, 38)}
         <div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name)}</div>
-        <div class="text-[12px] text-muted truncate">${k ? (n > 1 ? `Modul ${c?.nr || 1} von ${n} · ${qDone(t)} ${qDone(t) === 1 ? 'Zertifikat' : 'Zertifikate'}` : esc(k.art)) : 'Maßnahme zuordnen'}${t?.standort ? ' · ' + esc(t.standort) : ''}</div>
+        <div class="text-[12px] text-muted truncate">${k ? (n > 1 ? `Modul ${c?.nr || 1} von ${n} · ${qDone(t)} ${qDone(t) === 1 ? 'Zertifikat' : 'Zertifikate'}` : esc(k.art)) : 'Maßnahme zuordnen'}${t?.standort ? ' · ' + esc(t.standort) : ''}${typeof qGroupLabel === 'function' && qGroupLabel(p.id) ? ' · ' + esc(qGroupLabel(p.id)) : ''}</div>
         ${k && n > 1 ? `<div class="flex gap-1 mt-1.5">${qMods(t).map(m => `<i title="Modul ${m.nr}: ${(qModStat[m.status || 'offen'] || qModStat.offen)[1]}" style="flex:1;height:6px;border-radius:3px;background:var(--st-${m.status === 'bestanden' ? 'ok' : m.status === 'laeuft' ? 'warn' : m.status === 'wiederholen' ? 'crit' : 'none, var(--line)'})"></i>`).join('')}</div>` : ''}</div>
         ${ex?.n != null && ex.n >= 0 ? `<span class="chip ${ex.n <= 30 ? 'crit' : ex.n <= 90 ? 'warn' : ''} tnum flex-none">Prüfung ${ex.n} T.</span>` : ''}${canEdit ? svg('arrow', 'w-4 h-4 text-muted flex-none') : ''}</button>`; }).join('')}</div>`; }).join('')
       : empty('Noch keine Teilnehmenden registriert. Gib ihnen den Code aus Verwaltung › Team.')}
@@ -331,6 +331,7 @@ function qEditSheet(uid) {
         <div><label class="lbl" for="qM">Maßnahme</label><select id="qM" class="field"><option value="">– bitte wählen –</option>${Object.entries(Q_KATALOG).map(([key, x]) => `<option value="${key}" ${t.massnahme === key ? 'selected' : ''}>${esc(x.art)} · ${esc(x.beruf)}</option>`).join('')}</select></div>
         <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="qB">Beginn</label><input id="qB" type="date" class="field" value="${t.beginn || ''}"></div><div><label class="lbl" for="qE">Ende</label><input id="qE" type="date" class="field" value="${t.ende || ''}"></div></div>
         <div><label class="lbl" for="qS">C1TT-Standort</label><input id="qS" class="field" maxlength="80" value="${esc(t.standort || '')}"></div>
+        ${(S.qgr?.g || []).length ? `<div><label class="lbl" for="qGr">Gruppe</label><select id="qGr" class="field"><option value="">– keine –</option>${S.qgr.g.map(g => `<option value="${g.id}" ${t.gruppe_id === g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></div>` : ''}
         <div><label class="lbl" for="qG">Qualifizierungs-Guide</label><select id="qG" class="field"><option value="">– keiner –</option>${guides.map(g => `<option value="${g.id}" ${t.guide_id === g.id ? 'selected' : ''}>${esc(g.full_name)}${g.position ? ' · ' + esc(g.position) : ''}</option>`).join('')}</select></div>
         ${k?.voraussetzung ? `<div><label class="lbl" for="qJ">Berufserfahrung in Jahren</label><input id="qJ" type="number" min="0" step="0.5" class="field" value="${t.erfahrung_jahre ?? ''}"><p class="text-[12px] text-muted mt-1">${esc(k.voraussetzung)}</p></div>` : ''}
       </div>
@@ -345,7 +346,7 @@ function qEditSheet(uid) {
     $('#qForm').onsubmit = async e => { e.preventDefault(); collect(true); await save(); };
   };
   const collect = all => {
-    t.beginn = $('#qB')?.value || null; t.ende = $('#qE')?.value || null; t.standort = $('#qS')?.value.trim() || null; t.guide_id = $('#qG')?.value || null;
+    t.beginn = $('#qB')?.value || null; t.ende = $('#qE')?.value || null; t.standort = $('#qS')?.value.trim() || null; t.guide_id = $('#qG')?.value || null; if ($('#qGr')) t.gruppe_id = $('#qGr').value || null;
     if ($('#qJ')) t.erfahrung_jahre = $('#qJ').value === '' ? null : +$('#qJ').value;
     if (!all) return;
     const k = qKat(t); if (!k) return;
@@ -357,7 +358,7 @@ function qEditSheet(uid) {
   };
   const save = async () => {
     if (!t.massnahme) return toast('Bitte eine Maßnahme wählen.');
-    const row = { azubi_id: uid, massnahme: t.massnahme, beginn: t.beginn, ende: t.ende, standort: t.standort, guide_id: t.guide_id, erfahrung_jahre: t.erfahrung_jahre ?? null, module: t.module || [], pruefung: t.pruefung || {}, updated_at: new Date().toISOString() };
+    const row = { azubi_id: uid, massnahme: t.massnahme, beginn: t.beginn, ende: t.ende, standort: t.standort, guide_id: t.guide_id, ...('gruppe_id' in t ? { gruppe_id: t.gruppe_id || null } : {}), erfahrung_jahre: t.erfahrung_jahre ?? null, module: t.module || [], pruefung: t.pruefung || {}, updated_at: new Date().toISOString() };
     if (!t.id) row.betrieb_id = S.betrieb?.id || S.me.betrieb_id;
     const saved = t.id ? await q(sb.from('quali_teilnahmen').update(row).eq('id', t.id).select().single()) : await q(sb.from('quali_teilnahmen').insert(row).select().single());
     const k = qKat(saved), upd = {};
@@ -366,6 +367,7 @@ function qEditSheet(uid) {
     const ap = [saved.pruefung?.schriftlich, saved.pruefung?.praktisch].filter(Boolean).sort()[0] || null; if (ap !== (p.ap_datum || null)) upd.ap_datum = ap;
     if (Object.keys(upd).length) { await q(sb.from('profiles').update(upd).eq('id', uid)); Object.assign(p, upd); }
     S.quali.rows = (S.quali.rows || []).filter(r => r.azubi_id !== uid).concat(saved);
+    if (S.qgr) S.qgr.tn[uid] = saved.gruppe_id || null;
     closeSheet(); toast('Gespeichert'); render();
   };
   draw();

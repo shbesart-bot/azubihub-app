@@ -263,11 +263,12 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-10-30f"></script>
-<script src="./ausbildung.js?v=2026-10-30f"></script>
-<script src="./ausbau2.js?v=2026-10-30f"></script>
-<script src="./quali.js?v=2026-10-30f"></script>
-<script src="./quali2.js?v=2026-10-30f"></script>
+<script src="./schule.js?v=2026-10-30g"></script>
+<script src="./ausbildung.js?v=2026-10-30g"></script>
+<script src="./ausbau2.js?v=2026-10-30g"></script>
+<script src="./quali.js?v=2026-10-30g"></script>
+<script src="./quali2.js?v=2026-10-30g"></script>
+<script src="./quali3.js?v=2026-10-30g"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -435,7 +436,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-30f';
+const APP_VERSION = '2026-10-30g';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -560,7 +561,7 @@ function reviewersFor(abt, exclude) {
 const reviewersOf = a => reviewersFor(a.abteilung, a.id);
 const betreuerOf = a => a?.betreuer_id ? S.profiles[a.betreuer_id] : null;
 const scopeLabel = p => p.role === 'admin' ? 'alle Bereiche' : (p.bereiche || []).length ? p.bereiche.join(', ') : 'alle Abteilungen';
-const azubis = () => Object.values(S.profiles).filter(p => p.role === 'azubi' && p.aktiv !== false).sort((a, b) => a.full_name.localeCompare(b.full_name));
+const azubis = () => Object.values(S.profiles).filter(p => p.role === 'azubi' && p.aktiv !== false && (typeof qSees !== 'function' || qSees(p))).sort((a, b) => a.full_name.localeCompare(b.full_name));
 
 /* =====================================================================
    Anmeldung
@@ -627,7 +628,7 @@ $('#authForm').onsubmit = async e => {
 
 let booted = false;
 sb.auth.onAuthStateChange((event, session) => {
-  if (CAREER_SLUG || S.demo || new URLSearchParams(location.search).get('schule') || ELTERN_SLUG || SIEGEL_SLUG) return;
+  if (CAREER_SLUG || S.demo || new URLSearchParams(location.search).get('schule') || ELTERN_SLUG || SIEGEL_SLUG || PRAKTIKUM_TOKEN) return;
   if (event === 'PASSWORD_RECOVERY') S.recovery = true;
   if (session?.user) { if (!booted) { booted = true; setTimeout(() => startApp(session.user), 0); } }
   else { booted = false; showAuth(); }
@@ -658,6 +659,7 @@ async function startApp(user) {
     S.hotel = S.betrieb.name || '';
     $('#hotelName').textContent = S.hotel + (S.betrieb.gruppen_leitung ? ' ▾' : '');
     setMeBtn();
+    if (typeof qGroupsLoad === 'function') await qGroupsLoad();
     await loadBoard(); startRealtime(); refreshUnread(); setTimeout(flushOutbox, 2000);
     let v = null; try { v = sessionStorage.getItem('azubihub.view'); } catch {}
     const hv = location.hash.slice(1), hc = hv.match(/^(chat|gruppe)-([0-9a-f-]{36})$/);
@@ -4065,8 +4067,9 @@ const SCHUL_TYP = { fehltag: ['crit', 'Fehltag'], verspaetung: ['warn', 'Verspä
 const SCHOOL_SLUG = new URLSearchParams(location.search).get('schule');
 const ELTERN_SLUG = new URLSearchParams(location.search).get('eltern');
 const SIEGEL_SLUG = new URLSearchParams(location.search).get('siegel');
+const PRAKTIKUM_TOKEN = new URLSearchParams(location.search).get('praktikum');
 const schoolUrl = tok => `${location.origin}${location.pathname}?schule=${tok}`;
-const canSchool = a => !!a && a.role === 'azubi' && (can('team') || (can('berichte') && inScope(a.abteilung)) || a.betreuer_id === S.me.id);
+const canSchool = a => !!a && a.role === 'azubi' && (typeof qSees !== 'function' || qSees(a)) && (can('team') || (can('berichte') && inScope(a.abteilung)) || a.betreuer_id === S.me.id);
 async function loadSchool(azubiId) { await schLoad(azubiId); }
 function schoolHTML(a, manage) { return schHTML(a, manage); }
 function bindSchool(a, onDone) { schBind(a, onDone); }
@@ -4508,6 +4511,10 @@ async function startDemo(role) {
 (async () => {
   applyConfig(); loadBranding();
   if (CAREER_SLUG) return showCareer(CAREER_SLUG);
+  if (PRAKTIKUM_TOKEN) {
+    if (PRAKTIKUM_TOKEN === 'demo') { try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('c1tt'); await sb.ready; }
+    return showPraktikum(PRAKTIKUM_TOKEN);
+  }
   if (SCHOOL_SLUG === 'demo') {
     try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); }
     window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('azubi'); await sb.ready;

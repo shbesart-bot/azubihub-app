@@ -83,7 +83,7 @@ const qAddDays = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.ge
 const qMonday = d => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return localDate(x); };
 const qCanTests = () => isAdmin() || can('team') || can('lernziele');
 const qTnList = () => azubis().filter(p => p.aktiv !== false).sort((a, b) => a.full_name.localeCompare(b.full_name));
-function qStaffTabs() { return [['stand', 'Teilnehmende']]; }
+function qStaffTabs() { return [['stand', 'Teilnehmende'], ['gruppen', 'Gruppen'], ['praktika', 'Praktika']]; }
 /* Eigene Reiter unten in der Leiste: Anwesenheit und Tests */
 function qViewVisible(v) {
   try { if (!isQuali() || !S.me || isMA()) return false; if (isAzubi()) return true;
@@ -105,6 +105,7 @@ const qMassOf = uid => (S.quali?.rows || []).find(r => r.azubi_id === uid)?.mass
    Laden je Reiter
    ===================================================================== */
 async function qExtraLoad() {
+  if (typeof q3Load === 'function' && await q3Load()) return;
   const tab = S.quali.tab;
   if (!isAzubi() && tab === 'anwesenheit') {
     S.quali.anwTag ||= localDate();
@@ -125,6 +126,7 @@ async function qExtraLoad() {
   if (isAzubi() && tab === 'anw') S.quali.myAnw = await q(sb.from('anwesenheit').select('*').eq('azubi_id', S.me.id).order('datum', { ascending: false }).limit(60));
 }
 function qExtraHTML() {
+  const h3 = typeof q3HTML === 'function' ? q3HTML() : null; if (h3 != null) return h3;
   const tab = S.quali.tab;
   if (!isAzubi() && tab === 'anwesenheit') return qAnwHTML();
   if (!isAzubi() && tab === 'tests') return qCanTests() ? qTestsHTML() : empty('Für Tests fehlt dir das Recht „Lernziele“ oder „Team“.');
@@ -133,6 +135,7 @@ function qExtraHTML() {
   return null;
 }
 function qExtraBind() {
+  if (typeof q3Bind === 'function' && q3Bind()) return;
   const tab = S.quali.tab;
   if (!isAzubi() && tab === 'anwesenheit') qAnwBind();
   if (!isAzubi() && tab === 'tests') qTestsBind();

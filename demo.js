@@ -312,7 +312,7 @@
     const LO = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'C1TT-Werkstatt', 'Arbeitsplatz im Werk'];
     const Q = {
       koord: { id: 'demo-q-koord', full_name: 'Katrin Vogt', role: 'admin', position: 'Koordination Qualifizierung', kontakt_email: 'katrin.vogt@example.com', telefon: '0511 000-100', abteilung: LO[1] },
-      trainer: { id: 'demo-q-trainer', full_name: 'Michael Berger', role: 'ausbilder', position: 'Trainer Kunststoff- und Kautschuktechnik', kontakt_email: 'michael.berger@example.com', telefon: '0511 000-120', rechte: ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'team', 'unterweisungen', 'dienstplan'], bereiche: LO, abteilung: LO[2] },
+      trainer: { id: 'demo-q-trainer', full_name: 'Michael Berger', role: 'ausbilder', position: 'Trainer Kunststoff- und Kautschuktechnik', kontakt_email: 'michael.berger@example.com', telefon: '0511 000-120', rechte: ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'unterweisungen', 'dienstplan'], bereiche: LO, abteilung: LO[2] },
       guide: { id: 'demo-q-guide', full_name: 'Sandra Wolf', role: 'mitarbeiter', position: 'Qualifizierungs-Guide, Reifenaufbau', abteilung: LO[3] },
       dennis: { id: 'demo-q-dennis', full_name: 'Dennis Krause', role: 'azubi', beruf: KUK, lehrjahr: 3, abteilung: LO[2], start_datum: ymd(day(-305)), betreuer_id: 'demo-q-trainer' },
       olga: { id: 'demo-q-olga', full_name: 'Olga Schmidt', role: 'azubi', beruf: KUK, lehrjahr: 1, abteilung: LO[0], start_datum: ymd(day(-45)), betreuer_id: 'demo-q-trainer' },
@@ -551,6 +551,31 @@
     DB.quiz_answers = []; DB.exam_results = [];
     DB.lernkarten = [7004, 7012, 7015].map((qid, i) => ({ user_id: Q.dennis.id, question_id: qid, betrieb_id: B, fach: 1, faellig: ymd(day(i === 2 ? 3 : 0)), updated_at: iso(day(-4)) }));
 
+
+    /* Gruppen, Vertretung, Praktika */
+    DB.quali_gruppen = [
+      { id: 'demo-q-gr-kuk', betrieb_id: B, name: 'TQ Kautschuk Gruppe A', trainer_id: Q.trainer.id, notiz: 'Lernstandort Nord', created_at: iso(day(-300)) },
+      { id: 'demo-q-gr-iel', betrieb_id: B, name: 'TQ Betriebselektrik', trainer_id: Q.frank.id, notiz: null, created_at: iso(day(-150)) },
+      { id: 'demo-q-gr-lag', betrieb_id: B, name: 'Lagerlogistik', trainer_id: Q.petra.id, notiz: null, created_at: iso(day(-420)) },
+      { id: 'demo-q-gr-maf', betrieb_id: B, name: 'Intensivkurs Maschinen- und Anlagenführer', trainer_id: null, notiz: 'Start Herbst', created_at: iso(day(-75)) }
+    ];
+    const GR = { dennis: 'kuk', olga: 'kuk', andrzej: 'kuk', tobias: 'iel', svetlana: 'lag', juergen: 'lag', mehmet: 'maf' };
+    DB.quali_teilnahmen.forEach(t => { const k = Object.keys(Q).find(x => Q[x].id === t.azubi_id); if (GR[k]) t.gruppe_id = 'demo-q-gr-' + GR[k]; });
+    DB.quali_vertretungen = [{ id: uuid(), betrieb_id: B, gruppe_id: 'demo-q-gr-iel', trainer_id: Q.trainer.id, von: ymd(day(-1)), bis: ymd(day(4)), notiz: 'Frank auf Schulung', created_by: Q.frank.id, created_at: iso(day(-3)) }];
+    const pk = (id, k, abt, al, von, bis, aufg, x = {}) => ({ id, betrieb_id: B, azubi_id: Q[k].id, abteilung: abt, ansprechpartner: al, ansprech_email: null, von: ymd(day(von)), bis: ymd(day(bis)), aufgaben: aufg, token: id === 'demo-q-pk-andrzej' ? 'demo' : uuid().replace(/-/g, '') + uuid().replace(/-/g, ''),
+      fb_al: null, fb_al_at: null, fb_tn: null, fb_tn_at: null, an_abteilung: true, abgesegnet_at: null, abgesegnet_von: null, created_by: Q.trainer.id, created_at: iso(day(von - 14)), updated_at: iso(day(-1)), ...x });
+    const alFb = (v, emp, st, en, name) => ({ kriterien: Object.fromEntries(['Pünktlichkeit und Zuverlässigkeit', 'Arbeitsqualität', 'Arbeitssicherheit und Ordnung', 'Zusammenarbeit im Team', 'Lernbereitschaft', 'Selbstständigkeit'].map((l, i) => [l, v[i]])), empfehlung: emp, staerken: st, entwicklung: en, name });
+    const tnFb = (v, emp, k) => ({ kriterien: Object.fromEntries(['Betreuung und Anleitung', 'Abwechslungsreiche Aufgaben', 'Ich habe viel gelernt', 'Aufnahme im Team'].map((l, i) => [l, v[i]])), empfehlung: emp, kommentar: k });
+    DB.quali_praktika = [
+      pk('demo-q-pk-dennis', 'dennis', 'Mischsaal', 'Thomas Brandt', -60, -47, 'Mischungen nach Rezeptur vorbereiten, Chargen kennzeichnen, an der Walze mitarbeiten.', {
+        fb_al: alFb([5, 4, 5, 5, 5, 4], 'Ja', 'Sehr zuverlässig, arbeitet sauber nach Rezeptur und fragt nach, wenn etwas unklar ist.', 'Bei Störungen noch sicherer selbst entscheiden.', 'Thomas Brandt'), fb_al_at: iso(day(-45)),
+        fb_tn: tnFb([5, 4, 5, 5], 'Ja', 'Thomas hat sich viel Zeit genommen. Die Nachtschicht war anstrengend, aber lehrreich.'), fb_tn_at: iso(day(-46)), abgesegnet_at: iso(day(-40)), abgesegnet_von: Q.trainer.id }),
+      pk('demo-q-pk-dennis2', 'dennis', 'Vulkanisation Halle 2', 'Ayşe Demir', 21, 32, 'Heizpressen beschicken, Rohlinge prüfen, Wartungsplan kennenlernen.'),
+      pk('demo-q-pk-olga', 'olga', 'Reifenaufbau Halle 3', 'Marco Jansen', -16, -5, 'Aufbaumaschine unter Anleitung, Materialfluss, Qualitätsprüfung am Rohling.', {
+        fb_al: alFb([4, 3, 5, 4, 5, 3], 'Eher ja', 'Freundlich, sehr lernbereit, achtet gut auf die Sicherheit.', 'Im Arbeitstempo und bei den Prüfmerkmalen noch sicherer werden.', 'Marco Jansen'), fb_al_at: iso(day(-4)) }),
+      pk('demo-q-pk-andrzej', 'andrzej', 'Instandhaltung Werk Nord', 'Stefan Kühn', -4, 7, 'Mit der Instandhaltung Wartungen an Pressen durchführen, Lockout-Tagout anwenden.'),
+      pk('demo-q-pk-svetlana', 'svetlana', 'Versand Werk Nord', 'Jana Wolff', 10, 19, 'Verladung, Versandpapiere, Ladungssicherung.', { created_by: Q.petra.id })
+    ];
     /* Anwesenheit: die letzten zehn Werktage, heute teilweise erfasst */
     DB.anwesenheit = [];
     const TN = ['dennis', 'olga', 'mehmet', 'tobias', 'svetlana', 'juergen', 'andrzej'];
@@ -728,6 +753,13 @@
           const ans = {}; t.fragen.slice(0, Math.max(1, t.fragen.length - (i % 2))).forEach(f => { ans[f.id] = f.typ === 'text' ? 'Antwort aus der Demo.' : f.richtig.slice(0, f.typ === 'multi' ? f.richtig.length : 1); });
           DB.test_abgaben.push({ id: uuid(), betrieb_id: B, sitzung_id: id, azubi_id: u, antworten: ans, beantwortet: Object.keys(ans).length, punkte_auto: null, punkte_manuell: {}, started_at: iso(new Date()), abgegeben_at: null, updated_at: iso(new Date()) }); }, 4000 + i * 3000));
         return id; },
+      quali_gruppe_uebernehmen: a => { const g = DB.quali_gruppen.find(x => x.id === a.p_gruppe); if (!g || g.trainer_id) throw new Error('Die Gruppe hat schon eine Trainerin oder einen Trainer'); g.trainer_id = meId; return null; },
+      quali_gruppe_abgeben: a => { const g = DB.quali_gruppen.find(x => x.id === a.p_gruppe); if (g) g.trainer_id = null; return null; },
+      praktika_meine: () => (DB.quali_praktika || []).filter(p => p.azubi_id === meId).sort((x, y) => y.von.localeCompare(x.von)).map(p => ({ id: p.id, abteilung: p.abteilung, ansprechpartner: p.ansprechpartner, von: p.von, bis: p.bis, aufgaben: p.aufgaben, fb_tn: p.fb_tn, fb_tn_at: p.fb_tn_at, abgesegnet_at: p.abgesegnet_at, fb_al_da: !!p.fb_al, fb_al: p.abgesegnet_at ? p.fb_al : null })),
+      praktikum_tn_feedback: a => { const p = DB.quali_praktika.find(x => x.id === a.p_id && x.azubi_id === meId); if (!p || p.abgesegnet_at || ymd(new Date()) < p.von) throw new Error('Rückmeldung ist für dieses Praktikum gerade nicht möglich'); p.fb_tn = a.p_fb; p.fb_tn_at = iso(new Date()); return null; },
+      praktikum_link: a => { const p = (DB.quali_praktika || []).find(x => x.token === a.p_token); if (!p) return null; const t = DB.profiles.find(x => x.id === p.azubi_id), h = ymd(new Date()), end90 = ymd(new Date(new Date(p.bis + 'T12:00:00').getTime() + 90 * 864e5));
+        return { teilnehmer: t.full_name, beruf: t.beruf, betrieb: 'C1TT Lernstandort (Demo)', abteilung: p.abteilung, ansprechpartner: p.ansprechpartner, von: p.von, bis: p.bis, aufgaben: p.aufgaben, fb_al: p.fb_al, fb_al_at: p.fb_al_at, abgesegnet: !!p.abgesegnet_at, offen: !p.abgesegnet_at && h >= p.von && h <= end90, heute: h, fb_tn: p.abgesegnet_at && p.an_abteilung ? p.fb_tn : null }; },
+      praktikum_link_feedback: a => { const p = (DB.quali_praktika || []).find(x => x.token === a.p_token); if (!p || p.abgesegnet_at) throw new Error('Die Rückmeldung ist über diesen Link nicht mehr möglich'); p.fb_al = a.p_fb; p.fb_al_at = iso(new Date()); return null; },
       test_verlaengern: a => { const s = DB.test_sitzungen.find(x => x.id === a.p_sitzung); s.endet_at = iso(new Date(new Date(s.endet_at).getTime() + (a.p_min || 5) * 60e3)); return s.endet_at; }
     };
     const client = {
