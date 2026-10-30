@@ -263,11 +263,11 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js"></script>
-<script src="./ausbildung.js"></script>
-<script src="./ausbau2.js"></script>
-<script src="./quali.js"></script>
-<script src="./quali2.js"></script>
+<script src="./schule.js?v=2026-10-30f"></script>
+<script src="./ausbildung.js?v=2026-10-30f"></script>
+<script src="./ausbau2.js?v=2026-10-30f"></script>
+<script src="./quali.js?v=2026-10-30f"></script>
+<script src="./quali2.js?v=2026-10-30f"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -435,7 +435,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-30e';
+const APP_VERSION = '2026-10-30f';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -4264,7 +4264,7 @@ async function showClass() {
   };
 }
 
-const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, qanw: QAnwView, qtests: QTestsView, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
+const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, qanw: typeof QAnwView !== 'undefined' ? QAnwView : Home, qtests: typeof QTestsView !== 'undefined' ? QTestsView : Home, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
 function updateAdminBtn() { $('#admBtn').hidden = !canManage(); }
 
 /* =====================================================================
@@ -4496,7 +4496,7 @@ $('#demoBtn').onclick = openDemoPicker;
 $('#demoRole').onclick = openDemoPicker;
 $('#demoReset').onclick = () => location.reload();
 async function startDemo(role) {
-  try { await loadScript('demo.js'); } catch { showAuth(); return toast('Die Demo konnte nicht geladen werden.'); }
+  try { await loadScript('demo.js?v=' + APP_VERSION); } catch { showAuth(); return toast('Die Demo konnte nicht geladen werden.'); }
   window.__realSb = sb; S.demo = true;
   sb = window.makeDemoClient(role); await sb.ready;
   window.__demoRt = m => onMessage(m);
@@ -4509,15 +4509,15 @@ async function startDemo(role) {
   applyConfig(); loadBranding();
   if (CAREER_SLUG) return showCareer(CAREER_SLUG);
   if (SCHOOL_SLUG === 'demo') {
-    try { await loadScript('demo.js'); } catch { return toast('Die Demo konnte nicht geladen werden.'); }
+    try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); }
     window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('azubi'); await sb.ready;
   }
   if (SIEGEL_SLUG) {
-    if (SIEGEL_SLUG === 'demo') { try { await loadScript('demo.js'); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('leitung'); await sb.ready; }
+    if (SIEGEL_SLUG === 'demo') { try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('leitung'); await sb.ready; }
     return showSiegel(SIEGEL_SLUG);
   }
   if (ELTERN_SLUG) {
-    if (ELTERN_SLUG === 'demo') { try { await loadScript('demo.js'); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('azubi'); await sb.ready; }
+    if (ELTERN_SLUG === 'demo') { try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('azubi'); await sb.ready; }
     return showEltern(ELTERN_SLUG);
   }
   if (SCHOOL_SLUG === 'klasse') return showClass();
