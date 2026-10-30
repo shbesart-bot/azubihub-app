@@ -263,12 +263,13 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-10-30g"></script>
-<script src="./ausbildung.js?v=2026-10-30g"></script>
-<script src="./ausbau2.js?v=2026-10-30g"></script>
-<script src="./quali.js?v=2026-10-30g"></script>
-<script src="./quali2.js?v=2026-10-30g"></script>
-<script src="./quali3.js?v=2026-10-30g"></script>
+<script src="./schule.js?v=2026-10-30j"></script>
+<script src="./ausbildung.js?v=2026-10-30j"></script>
+<script src="./ausbau2.js?v=2026-10-30j"></script>
+<script src="./quali.js?v=2026-10-30j"></script>
+<script src="./quali2.js?v=2026-10-30j"></script>
+<script src="./quali3.js?v=2026-10-30j"></script>
+<script src="./quali4.js?v=2026-10-30j"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -436,7 +437,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-30g';
+const APP_VERSION = '2026-10-30j';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -1869,6 +1870,12 @@ function cfgFormHTML() {
   <form id="cfgForm" class="flex flex-col gap-4 mt-4" novalidate>
     <p class="text-[13px] text-muted">Hier änderst du, wie die App aussieht und was sie anzeigt. Nach dem Speichern sehen alle die Änderung, sobald sie die App neu öffnen.</p>
     <section class="card p-4 flex flex-col gap-3">
+      <h3 class="text-[17px] font-bold">Betriebsart</h3>
+      <div><label class="lbl" for="cTyp">Wofür nutzt ihr die App?</label><select id="cTyp" class="field"><option value="">Berufsausbildung (Azubis, Berufsschule, IHK)</option><option value="qualifizierung" ${APP.typ === 'qualifizierung' ? 'selected' : ''}>Qualifizierung Erwachsener (Teilqualifizierung, Intensivkurs, Externenprüfung)</option></select></div>
+      <p class="text-[12px] text-muted">Qualifizierung: Teilnehmende statt Azubis, Module mit IHK-Zertifikat, Gruppen, Anwesenheit, Tests und Praktika; Berufsschule, Eltern und Jugendarbeitsschutz sind ausgeblendet. Beim ersten Umstellen werden Berufe und Lernorte für Kunststoff/Kautschuk, Betriebselektrik, Lagerlogistik und Maschinen- und Anlagenführer vorgeschlagen, solange hier noch die Standardwerte stehen.</p>
+      ${save}
+    </section>
+    <section class="card p-4 flex flex-col gap-3">
       <h3 class="text-[17px] font-bold">Name & Farben</h3>
       ${f('cAppName', 'Name der App', BR.appName, '', 'text', 'maxlength="30"')}
       ${f('cLoginText', 'Text auf der Anmeldeseite', BR.loginText, '', 'area', 2)}
@@ -1948,15 +1955,23 @@ function bindCfgForm() {
     const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(x => x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
     const contrastWhite = h => 1.05 / (lum(h) + .05);
     if (/^#[0-9a-f]{6}$/i.test($('#cBrand').value) && contrastWhite($('#cBrand').value) < 4.5) toast('Hinweis: Die Hauptfarbe ist sehr hell. Weiße Schrift auf Knöpfen ist damit schwer lesbar – für Barrierefreiheit lieber eine dunklere Farbe wählen.');
-    const newBR = { appName, loginText: $('#cLoginText').value.trim(), brand: $('#cBrand').value, brand2: $('#cBrand2').value, berufe, datenschutz: $('#cPrivacy').value.trim() || DEFAULT_BRANDING.datenschutz };
-    const newAPP = { modules, abteilungen: abt,
+    const typ = $('#cTyp')?.value || '';
+    let berufe2 = berufe, abt2 = abt;
+    if (typ === 'qualifizierung' && APP.typ !== 'qualifizierung' && typeof Q_KATALOG !== 'undefined') {
+      if (JSON.stringify(berufe) === JSON.stringify(DEFAULT_BRANDING.berufe)) berufe2 = [...new Set(Object.values(Q_KATALOG).map(k => k.beruf))];
+      if (JSON.stringify(abt.map(a => a.name)) === JSON.stringify(DEFAULT_APP.abteilungen.map(a => a.name))) abt2 = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'C1TT-Werkstatt', 'Arbeitsplatz im Werk'].map(name => ({ name, wochen: 0 }));
+    }
+    const newBR = { appName, loginText: $('#cLoginText').value.trim(), brand: $('#cBrand').value, brand2: $('#cBrand2').value, berufe: berufe2, datenschutz: $('#cPrivacy').value.trim() || DEFAULT_BRANDING.datenschutz };
+    const newAPP = { ...(typ ? { typ } : {}), modules, abteilungen: abt2,
       plan: { 1: pipes('cPlan1').map(p => [p[0], p[1] || '']), 2: pipes('cPlan2').map(p => [p[0], p[1] || '']), 3: pipes('cPlan3').map(p => [p[0], p[1] || '']) },
       wikiChips: lines('cWikiChips'), botHello: $('#cBotHello').value.trim() || DEFAULT_APP.botHello, botAsks: lines('cBotAsks'),
       botFallback: $('#cBotFallback').value.trim() || DEFAULT_APP.botFallback,
       genPhrases: gen, genFallback: $('#cGenFb').value.trim() || DEFAULT_APP.genFallback, genLinks: links,
       wochenSoll: Math.min(60, Math.max(0, parseInt($('#cSoll').value, 10) || 0)), ...(APP.ihk ? { ihk: APP.ihk } : {}) };
     await q(sb.from('app_config').upsert([{ key: 'branding', value: newBR }, { key: 'app', value: newAPP }], { onConflict: 'betrieb_id,key' }));
+    const typChanged = typ !== (APP.typ || '');
     BR = mergeCfg(DEFAULT_BRANDING, newBR); APP = mergeCfg(DEFAULT_APP, newAPP); applyConfig(); renderTabs();
+    if (typChanged) { toast('Gespeichert. Betriebsart umgestellt – die App lädt neu.'); setTimeout(() => location.reload(), 1200); return; }
     toast('Gespeichert. Gilt ab sofort für alle.');
     const y = scrollY; render(); scrollTo(0, y);
   };
@@ -2804,7 +2819,7 @@ async function openExam(mode = 'teil2', maxLj = null, nrs = null, keys = null, t
       $('#exReview').onclick = () => { E.review = true; draw(); }; $('#exAgain').onclick = () => E.mode === 'schwaechen' || E.mode === 'lernfeld' ? openExam(E.mode, null, nrs, keys, title) : openExamPicker(); return;
     }
     if (E.review) {
-      sheetShell(title || 'Prüfungssimulation', `<div class="flex flex-col gap-3">${E.qs.map((x, i) => { const a = E.ans[x.id]; return `<div class="card p-4"><div class="eyebrow mb-1">Frage ${i + 1}${x.rp_nr ? ' · ' + esc(x.rp_nr) : ''}</div><div class="font-semibold text-[15px] mb-3">${esc(x.frage)}</div><div class="flex flex-col gap-2">${x.optionen.map((o, j) => `<div class="quizopt ${j === x.richtig ? 'right' : j === a ? 'wrong' : ''}">${esc(o)}</div>`).join('')}</div>${a == null ? '<p class="text-[13px] mt-2" style="color:var(--crit)">Nicht beantwortet.</p>' : ''}${x.erklaerung ? `<p class="text-[13px] text-muted mt-3">${esc(x.erklaerung)}</p>` : ''}</div>`; }).join('')}
+      sheetShell(title || 'Prüfungssimulation', `<div class="flex flex-col gap-3">${E.qs.map((x, i) => { const a = E.ans[x.id]; return `<div class="card p-4"><div class="eyebrow mb-1">Frage ${i + 1}${x.rp_nr ? ' · ' + esc(x.rp_nr) : ''}</div><div class="font-semibold text-[15px] mb-3" data-trsrc>${esc(x.frage)}</div><div class="flex flex-col gap-2">${x.optionen.map((o, j) => `<div class="quizopt ${j === x.richtig ? 'right' : j === a ? 'wrong' : ''}"><span data-trsrc>${esc(o)}</span></div>`).join('')}</div>${a == null ? '<p class="text-[13px] mt-2" style="color:var(--crit)">Nicht beantwortet.</p>' : ''}${x.erklaerung ? `<p class="text-[13px] text-muted mt-3" data-trsrc>${esc(x.erklaerung)}</p>` : ''}</div>`; }).join('')}
         <button id="exBack" class="btn w-full">Zurück zum Ergebnis</button></div>`);
       $('#exBack').onclick = () => { E.review = false; draw(); }; return;
     }
@@ -2812,8 +2827,8 @@ async function openExam(mode = 'teil2', maxLj = null, nrs = null, keys = null, t
     sheetShell(title || 'Prüfungssimulation', `
       <div class="flex items-center justify-between mb-2"><span class="eyebrow">Frage ${E.i + 1} von ${E.qs.length}</span><span class="chip tnum" role="timer" aria-label="Restzeit"><span id="exClock">${mmss(left())}</span></span></div>
       <div class="bar mb-4"><i style="width:${pct(n, E.qs.length)}%"></i></div>
-      <div class="card p-4"><div class="font-semibold text-[16px] mb-3">${esc(x.frage)}</div>
-      <div class="flex flex-col gap-2" role="radiogroup" aria-label="Antworten">${x.optionen.map((o, j) => `<button class="quizopt" role="radio" aria-checked="${a === j}" data-ex="${j}" ${a === j ? 'style="border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))"' : ''}>${esc(o)}</button>`).join('')}</div></div>
+      <div class="card p-4"><div class="font-semibold text-[16px] mb-3" data-trsrc>${esc(x.frage)}</div>
+      <div class="flex flex-col gap-2" role="radiogroup" aria-label="Antworten">${x.optionen.map((o, j) => `<button class="quizopt" role="radio" aria-checked="${a === j}" data-ex="${j}" ${a === j ? 'style="border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))"' : ''}><span data-trsrc>${esc(o)}</span></button>`).join('')}</div></div>
       <div class="grid grid-cols-2 gap-2 mt-4"><button id="exPrev" class="btn ghost" ${E.i ? '' : 'disabled'}>Zurück</button>${E.i + 1 < E.qs.length ? '<button id="exNext" class="btn">Weiter</button>' : '<button id="exEnd" class="btn">Abgeben</button>'}</div>
       <div class="flex flex-wrap gap-1.5 mt-4" aria-label="Fragenübersicht">${E.qs.map((y, k) => `<button class="chip tnum ${k === E.i ? 'accent' : E.ans[y.id] != null ? 'ok' : ''}" data-exgo="${k}" aria-label="Frage ${k + 1}${E.ans[y.id] != null ? ', beantwortet' : ''}">${k + 1}</button>`).join('')}</div>
       ${E.i + 1 < E.qs.length ? `<button id="exEnd" class="btn ghost w-full mt-3 text-[13px]">Jetzt abgeben (${n} von ${E.qs.length} beantwortet)</button>` : ''}`);
@@ -4352,18 +4367,24 @@ async function openProfile() {
    Übersetzt die Oberfläche nach dem Rendern. Texte von Nutzern
    (Berichte, Nachrichten, Inhalte des Betriebs) bleiben unverändert.
    ===================================================================== */
-const LANGS = { de: 'Deutsch', en: 'English', uk: 'Українська', ar: 'العربية' };
+const LANGS = { de: 'Deutsch', en: 'English', tr: 'Türkçe', ru: 'Русский', uk: 'Українська', ar: 'العربية' };
 let PDF_DE = false;
-const LOCALE = () => PDF_DE ? 'de-DE' : ({ de: 'de-DE', en: 'en-GB', uk: 'uk-UA', ar: 'ar-u-nu-latn' })[LANG] || 'de-DE';
-const I18N = { en: {}, uk: {}, ar: {} };
-const WILD = { en: [], uk: [], ar: [] };
+const LOCALE = () => PDF_DE ? 'de-DE' : ({ de: 'de-DE', en: 'en-GB', tr: 'tr-TR', ru: 'ru-RU', uk: 'uk-UA', ar: 'ar-u-nu-latn' })[LANG] || 'de-DE';
+const I18N = { en: {}, tr: {}, ru: {}, uk: {}, ar: {} };
+const WILD = { en: [], tr: [], ru: [], uk: [], ar: [] };
 const NUM_RE = /\d+(?:[.,:]\d+)*/g;
+const i18nWild = de => new RegExp('^' + de.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '(.+?)') + '$');
 function i18nLoad(data) {
   for (const [de, tr] of Object.entries(data)) ['en', 'uk', 'ar'].forEach((l, i) => {
     if (!tr[i]) return;
-    if (de.includes('*')) WILD[l].push([new RegExp('^' + de.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '(.+?)') + '$'), tr[i]]);
+    if (de.includes('*')) WILD[l].push([i18nWild(de), tr[i]]);
     else I18N[l][de] = tr[i];
   });
+}
+/* Zusatzdatei: { sprache: { deutsch: übersetzung } } */
+function i18nLoadX(data) {
+  for (const [l, map] of Object.entries(data || {})) { if (!I18N[l]) continue;
+    for (const [de, v] of Object.entries(map)) { if (!v) continue; if (de.includes('*')) WILD[l].unshift([i18nWild(de), v]); else I18N[l][de] = v; } }
 }
 function lookup(d, s, depth = 0) {
   if (!s || depth > 3) return undefined;
@@ -4419,7 +4440,7 @@ new MutationObserver(ms => {
 }).observe(document.body, { childList: true, subtree: true, characterData: true });
 async function setLang(l) {
   LANG = LANGS[l] ? l : 'de';
-  if (LANG !== 'de' && !window.__i18nLoaded) { try { await loadScript('i18n.js'); window.__i18nLoaded = true; i18nLoad(window.I18N_DATA || {}); } catch {} }
+  if (LANG !== 'de' && !window.__i18nLoaded) { try { await Promise.all([loadScript('i18n.js?v=' + APP_VERSION), loadScript('i18n-q.js?v=' + APP_VERSION)]); window.__i18nLoaded = true; i18nLoad(window.I18N_DATA || {}); i18nLoadX(window.I18N_X || {}); } catch {} }
   try { localStorage.setItem('azubihub.lang', LANG); } catch {}
   document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'ar' ? 'rtl' : 'ltr';
   const sel = document.getElementById('loginLang'); if (sel) sel.value = LANG;
@@ -4486,7 +4507,7 @@ try { const t = localStorage.getItem('azubihub.theme'); if (t) document.document
 
 /* ---------- Demo ---------- */
 const DEMO_ROLES = [['azubi', 'Azubi', 'Lena, 1. Lehrjahr Hotelfach: Berichtsheft, Unterweisungen, Chat'], ['ausbilder', 'Ausbilder', 'Marco, Küchenchef: zeichnet Küchen-Berichte ab, Ampel, Urlaub'], ['leitung', 'Leitung', 'Sabine, Inhaberin: Verwaltung, Rechte, Karriereseite'], ['mitarbeiter', 'Mitarbeiter', 'Piotr, Service: Pinnwand, Unterweisungen, Übergabe']];
-const DEMO_Q_ROLES = [['c1tt', 'Teilnehmer', 'Dennis, Teilqualifizierung Kunststoff/Kautschuk, Modul 3'], ['c1tt-trainer', 'Trainer', 'Michael: Nachweise abzeichnen, Module und Zertifikate'], ['c1tt-elektro', 'Teilnehmer Elektro', 'Tobias, Teilqualifizierung Betriebselektriker, Modul 2'], ['c1tt-lager', 'Teilnehmerin Lager', 'Svetlana, Teilqualifizierung Lagerlogistik, Modul 4'], ['c1tt-koord', 'Koordination', 'Katrin: alle Teilnehmenden – Kautschuk, Elektro, Lager, Maschinenführer'], ['c1tt-guide', 'Qualifizierungs-Guide', 'Sandra: begleitet drei Kolleg:innen']];
+const DEMO_Q_ROLES = [['c1tt', 'Teilnehmer', 'Dennis, Teilqualifizierung Kunststoff/Kautschuk, Modul 3'], ['c1tt-trainer', 'Trainer', 'Michael: seine Gruppe, Anwesenheit, Tests, Praktika'], ['c1tt-elektro', 'Teilnehmer Elektro', 'Tobias, Teilqualifizierung Betriebselektriker, Modul 2'], ['c1tt-lager', 'Teilnehmerin Lager', 'Svetlana, Teilqualifizierung Lagerlogistik, Modul 4'], ['c1tt-maf', 'Teilnehmer Intensivkurs', 'Mehmet, Maschinen- und Anlagenführer, Prüfung in 5 Wochen mit Lernplan'], ['c1tt-koord', 'Koordination', 'Katrin: alle Teilnehmenden – Kautschuk, Elektro, Lager, Maschinenführer'], ['c1tt-guide', 'Qualifizierungs-Guide', 'Sandra: begleitet drei Kolleg:innen']];
 function openDemoPicker() {
   const list = rs => `<div class="card">${rs.map(([k, l, d], i) => `<a class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}" href="?demo=${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${l}</div><div class="text-[12px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted')}</a>`).join('')}</div>`;
   const qOnly = new URLSearchParams(location.search).get('demo')?.startsWith('c1tt');

@@ -316,7 +316,7 @@
       guide: { id: 'demo-q-guide', full_name: 'Sandra Wolf', role: 'mitarbeiter', position: 'Qualifizierungs-Guide, Reifenaufbau', abteilung: LO[3] },
       dennis: { id: 'demo-q-dennis', full_name: 'Dennis Krause', role: 'azubi', beruf: KUK, lehrjahr: 3, abteilung: LO[2], start_datum: ymd(day(-305)), betreuer_id: 'demo-q-trainer' },
       olga: { id: 'demo-q-olga', full_name: 'Olga Schmidt', role: 'azubi', beruf: KUK, lehrjahr: 1, abteilung: LO[0], start_datum: ymd(day(-45)), betreuer_id: 'demo-q-trainer' },
-      mehmet: { id: 'demo-q-mehmet', full_name: 'Mehmet Yılmaz', role: 'azubi', beruf: MAF, lehrjahr: 1, abteilung: LO[0], start_datum: ymd(day(-70)), betreuer_id: 'demo-q-trainer', ap_datum: ymd(day(58)) },
+      mehmet: { id: 'demo-q-mehmet', full_name: 'Mehmet Yılmaz', role: 'azubi', beruf: MAF, lehrjahr: 1, abteilung: LO[0], start_datum: ymd(day(-70)), betreuer_id: 'demo-q-trainer', ap_datum: ymd(day(38)) },
       frank: { id: 'demo-q-frank', full_name: 'Frank Neumann', role: 'ausbilder', position: 'Trainer Elektrotechnik', kontakt_email: 'frank.neumann@example.com', telefon: '0511 000-130', rechte: ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'team'], bereiche: LO, abteilung: LO[2] },
       petra: { id: 'demo-q-petra', full_name: 'Petra Hahn', role: 'ausbilder', position: 'Trainerin Lagerlogistik', kontakt_email: 'petra.hahn@example.com', telefon: '0511 000-140', rechte: ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'team'], bereiche: LO, abteilung: LO[1] },
       tobias: { id: 'demo-q-tobias', full_name: 'Tobias Lange', role: 'azubi', beruf: IEL, lehrjahr: 2, abteilung: LO[2], start_datum: ymd(day(-150)), betreuer_id: 'demo-q-frank' },
@@ -353,7 +353,7 @@
         module: [{ nr: 1, status: 'laeuft', von: ymd(day(-45)), bis: ymd(day(137)) }], pruefung: {}, updated_at: iso(day(-40)) },
       { id: uuid(), betrieb_id: B, azubi_id: Q.mehmet.id, massnahme: 'ik-maf', standort: 'Lernstandort Nord', beginn: ymd(day(-70)), ende: ymd(day(50)), guide_id: null, erfahrung_jahre: 4.5,
         module: [{ nr: 1, status: 'laeuft', von: ymd(day(-70)), bis: ymd(day(50)) }],
-        pruefung: { nachweis: ymd(day(-80)), antrag: ymd(day(-60)), zulassung: ymd(day(-21)), anmeldeschluss: ymd(day(-50)), schriftlich: ymd(day(58)), praktisch: ymd(day(71)) }, updated_at: iso(day(-21)) },
+        pruefung: { nachweis: ymd(day(-80)), antrag: ymd(day(-60)), zulassung: ymd(day(-21)), anmeldeschluss: ymd(day(-50)), schriftlich: ymd(day(38)), praktisch: ymd(day(45)) }, updated_at: iso(day(-21)) },
       { id: uuid(), betrieb_id: B, azubi_id: Q.andrzej.id, massnahme: 'tq-kuk', standort: 'Lernstandort Nord', beginn: ymd(day(-640)), ende: ymd(day(90)), guide_id: Q.guide.id, erfahrung_jahre: 9,
         module: [1, 2, 3, 4].map(n => ({ nr: n, status: 'bestanden', zert_datum: ymd(day(-640 + n * 140)) })).concat([{ nr: 5, status: 'laeuft', von: ymd(day(-60)), bis: ymd(day(90)) }]),
         pruefung: { nachweis: ymd(day(-30)), antrag: ymd(day(-14)), anmeldeschluss: ymd(day(20)), schriftlich: ymd(day(96)), praktisch: ymd(day(110)) }, updated_at: iso(day(-14)) },
@@ -570,11 +570,16 @@
       pk('demo-q-pk-dennis', 'dennis', 'Mischsaal', 'Thomas Brandt', -60, -47, 'Mischungen nach Rezeptur vorbereiten, Chargen kennzeichnen, an der Walze mitarbeiten.', {
         fb_al: alFb([5, 4, 5, 5, 5, 4], 'Ja', 'Sehr zuverlässig, arbeitet sauber nach Rezeptur und fragt nach, wenn etwas unklar ist.', 'Bei Störungen noch sicherer selbst entscheiden.', 'Thomas Brandt'), fb_al_at: iso(day(-45)),
         fb_tn: tnFb([5, 4, 5, 5], 'Ja', 'Thomas hat sich viel Zeit genommen. Die Nachtschicht war anstrengend, aber lehrreich.'), fb_tn_at: iso(day(-46)), abgesegnet_at: iso(day(-40)), abgesegnet_von: Q.trainer.id }),
-      pk('demo-q-pk-dennis2', 'dennis', 'Vulkanisation Halle 2', 'Ayşe Demir', 21, 32, 'Heizpressen beschicken, Rohlinge prüfen, Wartungsplan kennenlernen.'),
+      pk('demo-q-pk-dennis2', 'dennis', 'Vulkanisation Halle 2', 'Ayşe Demir', -3, 8, 'Heizpressen beschicken, Rohlinge prüfen, Wartungsplan kennenlernen.'),
       pk('demo-q-pk-olga', 'olga', 'Reifenaufbau Halle 3', 'Marco Jansen', -16, -5, 'Aufbaumaschine unter Anleitung, Materialfluss, Qualitätsprüfung am Rohling.', {
         fb_al: alFb([4, 3, 5, 4, 5, 3], 'Eher ja', 'Freundlich, sehr lernbereit, achtet gut auf die Sicherheit.', 'Im Arbeitstempo und bei den Prüfmerkmalen noch sicherer werden.', 'Marco Jansen'), fb_al_at: iso(day(-4)) }),
       pk('demo-q-pk-andrzej', 'andrzej', 'Instandhaltung Werk Nord', 'Stefan Kühn', -4, 7, 'Mit der Instandhaltung Wartungen an Pressen durchführen, Lockout-Tagout anwenden.'),
       pk('demo-q-pk-svetlana', 'svetlana', 'Versand Werk Nord', 'Jana Wolff', 10, 19, 'Verladung, Versandpapiere, Ladungssicherung.', { created_by: Q.petra.id })
+    ];
+    DB.quali_dokumente = [
+      { id: uuid(), betrieb_id: B, azubi_id: Q.dennis.id, typ: 'zertifikat', modul: 1, titel: 'IHK-Zertifikat Modul 1', datum: ymd(day(-120)), datei: Q.dennis.id + '/demo_zertifikat_1.pdf', mime: 'application/pdf', geprueft_von: Q.trainer.id, geprueft_at: iso(day(-118)), created_by: Q.dennis.id, created_at: iso(day(-119)) },
+      { id: uuid(), betrieb_id: B, azubi_id: Q.dennis.id, typ: 'zertifikat', modul: 2, titel: 'IHK-Zertifikat Modul 2', datum: ymd(day(-1)), datei: Q.dennis.id + '/demo_zertifikat_2.jpg', mime: 'image/jpeg', geprueft_von: null, geprueft_at: null, created_by: Q.dennis.id, created_at: iso(day(0, 8)) },
+      { id: uuid(), betrieb_id: B, azubi_id: Q.andrzej.id, typ: 'nachweis', modul: null, titel: 'Bescheinigung Berufserfahrung', datum: ymd(day(-30)), datei: Q.andrzej.id + '/demo_nachweis.pdf', mime: 'application/pdf', geprueft_von: Q.koord.id, geprueft_at: iso(day(-29)), created_by: Q.koord.id, created_at: iso(day(-30)) }
     ];
     /* Anwesenheit: die letzten zehn Werktage, heute teilweise erfasst */
     DB.anwesenheit = [];
@@ -637,7 +642,7 @@
 
   window.makeDemoClient = function (role) {
     const QM = String(role || '').startsWith('c1tt');
-    const meId = QM ? ({ c1tt: 'demo-q-dennis', 'c1tt-trainer': 'demo-q-trainer', 'c1tt-koord': 'demo-q-koord', 'c1tt-guide': 'demo-q-guide', 'c1tt-elektro': 'demo-q-tobias', 'c1tt-lager': 'demo-q-svetlana' })[role] || 'demo-q-dennis'
+    const meId = QM ? ({ c1tt: 'demo-q-dennis', 'c1tt-trainer': 'demo-q-trainer', 'c1tt-koord': 'demo-q-koord', 'c1tt-guide': 'demo-q-guide', 'c1tt-elektro': 'demo-q-tobias', 'c1tt-lager': 'demo-q-svetlana', 'c1tt-maf': 'demo-q-mehmet' })[role] || 'demo-q-dennis'
       : ({ azubi: P.lena.id, ausbilder: P.koch.id, leitung: P.lei.id, mitarbeiter: P.piotr.id })[role] || P.lena.id;
     const me = () => DB.profiles.find(p => p.id === meId);
     const RPC = {

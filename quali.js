@@ -248,6 +248,9 @@ const QualiView = {
     if (typeof qExtraBind === 'function') qExtraBind();
     $$('[data-qex]').forEach(b => b.onclick = () => qExam(+b.dataset.qex));
     $$('[data-qedit]').forEach(b => b.onclick = () => qEditSheet(b.dataset.qedit));
+    $$('[data-qakte]').forEach(b => b.onclick = () => qAkteSheet(b.dataset.qakte));
+    $$('[data-qmydocs]').forEach(b => b.onclick = () => qAkteSheet(S.me.id));
+    if (isAzubi() && S.quali.tab === 'pruefung' && typeof qLernplanBind === 'function') qLernplanBind((S.quali.rows || []).find(r => r.azubi_id === S.me.id));
     bindChatLinks();
   }
 };
@@ -272,7 +275,9 @@ function qPruefHTML(t, staff) {
     <div class="card">${Q_PRUEF.map(([key, l, d], i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><span class="chip ${pr[key] ? 'ok' : ''} flex-none">${pr[key] ? '✓' : '○'}</span><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold">${esc(l)}</div><div class="text-[12px] text-muted">${pr[key] ? 'erledigt ' + fmtDate(pr[key]) : esc(d)}</div></div></div>`).join('')}
       <div class="p-3.5 border-t border-line grid grid-cols-3 gap-2 text-[13px]"><div><div class="text-[11px] text-muted">Anmeldeschluss</div><div class="font-semibold tnum">${pr.anmeldeschluss ? fmtDate(pr.anmeldeschluss) : '–'}</div></div><div><div class="text-[11px] text-muted">schriftlich</div><div class="font-semibold tnum">${pr.schriftlich ? fmtDate(pr.schriftlich) : '–'}</div></div><div><div class="text-[11px] text-muted">praktisch</div><div class="font-semibold tnum">${pr.praktisch ? fmtDate(pr.praktisch) : '–'}</div></div></div></div>
     <p class="text-[12px] text-muted mt-2">Zulassung nach § 45 Abs. 2 BBiG: in der Regel das Eineinhalbfache der Ausbildungszeit im Beruf gearbeitet (hier ${String(mind).replace('.', ',')} Jahre) – oder die Berufserfahrung wird auf andere Weise glaubhaft gemacht, z. B. mit den IHK-Zertifikaten der Teilqualifizierung. Über die Zulassung entscheidet die IHK. Keine Rechtsberatung.</p>
-    ${!staff ? `<button class="btn w-full mt-3" data-qex="0">Gemischte Prüfung üben</button>` : ''}`;
+    ${!staff ? `<button class="btn w-full mt-3" data-qex="0">Gemischte Prüfung üben</button>
+      <button class="btn ghost w-full mt-2" data-qmydocs>Deine Unterlagen und Zertifikate</button>
+      ${typeof qLernplanHTML === 'function' ? qLernplanHTML(t) : ''}` : ''}`;
 }
 function qMineHTML() {
   const t = (S.quali.rows || []).find(r => r.azubi_id === S.me.id), k = qKat(t);
@@ -307,11 +312,11 @@ function qStaffHTML() {
     <p class="text-[14px] text-muted mt-1">Teilqualifizierungen und Intensivkurse mit Externenprüfung.</p>
     ${typeof qStaffTabs === 'function' && qStaffTabs().length > 1 ? qSegHTML(qStaffTabs()) : ''}
     ${typeof qExtraHTML === 'function' && qExtraHTML() != null ? qExtraHTML() : `${order.length ? order.map(key => { const k = Q_KATALOG[key]; return `${secTitle(k ? esc(k.kurz) : 'Ohne Maßnahme', `<span class="chip tnum">${byK[key].length}</span>`)}
-      <div class="card">${byK[key].map(({ p, t }, i) => { const c = t && qCur(t), ex = qExamInfo(t), n = k?.module.length || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" ${canEdit ? `data-qedit="${p.id}"` : ''}>${avatar(p, 38)}
+      <div class="card">${byK[key].map(({ p, t }, i) => { const c = t && qCur(t), ex = qExamInfo(t), n = k?.module.length || 0; return `<button class="w-full flex items-center gap-3 p-3.5 text-left ${i ? 'border-t border-line' : ''}" ${canEdit ? `data-qedit="${p.id}"` : `data-qakte="${p.id}"`}>${avatar(p, 38)}
         <div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name)}</div>
         <div class="text-[12px] text-muted truncate">${k ? (n > 1 ? `Modul ${c?.nr || 1} von ${n} · ${qDone(t)} ${qDone(t) === 1 ? 'Zertifikat' : 'Zertifikate'}` : esc(k.art)) : 'Maßnahme zuordnen'}${t?.standort ? ' · ' + esc(t.standort) : ''}${typeof qGroupLabel === 'function' && qGroupLabel(p.id) ? ' · ' + esc(qGroupLabel(p.id)) : ''}</div>
         ${k && n > 1 ? `<div class="flex gap-1 mt-1.5">${qMods(t).map(m => `<i title="Modul ${m.nr}: ${(qModStat[m.status || 'offen'] || qModStat.offen)[1]}" style="flex:1;height:6px;border-radius:3px;background:var(--st-${m.status === 'bestanden' ? 'ok' : m.status === 'laeuft' ? 'warn' : m.status === 'wiederholen' ? 'crit' : 'none, var(--line)'})"></i>`).join('')}</div>` : ''}</div>
-        ${ex?.n != null && ex.n >= 0 ? `<span class="chip ${ex.n <= 30 ? 'crit' : ex.n <= 90 ? 'warn' : ''} tnum flex-none">Prüfung ${ex.n} T.</span>` : ''}${canEdit ? svg('arrow', 'w-4 h-4 text-muted flex-none') : ''}</button>`; }).join('')}</div>`; }).join('')
+        ${ex?.n != null && ex.n >= 0 ? `<span class="chip ${ex.n <= 30 ? 'crit' : ex.n <= 90 ? 'warn' : ''} tnum flex-none">Prüfung ${ex.n} T.</span>` : ''}${svg('arrow', 'w-4 h-4 text-muted flex-none')}</button>`; }).join('')}</div>`; }).join('')
       : empty('Noch keine Teilnehmenden registriert. Gib ihnen den Code aus Verwaltung › Team.')}
     ${secTitle('Hinweise')}<div class="card p-4 text-[13px] text-muted flex flex-col gap-2">
       <div>Frühwarnung, Stimmungs-Check und Stationsfeedback sind im Qualifizierungsmodus ausgeschaltet. Einschalten erst nach Abstimmung mit dem Betriebsrat (§ 87 Abs. 1 Nr. 6 BetrVG).</div>
@@ -326,7 +331,7 @@ function qEditSheet(uid) {
   const guides = Object.values(S.profiles).filter(x => x.aktiv !== false && x.id !== uid && x.role !== 'azubi').sort((a, b) => a.full_name.localeCompare(b.full_name));
   const draw = () => {
     const k = qKat(t), ms = qMods(t), pr = t.pruefung || {};
-    sheetShell(p.full_name, `<form id="qForm" class="flex flex-col gap-3">
+    sheetShell(p.full_name, `<button type="button" class="btn ghost w-full mb-3" id="qToAkte">Unterlagen, Zertifikate und Prüfungsakte</button><form id="qForm" class="flex flex-col gap-3">
       <div class="card p-4 flex flex-col gap-3">
         <div><label class="lbl" for="qM">Maßnahme</label><select id="qM" class="field"><option value="">– bitte wählen –</option>${Object.entries(Q_KATALOG).map(([key, x]) => `<option value="${key}" ${t.massnahme === key ? 'selected' : ''}>${esc(x.art)} · ${esc(x.beruf)}</option>`).join('')}</select></div>
         <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="qB">Beginn</label><input id="qB" type="date" class="field" value="${t.beginn || ''}"></div><div><label class="lbl" for="qE">Ende</label><input id="qE" type="date" class="field" value="${t.ende || ''}"></div></div>
@@ -342,6 +347,7 @@ function qEditSheet(uid) {
       <div class="eyebrow">Externenprüfung</div><div class="card p-4 flex flex-col gap-2">${Q_PRUEF.map(([key, l]) => `<label class="flex items-center gap-2 text-[14px]"><input type="checkbox" class="cbx" data-pr="${key}" ${pr[key] ? 'checked' : ''}>${esc(l)}</label>`).join('')}
         <div class="grid grid-cols-3 gap-2 mt-1"><div><label class="lbl" for="qPa">Anmeldeschluss</label><input id="qPa" type="date" class="field" value="${pr.anmeldeschluss || ''}"></div><div><label class="lbl" for="qPs">schriftlich</label><input id="qPs" type="date" class="field" value="${pr.schriftlich || ''}"></div><div><label class="lbl" for="qPp">praktisch</label><input id="qPp" type="date" class="field" value="${pr.praktisch || ''}"></div></div></div>` : ''}
       <button class="btn">Speichern</button></form>`);
+    $('#qToAkte').onclick = () => qAkteSheet(uid);
     $('#qM').onchange = () => { t.massnahme = $('#qM').value; collect(false); draw(); };
     $('#qForm').onsubmit = async e => { e.preventDefault(); collect(true); await save(); };
   };

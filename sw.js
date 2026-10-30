@@ -1,6 +1,6 @@
 /* AzubiHub Service Worker: App-Start offline aus dem Zwischenspeicher, Push-Benachrichtigungen. */
-const CACHE = 'azubihub-v46';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon-32.png', './demo.js', './i18n.js', './schule.js', './ausbildung.js', './ausbau2.js', './quali.js', './quali2.js', './quali3.js', './vendor/supabase.js', './vendor/figtree-latin-400-normal.woff2', './vendor/figtree-latin-600-normal.woff2', './vendor/figtree-latin-700-normal.woff2', './vendor/bricolage-grotesque-latin-700-normal.woff2', './vendor/jspdf.umd.min.js', './vendor/notosans-400Regular.ttf', './vendor/notosans-700Bold.ttf'];
+const CACHE = 'azubihub-v49';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon-32.png', './demo.js', './i18n.js', './i18n-q.js', './schule.js', './ausbildung.js', './ausbau2.js', './quali.js', './quali2.js', './quali3.js', './quali4.js', './vendor/supabase.js', './vendor/figtree-latin-400-normal.woff2', './vendor/figtree-latin-600-normal.woff2', './vendor/figtree-latin-700-normal.woff2', './vendor/bricolage-grotesque-latin-700-normal.woff2', './vendor/jspdf.umd.min.js', './vendor/notosans-400Regular.ttf', './vendor/notosans-700Bold.ttf'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

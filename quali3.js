@@ -48,6 +48,7 @@ const qGroupLabel = uid => { const g = qGruppe(S.qgr?.tn?.[uid]); return g ? g.n
 async function q3Load() {
   const tab = S.quali.tab;
   if (!isAzubi() && tab === 'gruppen') { await qGroupsLoad(); return true; }
+  if (!isAzubi() && tab === 'auswertung') { await qAuswLoad(); return true; }
   if (!isAzubi() && tab === 'praktika') { S.quali.pk = await q(sb.from('quali_praktika').select('*').order('von', { ascending: false })); return true; }
   if (isAzubi() && tab === 'praktikum') { S.quali.myPk = await q(sb.rpc('praktika_meine')); return true; }
   return false;
@@ -55,6 +56,7 @@ async function q3Load() {
 function q3HTML() {
   const tab = S.quali?.tab;
   if (!isAzubi() && tab === 'gruppen') return qGruppenHTML();
+  if (!isAzubi() && tab === 'auswertung') return qAuswHTML();
   if (!isAzubi() && tab === 'praktika') return qPraktikaHTML();
   if (isAzubi() && tab === 'praktikum') return qMyPraktikaHTML();
   return null;
@@ -62,6 +64,7 @@ function q3HTML() {
 function q3Bind() {
   const tab = S.quali?.tab;
   if (!isAzubi() && tab === 'gruppen') { qGruppenBind(); return true; }
+  if (!isAzubi() && tab === 'auswertung') { qAuswBind(); return true; }
   if (!isAzubi() && tab === 'praktika') { qPraktikaBind(); return true; }
   if (isAzubi() && tab === 'praktikum') { $$('[data-pkfb]').forEach(b => b.onclick = () => qTnFeedbackSheet(b.dataset.pkfb)); return true; }
   return false;
@@ -357,3 +360,64 @@ async function showPraktikum(tok) {
     } catch (er) { toast(errText(er)); btn.disabled = false; }
   };
 }
+
+/* =====================================================================
+   Fragen und Antworten übersetzen (Tests, Übungsfragen)
+   Die Prüfung bleibt auf Deutsch. Die Übersetzung erscheint klein darunter.
+   Nutzt den eingebauten Übersetzer des Browsers (aktuelles Chrome am Computer, ohne Datenversand an uns).
+   ===================================================================== */
+(() => {
+  const st = document.createElement('style');
+  st.textContent = `.qtr{display:block;font-size:12.5px;font-weight:500;color:var(--accent);margin-top:3px;line-height:1.35}
+  .qtrbar{display:flex;align-items:center;gap:8px;margin:-2px 0 10px;flex-wrap:wrap}.qtrbar button{font:inherit;font-size:13px;font-weight:700;color:var(--accent)}.qtrbar span{font-size:12px;color:var(--muted)}`;
+  document.head.appendChild(st);
+})();
+const Q_TR = { on: false, tr: {}, cache: {} };
+async function qTranslator() {
+  const l = LANG; if (l === 'de') return null;
+  if (Q_TR.tr[l] !== undefined) return Q_TR.tr[l];
+  let t = null;
+  const work = (async () => {
+    if (!('Translator' in self)) return null;
+    const av = await self.Translator.availability({ sourceLanguage: 'de', targetLanguage: l });
+    if (!av || av === 'unavailable') return null;
+    return await self.Translator.create({ sourceLanguage: 'de', targetLanguage: l });
+  })();
+  try { t = await Promise.race([work, new Promise(r => setTimeout(() => r(null), 15000))]); } catch { t = null; }
+  if (t) Q_TR.tr[l] = t; return t;
+}
+async function qTranslateIn(root) {
+  const els = [...root.querySelectorAll('[data-trsrc]')].filter(e => !e.dataset.trdone);
+  if (!els.length) return true;
+  const t = await qTranslator(); if (!t) return false;
+  for (const e of els) {
+    const src = e.textContent.trim(); if (!src) continue; e.dataset.trdone = '1';
+    const key = LANG + '|' + src;
+    try { Q_TR.cache[key] ||= await t.translate(src); } catch { continue; }
+    if (!e.isConnected) continue;
+    const s = document.createElement('span'); s.className = 'qtr'; s.setAttribute('translate', 'no'); s.dir = LANG === 'ar' ? 'rtl' : 'ltr'; s.lang = LANG; s.textContent = Q_TR.cache[key];
+    e.insertAdjacentElement('afterend', s);
+  }
+  return true;
+}
+function qTrBar(sheet) {
+  if (LANG === 'de' || !sheet.querySelector('[data-trsrc]') || sheet.querySelector('.qtrbar')) return;
+  const head = sheet.querySelector('.sheet > div'); if (!head) return;
+  const bar = document.createElement('div'); bar.className = 'qtrbar';
+  bar.innerHTML = `<button type="button" id="qtrBtn">${Q_TR.on ? 'Übersetzung ausblenden' : 'Übersetzung anzeigen'}</button><span>Die Prüfung ist auf Deutsch. Die Übersetzung hilft beim Verstehen.</span>`;
+  head.insertAdjacentElement('afterend', bar);
+  bar.querySelector('#qtrBtn').onclick = async () => {
+    Q_TR.on = !Q_TR.on;
+    if (!Q_TR.on) { sheet.querySelectorAll('.qtr').forEach(x => x.remove()); sheet.querySelectorAll('[data-trdone]').forEach(x => delete x.dataset.trdone); bar.querySelector('#qtrBtn').textContent = t('Übersetzung anzeigen'); return; }
+    bar.querySelector('#qtrBtn').textContent = t('Übersetzung wird geladen …');
+    const ok = await qTranslateIn(sheet);
+    if (ok) bar.querySelector('#qtrBtn').textContent = t('Übersetzung ausblenden');
+    if (!ok) { Q_TR.on = false; bar.querySelector('#qtrBtn').textContent = t('Übersetzung anzeigen');
+      bar.querySelector('span').textContent = t('Dieser Browser kann Fragen nicht selbst übersetzen. Tipp: In Chrome oben rechts im Menü „Übersetzen“ wählen.'); }
+  };
+  if (Q_TR.on) qTranslateIn(sheet);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const sheet = document.getElementById('sheet'); if (!sheet) return;
+  new MutationObserver(() => { if (!sheet.hidden) qTrBar(sheet); }).observe(sheet, { childList: true, subtree: true });
+});
