@@ -190,6 +190,8 @@ function qAuswHTML() {
       <select class="field" data-aw="zeitraum" aria-label="Zeitraum"><option value="28" ${A.zeitraum === '28' ? 'selected' : ''}>Letzte 4 Wochen</option><option value="90" ${A.zeitraum === '90' ? 'selected' : ''}>Letzte 3 Monate</option><option value="alle" ${A.zeitraum === 'alle' ? 'selected' : ''}>Gesamter Zeitraum</option></select>
     </div>
     <div class="grid grid-cols-2 gap-2 mt-3">${tile(list.length, 'Teilnehmende')}${tile(qa == null ? '–' : qa + ' %', 'Anwesenheitsquote', qa != null && qa < 85 ? 'text-[color:var(--warn)]' : '')}${tile(ta == null ? '–' : ta + ' %', 'Ø Testergebnis')}${tile(zert, 'IHK-Zertifikate erreicht')}${tile(soon, 'Prüfungen in 90 Tagen')}${tile(list.reduce((u, x) => u + x.unent, 0), 'unentschuldigte Tage')}</div>
+    ${typeof qErfolgHTML === 'function' ? qErfolgHTML(list.map(x => x.r)) : ''}
+    ${list.length ? secTitle('Teilnehmende') : ''}
     ${list.length ? `<div class="card mt-3">${list.map((x, i) => `<button class="w-full text-left p-3.5 ${i ? 'border-t border-line' : ''}" data-qakte="${x.p.id}"><div class="flex items-center gap-3">${avatar(x.p, 32)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(x.p.full_name)}</div>
         <div class="text-[12px] text-muted truncate">${esc(x.k?.kurz || 'ohne Maßnahme')}${x.gruppe ? ' · ' + esc(x.gruppe) : ''}${x.r.standort ? ' · ' + esc(x.r.standort) : ''}</div></div></div>
         <div class="grid grid-cols-4 gap-1 mt-2 text-[12px] tnum"><div><div class="text-muted">Module</div><b>${x.done}/${x.mods}</b></div><div><div class="text-muted">Anwesend</div><b style="color:${x.quote == null ? 'inherit' : x.quote < 85 ? 'var(--warn)' : 'var(--ok)'}">${x.quote == null ? '–' : x.quote + ' %'}</b></div>
@@ -217,6 +219,7 @@ async function qAuswPdf() {
   list.forEach((x, i) => { if (y > 192) { doc.addPage(); y = 18; head(); } if (i % 2) { doc.setFillColor(248, 250, 250); doc.rect(M, y - 4.3, W - 2 * M, 6.2, 'F'); }
     const v = [x.p.full_name, x.k?.kurz || '–', x.gruppe || '–', x.r.standort || '–', `${x.done}/${x.mods}`, x.quote == null ? '–' : x.quote + ' % (' + x.tage + ' T.)', String(x.unent), x.test == null ? '–' : x.test + ' %', x.pruef ? fmtDate(x.pruef) : '–'];
     doc.setFontSize(8.5); v.forEach((t, j) => { const w = (cols[j + 1]?.[1] ?? 280) - cols[j][1] - 2; doc.text(doc.splitTextToSize(pdfSafe(t), w)[0] || '', M + 1 + cols[j][1], y); }); y += 6.2; });
+  if (typeof qErfolgPdf === 'function') qErfolgPdf(P, list.map(x => x.r));
   P.foot('Auswertung');
   return { doc, name: `Auswertung_Qualifizierung_${localDate()}.pdf`, subject: 'Auswertung der Qualifizierung' };
 }

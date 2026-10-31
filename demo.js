@@ -552,6 +552,19 @@
     DB.lernkarten = [7004, 7012, 7015].map((qid, i) => ({ user_id: Q.dennis.id, question_id: qid, betrieb_id: B, fach: 1, faellig: ymd(day(i === 2 ? 3 : 0)), updated_at: iso(day(-4)) }));
 
 
+
+    /* Ehemalige mit Prüfungsergebnis (für Erfolgsquoten) – alle erfunden */
+    const AL = [['Kai Brenner', 'tq-kuk', '2023-02-01', 'bestanden', 74, 81, 1, '2025-03-10'], ['Ewa Kowalska', 'tq-kuk', '2023-02-01', 'bestanden', 68, 72, 1, '2025-03-10'], ['Murat Aydın', 'tq-kuk', '2023-02-01', 'bestanden', 55, 63, 2, '2025-09-22'],
+      ['Sergej Wolf', 'tq-kuk', '2023-02-01', 'nicht_bestanden', 41, 58, 1, null], ['Lisa Hoppe', 'tq-kuk', '2023-02-01', 'bestanden', 88, 85, 1, '2025-03-10'], ['Tim Gerber', 'tq-kuk', '2023-02-01', 'bestanden', 62, 70, 1, '2025-03-10'],
+      ['Anna Lis', 'tq-kuk', '2024-03-04', 'bestanden', 79, 83, 1, '2026-04-20'], ['Oleg Petrov', 'tq-kuk', '2024-03-04', 'bestanden', 66, 74, 1, '2026-04-20'], ['Selin Kaya', 'tq-kuk', '2024-03-04', 'bestanden', 91, 88, 1, '2026-04-20'], ['Paul Engel', 'tq-kuk', '2024-03-04', 'bestanden', 58, 67, 1, null],
+      ['Dirk Haas', 'tq-lag', '2024-01-08', 'bestanden', 72, 77, 1, '2026-02-02'], ['Nadia Rahimi', 'tq-lag', '2024-01-08', 'nicht_bestanden', 46, 52, 1, null], ['Jonas Beck', 'tq-lag', '2024-01-08', 'bestanden', 64, 69, 1, '2026-02-02'],
+      ['Uwe Kranz', 'ik-maf', '2025-04-07', 'bestanden', 70, 81, 1, '2025-09-15'], ['Hakan Öztürk', 'ik-maf', '2025-04-07', 'bestanden', 63, 75, 1, '2025-09-15'], ['Marta Nowak', 'ik-maf', '2025-04-07', 'bestanden', 77, 84, 1, '2025-09-15'], ['Rene Sommer', 'ik-maf', '2025-04-07', 'nicht_bestanden', 39, 61, 1, null], ['Ivo Marić', 'ik-maf', '2025-04-07', 'bestanden', 81, 79, 1, '2025-09-15']];
+    AL.forEach(([name, m, beg, erg, ps, pp, v, brief], i) => {
+      const id = 'demo-q-alt-' + i, k = Q_KATALOG[m], end = new Date(beg + 'T12:00:00'); end.setMonth(end.getMonth() + (m.startsWith('ik') ? 5 : 24));
+      DB.profiles.push({ ...base, id, full_name: name, role: 'azubi', aktiv: false, beruf: k.beruf, lehrjahr: k.module.length, abteilung: LO[3], start_datum: beg });
+      DB.quali_teilnahmen.push({ id: uuid(), betrieb_id: B, azubi_id: id, massnahme: m, standort: i % 3 === 2 ? 'Lernstandort Süd' : 'Lernstandort Nord', beginn: beg, ende: ymd(end), guide_id: null, erfahrung_jahre: 5,
+        module: k.module.map(x => ({ nr: x.nr, status: 'bestanden' })), pruefung: { nachweis: beg, antrag: beg, zulassung: beg, anmeldung: beg, ergebnis: erg, ergebnis_datum: ymd(end), punkte_schriftlich: ps, punkte_praktisch: pp, ...(v > 1 ? { versuch: v } : {}), ...(brief ? { brief_datum: brief } : {}), ...(erg === 'nicht_bestanden' ? { wiederholung: ymd(day(40 + i)) } : {}) }, updated_at: iso(end) });
+    });
     /* Gruppen, Vertretung, Praktika */
     DB.quali_gruppen = [
       { id: 'demo-q-gr-kuk', betrieb_id: B, name: 'TQ Kautschuk Gruppe A', trainer_id: Q.trainer.id, notiz: 'Lernstandort Nord', created_at: iso(day(-300)) },

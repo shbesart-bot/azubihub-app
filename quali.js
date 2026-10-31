@@ -271,7 +271,7 @@ function qModListHTML(t, staff) {
 function qPruefHTML(t, staff) {
   const k = qKat(t), pr = t.pruefung || {}, ex = qExamInfo(t);
   const mind = k.ausbildungsjahre * 1.5;
-  return `${secTitle('Externenprüfung', `<span class="chip ${ex.done === ex.total ? 'ok' : 'warn'} tnum">${ex.done}/${ex.total}</span>`)}
+  return `${typeof qErgCardHTML === 'function' ? qErgCardHTML(t) : ''}${secTitle('Externenprüfung', `<span class="chip ${ex.done === ex.total ? 'ok' : 'warn'} tnum">${ex.done}/${ex.total}</span>`)}
     <div class="card">${Q_PRUEF.map(([key, l, d], i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><span class="chip ${pr[key] ? 'ok' : ''} flex-none">${pr[key] ? '✓' : '○'}</span><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold">${esc(l)}</div><div class="text-[12px] text-muted">${pr[key] ? 'erledigt ' + fmtDate(pr[key]) : esc(d)}</div></div></div>`).join('')}
       <div class="p-3.5 border-t border-line grid grid-cols-3 gap-2 text-[13px]"><div><div class="text-[11px] text-muted">Anmeldeschluss</div><div class="font-semibold tnum">${pr.anmeldeschluss ? fmtDate(pr.anmeldeschluss) : '–'}</div></div><div><div class="text-[11px] text-muted">schriftlich</div><div class="font-semibold tnum">${pr.schriftlich ? fmtDate(pr.schriftlich) : '–'}</div></div><div><div class="text-[11px] text-muted">praktisch</div><div class="font-semibold tnum">${pr.praktisch ? fmtDate(pr.praktisch) : '–'}</div></div></div></div>
     <p class="text-[12px] text-muted mt-2">Zulassung nach § 45 Abs. 2 BBiG: in der Regel das Eineinhalbfache der Ausbildungszeit im Beruf gearbeitet (hier ${String(mind).replace('.', ',')} Jahre) – oder die Berufserfahrung wird auf andere Weise glaubhaft gemacht, z. B. mit den IHK-Zertifikaten der Teilqualifizierung. Über die Zulassung entscheidet die IHK. Keine Rechtsberatung.</p>
@@ -346,6 +346,7 @@ function qEditSheet(uid) {
       <p class="text-[12px] text-muted -mt-1">Je Modul: Status, Datum des IHK-Zertifikats, Zeitraum.</p>
       <div class="eyebrow">Externenprüfung</div><div class="card p-4 flex flex-col gap-2">${Q_PRUEF.map(([key, l]) => `<label class="flex items-center gap-2 text-[14px]"><input type="checkbox" class="cbx" data-pr="${key}" ${pr[key] ? 'checked' : ''}>${esc(l)}</label>`).join('')}
         <div class="grid grid-cols-3 gap-2 mt-1"><div><label class="lbl" for="qPa">Anmeldeschluss</label><input id="qPa" type="date" class="field" value="${pr.anmeldeschluss || ''}"></div><div><label class="lbl" for="qPs">schriftlich</label><input id="qPs" type="date" class="field" value="${pr.schriftlich || ''}"></div><div><label class="lbl" for="qPp">praktisch</label><input id="qPp" type="date" class="field" value="${pr.praktisch || ''}"></div></div></div>` : ''}
+      ${k && typeof qErgEditHTML === 'function' ? qErgEditHTML(pr) : ''}
       <button class="btn">Speichern</button></form>`);
     $('#qToAkte').onclick = () => qAkteSheet(uid);
     $('#qM').onchange = () => { t.massnahme = $('#qM').value; collect(false); draw(); };
@@ -360,6 +361,7 @@ function qEditSheet(uid) {
     const old = t.pruefung || {}, pr = {};
     Q_PRUEF.forEach(([key]) => { if ($(`[data-pr="${key}"]`).checked) pr[key] = old[key] || localDate(); });
     pr.anmeldeschluss = $('#qPa').value || null; pr.schriftlich = $('#qPs').value || null; pr.praktisch = $('#qPp').value || null;
+    if (typeof qErgRead === 'function') Object.assign(pr, qErgRead());
     t.pruefung = pr;
   };
   const save = async () => {

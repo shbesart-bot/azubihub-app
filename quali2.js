@@ -176,9 +176,10 @@ function qAnwHTML() {
       <div class="flex flex-wrap gap-2"><button class="btn ghost" data-anwrange="woche">Diese Woche</button><button class="btn ghost" data-anwrange="vorwoche">Letzte Woche</button><button class="btn ghost" data-anwrange="monat">Dieser Monat</button></div>
       <div class="grid grid-cols-2 gap-2"><button class="btn" id="anwPdf">PDF herunterladen</button><button class="btn ghost" id="anwMail">Per E-Mail senden</button></div>
       <p class="text-[12px] text-muted">Die Liste enthält die gefilterte Maßnahme, alle Werktage im Zeitraum, Summen je Person und eine Zeile für die Unterschrift.</p>
-    </div>`;
+    </div>${typeof qBeschHTML === 'function' ? qBeschHTML() : ''}`;
 }
 function qAnwBind() {
+  if (typeof qBeschBind === 'function') qBeschBind();
   $$('[data-anwday]').forEach(b => b.onclick = () => { const n = +b.dataset.anwday; S.quali.anwTag = n === 0 ? localDate() : qAddDays(S.quali.anwTag, n); go(S.view); });
   const fl = $('#anwFilter'); if (fl) fl.onchange = () => { S.quali.anwFilter = fl.value; render(); };
   const save = async (uid, patch) => {
