@@ -604,6 +604,29 @@
         DB.anwesenheit.push({ id: uuid(), betrieb_id: B, azubi_id: Q[k].id, datum: ymd(d), status: a[0], minuten: a[1], lernort: null, notiz: a[2] || null, erfasst_von: Q[k].betreuer_id, updated_at: iso(d), created_at: iso(d) }); });
       n++;
     }
+    /* Organisation: GK-Phase, Klassenbuch, Trainer-Einsatzplan (alles erfunden) */
+    const gkR = (id, vn, nn, g, tp, von, bis, status, sch, ziel, x = {}) => ({ id, betrieb_id: B, azubi_id: null, vorname: vn, nachname: nn, personalnr: null, gruppe_id: 'demo-q-gr-' + g, test_datum: ymd(day(von - 10)), test_punkte: tp, test_bemerkung: null, von: ymd(day(von)), bis: ymd(day(bis)), status, schwerpunkte: sch, ziel_massnahme: ziel, ergebnis: null, notiz: null, created_by: Q.trainer.id, created_at: iso(day(von - 8)), updated_at: iso(day(-2)), ...x });
+    DB.quali_gk = [
+      gkR('demo-q-gk-1', 'Nikola', 'Petrović', 'kuk', 48, -40, 52, 'laeuft', ['Deutsch und Sprache', 'Mathematik'], 'tq-kuk', { test_bemerkung: 'Mathematik 35 %, Technik gut' }),
+      gkR('demo-q-gk-2', 'Ali', 'Karimi', 'lag', 41, -80, 12, 'laeuft', ['Deutsch und Sprache', 'Lern- und Arbeitstechniken'], 'tq-lag'),
+      gkR('demo-q-gk-3', 'Ruslan', 'Iskakov', 'iel', 38, 7, 99, 'geplant', ['Mathematik', 'Technische Grundlagen'], 'tq-iel'),
+      gkR('demo-q-gk-4', 'Jana', 'Schreiber', 'kuk', 52, -130, -38, 'bestanden', ['Mathematik', 'Digitale Grundlagen'], 'tq-kuk', { ergebnis: 'Abschlusstest 74 %. Startet mit der nächsten Gruppe.' })
+    ];
+    const KB = [['Werkstoffkunde: Kautschukarten und ihre Eigenschaften', 'S', 'NR, SBR, EPDM im Vergleich; Übungsblatt.', 2, ['K3']], ['Mischsaal: Rezeptur lesen und Chargen kennzeichnen', 'W', 'Rundgang mit Meister, danach Übung an der Musterrezeptur.', 2, ['K4']],
+      ['Arbeitssicherheit an Walzwerken', 'W', 'Not-Aus, Einzugsstellen, Persönliche Schutzausrüstung. Unterweisung unterschrieben.', 2, ['K1']], ['Vulkanisation: Druck, Temperatur, Zeit', 'S', 'Grundlagen und Rechenbeispiele.', 3, ['K6']],
+      ['Lernplattform und Prüfungsfragen', 'O', 'Online-Lerneinheit mit Quiz, Fragen im Chat.', 3, ['K6']], ['Qualitätsprüfung am Rohling', 'W', 'Prüfmerkmale, Fehlerbilder, Protokoll.', 3, ['K7']], ['Lerngespräche und Planung Praktika', 'S', 'Einzelgespräche, Praktikumsplätze abgestimmt.', null, []]];
+    DB.klassenbuch = []; let kbi = 0;
+    for (let i = 13; i >= 0; i--) { const d = day(-i, 8), wd = d.getDay(); if (wd === 0 || wd === 6) continue;
+      const [thema, art, inhalt, modul, rp] = KB[kbi++ % KB.length];
+      DB.klassenbuch.push({ id: 'demo-q-kb-' + i, betrieb_id: B, gruppe_id: 'demo-q-gr-kuk', datum: ymd(d), von: '07:30:00', bis: art === 'O' ? '12:00:00' : '15:00:00', art, lernort: art === 'W' ? 'Lernwerkstatt Nord' : art === 'S' ? 'Schulungsraum 2' : null, thema, inhalt, modul, rp_nrs: rp, bemerkung: i === 6 ? 'Gastreferent aus der Vulkanisation' : null, trainer_id: Q.trainer.id, abgezeichnet_von: i > 6 ? Q.trainer.id : null, abgezeichnet_at: i > 6 ? iso(day(-i + 1, 16)) : null, created_at: iso(d), updated_at: iso(d) });
+      if (i < 6 && wd !== 5) DB.klassenbuch.push({ id: 'demo-q-kbe-' + i, betrieb_id: B, gruppe_id: 'demo-q-gr-iel', datum: ymd(d), von: '07:30:00', bis: '15:00:00', art: wd % 2 ? 'W' : 'S', lernort: wd % 2 ? 'Lernwerkstatt Elektro' : 'Schulungsraum 1', thema: wd % 2 ? 'Schützschaltung mit Selbsthaltung' : 'Schutzmaßnahmen nach DIN VDE 0100', inhalt: null, modul: 2, rp_nrs: ['E4'], bemerkung: null, trainer_id: i < 3 ? Q.trainer.id : Q.frank.id, abgezeichnet_von: null, abgezeichnet_at: null, created_at: iso(d), updated_at: iso(d) });
+    }
+    DB.quali_einsatz = []; const PL = { trainer: ['S', 'W', 'W', 'S', 'ORG'], frank: ['W', 'W', 'S', 'W', 'O'], petra: ['S', 'W', 'O', 'W', 'ORG'], koord: ['ORG', 'ORG', 'S', 'ORG', 'O'] };
+    Object.entries(PL).forEach(([k, pl]) => { for (let i = 1; i <= 160; i++) { const d = day(-i), wd = d.getDay(); if (wd === 0 || wd === 6 || (i * 7 + k.length) % 23 === 0) continue;
+      const art = pl[(wd - 1 + Math.floor(i / 35)) % 5], half = wd === 5 && art !== 'ORG';
+      DB.quali_einsatz.push({ id: uuid(), betrieb_id: B, trainer_id: Q[k].id, datum: ymd(d), art, anteil: half ? 0.5 : 1, gruppe_id: null, notiz: null, created_at: iso(d), updated_at: iso(d) });
+      if (half) DB.quali_einsatz.push({ id: uuid(), betrieb_id: B, trainer_id: Q[k].id, datum: ymd(d), art: 'ORG', anteil: 0.5, gruppe_id: null, notiz: 'Dokumentation', created_at: iso(d), updated_at: iso(d) }); } });
+    DB.quali_teilnahmen.forEach(t => { t.status ||= 'aktiv'; if (t.azubi_id === Q.tobias.id) t.einsatzort = 'Lernwerkstatt Elektro'; if (t.azubi_id === Q.olga.id) t.einsatzort = 'Lernwerkstatt Nord'; });
     /* Tests */
     const F = (id, typ, frage, optionen, richtig, punkte, loesung) => ({ id, typ, frage, optionen, richtig, punkte, ...(loesung ? { loesung } : {}) });
     const t1 = { id: 'demo-q-t1', betrieb_id: B, titel: 'Zwischentest Modul 3: Instandhaltung', beschreibung: 'Ohne Hilfsmittel. Bei Mehrfachauswahl kosten falsche Kreuze Punkte.', beruf: KUK, modul: 3, dauer_min: 20, zufall: true, teilpunkte: true, created_by: Q.trainer.id, created_at: iso(day(-9)), updated_at: iso(day(-2)),

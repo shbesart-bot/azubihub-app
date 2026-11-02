@@ -163,3 +163,38 @@ async function qBeschPdf(onlyId) {
   const one = people.length === 1 ? '_' + pdfFile(people[0].full_name) : '';
   return { doc, name: `Teilnahmebescheinigung${one}_${ym}.pdf`, subject: `Teilnahmebescheinigung${people.length > 1 ? 'en' : ''} ${qMonthLabel(ym)}` };
 }
+
+/* =====================================================================
+   Startinhalte für neue Betriebe im Qualifizierungsmodus (einmalig, durch die Leitung)
+   Rahmenplan aus quali.js, Übungsfragen und Unterweisungen aus quali-inhalte.js
+   ===================================================================== */
+async function qSeedInhalte() {
+  const berufe = [...new Set(Object.values(Q_KATALOG).map(k => k.beruf))];
+  const have = await q(sb.from('rahmenplan').select('id').in('beruf', berufe).limit(1));
+  if (!have.length) {
+    await loadScript('quali-inhalte.js?v=' + APP_VERSION);
+    const S0 = window.Q_SEED || { quiz: [], uw: [] };
+    await q(sb.from('rahmenplan').insert(Q_RP.map(r => ({ beruf: r.beruf, nr: r.nr, titel: r.titel, abteilungen: r.abteilungen || [], stichworte: r.stichworte || [], lehrjahr: r.lehrjahr, sort: r.sort }))));
+    const y = new Date().getFullYear();
+    for (let i = 0; i < S0.quiz.length; i += 50) await q(sb.from('quiz_questions').insert(S0.quiz.slice(i, i + 50).map(x => ({ ...x, jahr: y, kw: 1, nur_training: true }))));
+    const uwHave = new Set((await q(sb.from('unterweisungen').select('titel'))).map(u => u.titel));
+    const neu = S0.uw.filter(u => !uwHave.has(u.titel)).map((u, i) => ({ ...u, intervall_monate: 12, intervall_u18_monate: 6, fuer: 'alle', aktiv: true, sort: 100 + i }));
+    if (neu.length) await q(sb.from('unterweisungen').insert(neu));
+  }
+  const cur = await q(sb.from('app_config').select('value').eq('key', 'app').maybeSingle());
+  await q(sb.from('app_config').upsert({ key: 'app', value: { ...(cur?.value || {}), quali_seed: true } }, { onConflict: 'betrieb_id,key' }));
+  APP.quali_seed = true;
+}
+let qSeedBusy = false;
+async function qSeedCheck() {
+  try {
+    if (qSeedBusy || S.demo || !isQuali() || !isAdmin() || APP.quali_seed) return;
+    qSeedBusy = true;
+    toast('Inhalte für die Qualifizierung werden eingerichtet …');
+    await qSeedInhalte();
+    try { await loadContent(); } catch {}
+    toast('Rahmenplan, Übungsfragen und Unterweisungen sind eingerichtet.');
+    if (S.view) render();
+  } catch (e) { console.warn('qSeed', e); toast('Die Startinhalte konnten nicht eingerichtet werden: ' + errText(e)); }
+  finally { qSeedBusy = false; }
+}

@@ -263,14 +263,15 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-10-31a"></script>
-<script src="./ausbildung.js?v=2026-10-31a"></script>
-<script src="./ausbau2.js?v=2026-10-31a"></script>
-<script src="./quali.js?v=2026-10-31a"></script>
-<script src="./quali2.js?v=2026-10-31a"></script>
-<script src="./quali3.js?v=2026-10-31a"></script>
-<script src="./quali4.js?v=2026-10-31a"></script>
-<script src="./quali5.js?v=2026-10-31a"></script>
+<script src="./schule.js?v=2026-11-02a"></script>
+<script src="./ausbildung.js?v=2026-11-02a"></script>
+<script src="./ausbau2.js?v=2026-11-02a"></script>
+<script src="./quali.js?v=2026-11-02a"></script>
+<script src="./quali2.js?v=2026-11-02a"></script>
+<script src="./quali3.js?v=2026-11-02a"></script>
+<script src="./quali4.js?v=2026-11-02a"></script>
+<script src="./quali5.js?v=2026-11-02a"></script>
+<script src="./quali6.js?v=2026-11-02a"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -438,7 +439,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-10-31a';
+const APP_VERSION = '2026-11-02a';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -662,6 +663,7 @@ async function startApp(user) {
     $('#hotelName').textContent = S.hotel + (S.betrieb.gruppen_leitung ? ' ▾' : '');
     setMeBtn();
     if (typeof qGroupsLoad === 'function') await qGroupsLoad();
+    if (typeof qSeedCheck === 'function') setTimeout(qSeedCheck, 1500);
     await loadBoard(); startRealtime(); refreshUnread(); setTimeout(flushOutbox, 2000);
     let v = null; try { v = sessionStorage.getItem('azubihub.view'); } catch {}
     const hv = location.hash.slice(1), hc = hv.match(/^(chat|gruppe)-([0-9a-f-]{36})$/);
@@ -680,14 +682,16 @@ async function startApp(user) {
 /* =====================================================================
    Navigation
    ===================================================================== */
-const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock']];
+const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock'], ['qorg', 'Organisation', 'orga']];
 const EXTRA_VIEWS = ['home', 'admin', 'chat', 'uw', 'news', 'dienst'];
 // Übergabebuch ist seit 27.10.2026 ausgeblendet (Daten bleiben erhalten); Schule und IHK gibt es nicht für Mitarbeiter/innen
-const visible = v => v === 'uebergabe' ? false : (v === 'qanw' || v === 'qtests') ? (typeof qViewVisible === 'function' && qViewVisible(v)) : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
+const visible = v => v === 'uebergabe' ? false : v === 'qorg' ? typeof qOrgVisible === 'function' && qOrgVisible() : (v === 'qanw' || v === 'qtests') ? (typeof qViewVisible === 'function' && qViewVisible(v)) : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
 function renderTabs() {
   const tabs = TABS.filter(([id]) => visible(id));
   $('#tabs').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
-  $('#tabs').innerHTML = tabs.map(([id, l, ic]) => `<button data-go="${id}" ${S.view === id ? 'aria-current="page"' : ''}>${svg(ic)}<span>${esc(l || mod(id).tab)}</span></button>`).join('');
+  // Mehr als fünf Reiter auf dem Handy: kurze Beschriftung
+  const SHORT = { quali: 'Quali', qanw: 'Anwesend', qorg: 'Orga' }, short = tabs.length > 5 && window.innerWidth < 1024;
+  $('#tabs').innerHTML = tabs.map(([id, l, ic]) => `<button data-go="${id}" ${S.view === id ? 'aria-current="page"' : ''} ${short && SHORT[id] ? `aria-label="${esc(l)}"` : ''}>${svg(ic)}<span>${esc(short && SHORT[id] ? SHORT[id] : l || mod(id).tab)}</span></button>`).join('');
 }
 let navToken = 0;
 async function go(v) {
@@ -699,7 +703,7 @@ async function go(v) {
   try { await VIEWS[v].load?.(); } catch (e) { if (tok === navToken) $('#app').innerHTML = `<div class="card p-4 mt-2 text-[14px]">Laden fehlgeschlagen: ${esc(errText(e))} <button class="btn ghost mt-3 w-full" data-go="${v}">Erneut versuchen</button></div>`; return; }
   if (tok === navToken) { render(); if (S.navByUser) { S.navByUser = false; $('#app').focus({ preventScroll: true }); } }
 }
-const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung' };
+const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung', qorg: 'Organisation' };
 function render() {
   const V = VIEWS[S.view];
   try { const t = VIEW_TITLES[S.view] || (S.view === 'home' ? 'Start' : mod(S.view)?.tab) || ''; document.title = (t ? t + ' – ' : '') + (BR.appName || 'AzubiHub'); } catch {}
@@ -1963,7 +1967,7 @@ function bindCfgForm() {
       if (JSON.stringify(abt.map(a => a.name)) === JSON.stringify(DEFAULT_APP.abteilungen.map(a => a.name))) abt2 = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'C1TT-Werkstatt', 'Arbeitsplatz im Werk'].map(name => ({ name, wochen: 0 }));
     }
     const newBR = { appName, loginText: $('#cLoginText').value.trim(), brand: $('#cBrand').value, brand2: $('#cBrand2').value, berufe: berufe2, datenschutz: $('#cPrivacy').value.trim() || DEFAULT_BRANDING.datenschutz };
-    const newAPP = { ...(typ ? { typ } : {}), modules, abteilungen: abt2,
+    const newAPP = { ...(typ ? { typ } : {}), ...(APP.quali_seed ? { quali_seed: true } : {}), modules, abteilungen: abt2,
       plan: { 1: pipes('cPlan1').map(p => [p[0], p[1] || '']), 2: pipes('cPlan2').map(p => [p[0], p[1] || '']), 3: pipes('cPlan3').map(p => [p[0], p[1] || '']) },
       wikiChips: lines('cWikiChips'), botHello: $('#cBotHello').value.trim() || DEFAULT_APP.botHello, botAsks: lines('cBotAsks'),
       botFallback: $('#cBotFallback').value.trim() || DEFAULT_APP.botFallback,
@@ -3336,16 +3340,18 @@ function trialBannerHTML() {
   const left = Math.max(0, daysUntil(b.testphase_bis));
   return `<div class="card p-4 mt-4" style="border-color:var(--brass)"><div class="flex items-center gap-2"><span class="chip brass tnum">${left} ${left === 1 ? 'Tag' : 'Tage'}</span><div class="font-semibold text-[15px]">Testphase läuft</div></div>
     <p class="text-[13px] text-muted mt-1">Alles ist freigeschaltet. Nach der Testphase bleiben eure Daten erhalten, die App wird aber gesperrt, bis ihr freischaltet.${b.preis_text ? ' ' + esc(b.preis_text) : ''}</p>
-    <div class="grid grid-cols-2 gap-2 mt-3">${b.zahl_link ? `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>` : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">Freischalten anfragen</a>`}<button class="btn ghost" data-redeem>Code eingeben</button></div></div>`;
+    <div class="grid grid-cols-2 gap-2 mt-3">${b.zahl_link ? payBtns() : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">Freischalten anfragen</a>`}<button class="btn ghost" data-redeem>Code eingeben</button></div></div>`;
 }
-const payLink = () => { const b = S.betrieb, u = new URL(b.zahl_link); u.searchParams.set('client_reference_id', b.id); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
+const payLink = (jahr) => { const b = S.betrieb, u = new URL(jahr && b.zahl_link_jahr ? b.zahl_link_jahr : b.zahl_link); u.searchParams.set('client_reference_id', b.id); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
+const payBtns = () => { const b = S.betrieb; if (!b?.zahl_link) return '';
+  return b.zahl_link_jahr ? `<a class="btn" href="${esc(payLink(true))}" target="_blank" rel="noopener">Jährlich zahlen – 2 Monate geschenkt</a><a class="btn ghost" href="${esc(payLink())}" target="_blank" rel="noopener">Monatlich zahlen</a>` : `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>`; };
 const portalLink = () => { const u = new URL(S.betrieb.portal_link); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
 function aboCardHTML() {
   const b = S.betrieb; if (!b) return '';
   const paid = b.bezahlt_bis && new Date(b.bezahlt_bis) > new Date();
   const line = paid ? `Freigeschaltet bis ${fmtDate(b.bezahlt_bis)}${b.abo ? ' · verlängert sich automatisch, solange das Abo läuft' : ''}.` : b.status === 'test' ? `Testphase bis ${fmtDate(b.testphase_bis)}.` : 'Noch nicht freigeschaltet.';
   const portal = b.abo && b.portal_link ? `<a class="btn ghost" href="${esc(portalLink())}" target="_blank" rel="noopener">Abo verwalten</a><p class="text-[12px] text-muted">Rechnungen herunterladen, Zahlungsart oder Rechnungsadresse ändern oder kündigen (zum Ende des laufenden Monats). Anmeldung mit der E-Mail-Adresse, die beim Bezahlen angegeben wurde.</p>` : '';
-  const pay = !paid && b.zahl_link ? `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>` : '';
+  const pay = !paid && b.zahl_link ? payBtns() : '';
   return `${secTitle('Abo und Rechnungen')}
       <div class="card p-4 flex flex-col gap-3"><p class="text-[14px]">${esc(line)}${b.preis_text && !paid ? ' ' + esc(b.preis_text) : ''}</p>${pay}${portal}${!portal && !pay ? `<p class="text-[12px] text-muted">Fragen zur Rechnung: <a class="text-accent font-semibold" href="mailto:info@novaworks-it.de">info@novaworks-it.de</a></p>` : ''}</div>`;
 }
@@ -3366,7 +3372,7 @@ function showExpired(me) {
   $('#app').innerHTML = `<div class="card p-5 mt-4">
     <div class="eyebrow">${esc(b.name)}</div><h1 class="text-[24px] font-bold mt-1">Die Testphase ist abgelaufen</h1>
     <p class="text-[14px] text-muted mt-2">${boss ? 'Eure Daten sind sicher gespeichert. Schalte AzubiHub frei, dann geht es sofort weiter.' + (b.preis_text ? ' ' + esc(b.preis_text) : '') : 'Eure Daten sind sicher gespeichert. Sobald die Leitung freischaltet, geht es weiter.'}</p>
-    ${boss ? `<div class="flex flex-col gap-2 mt-4">${b.zahl_link ? `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>` : ''}<button class="btn ghost" data-redeem>Freischalt-Code eingeben</button><a class="btn ghost" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">NovaWorks kontaktieren</a></div>` : ''}
+    ${boss ? `<div class="flex flex-col gap-2 mt-4">${b.zahl_link ? payBtns() : ''}<button class="btn ghost" data-redeem>Freischalt-Code eingeben</button><a class="btn ghost" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">NovaWorks kontaktieren</a></div>` : ''}
     <button class="btn danger w-full mt-4" id="expOut">Abmelden</button></div>`;
   $('#expOut').onclick = async () => { await releasePush(); sb.auth.signOut(); };
 }
@@ -4018,8 +4024,9 @@ function anbieterHTML() {
   ${secTitle('Bezahlung')}
   <form id="payForm" class="card p-4 flex flex-col gap-3">
     <div><label class="lbl" for="payLink">Stripe-Zahlungslink</label><input id="payLink" class="field" placeholder="https://buy.stripe.com/…" value="${esc(A.pcfg.zahl_link || '')}"><p class="text-[12px] text-muted mt-1">Die App hängt automatisch die Betriebs-Kennung an. Nach der Zahlung schaltet der Webhook den Betrieb frei.</p></div>
+    <div><label class="lbl" for="payLinkJ">Stripe-Zahlungslink jährlich <span class="font-normal text-muted">(optional)</span></label><input id="payLinkJ" class="field" placeholder="https://buy.stripe.com/…" value="${esc(A.pcfg.zahl_link_jahr || '')}"><p class="text-[12px] text-muted mt-1">Ein zweiter Zahlungslink für das Jahresabo (z. B. 490 €). Ist er eingetragen, sehen Leitungen „Jährlich zahlen – 2 Monate geschenkt“ und „Monatlich zahlen“.</p></div>
     <div><label class="lbl" for="payPortal">Stripe-Kundenportal</label><input id="payPortal" class="field" placeholder="https://billing.stripe.com/p/login/…" value="${esc(A.pcfg.portal_link || '')}"><p class="text-[12px] text-muted mt-1">Leitungen sehen damit unter Verwaltung › Einstellungen „Abo verwalten“ (Rechnungen, Zahlungsart, Kündigung).</p></div>
-    <div><label class="lbl" for="payText">Preis-Hinweis in der App</label><input id="payText" class="field" maxlength="200" placeholder="z. B. 49 € pro Monat (Endpreis, § 19 UStG)" value="${esc(A.pcfg.preis_text || '')}"></div>
+    <div><label class="lbl" for="payText">Preis-Hinweis in der App</label><input id="payText" class="field" maxlength="200" placeholder="z. B. 49 € pro Monat oder 490 € pro Jahr (Endpreis, § 19 UStG)" value="${esc(A.pcfg.preis_text || '')}"></div>
     <button class="btn">Speichern</button>
   </form>
   ${secTitle('Impressum')}
@@ -4060,7 +4067,8 @@ function bindAnbieter() {
   if ($('#grNew')) $('#grNew').onsubmit = async e => { e.preventDefault(); const n = $('#grName').value.trim(); if (n.length < 2) return toast('Bitte einen Namen eingeben.'); await q(sb.rpc('platform_create_gruppe', { p_name: n })); toast('Gruppe angelegt'); go('admin'); };
   if ($('#payForm')) $('#payForm').onsubmit = async e => {
     e.preventDefault();
-    const l = $('#payLink').value.trim(), pl = $('#payPortal').value.trim(); if ((l && !/^https:\/\//.test(l)) || (pl && !/^https:\/\//.test(pl))) return toast('Der Link muss mit https:// beginnen.');
+    const l = $('#payLink').value.trim(), lj = $('#payLinkJ').value.trim(), pl = $('#payPortal').value.trim(); if ([l, lj, pl].some(x => x && !/^https:\/\//.test(x))) return toast('Der Link muss mit https:// beginnen.');
+    await q(sb.rpc('platform_set_config', { p_key: 'zahl_link_jahr', p_value: lj }));
     await q(sb.rpc('platform_set_config', { p_key: 'zahl_link', p_value: l })); await q(sb.rpc('platform_set_config', { p_key: 'portal_link', p_value: pl })); await q(sb.rpc('platform_set_config', { p_key: 'preis_text', p_value: $('#payText').value.trim() }));
     toast('Gespeichert');
   };
@@ -4283,7 +4291,7 @@ async function showClass() {
   };
 }
 
-const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, qanw: typeof QAnwView !== 'undefined' ? QAnwView : Home, qtests: typeof QTestsView !== 'undefined' ? QTestsView : Home, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
+const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, qanw: typeof QAnwView !== 'undefined' ? QAnwView : Home, qtests: typeof QTestsView !== 'undefined' ? QTestsView : Home, qorg: typeof QOrgView !== 'undefined' ? QOrgView : Home, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
 function updateAdminBtn() { $('#admBtn').hidden = !canManage(); }
 
 /* =====================================================================
