@@ -341,7 +341,7 @@ function qTestsHTML() {
       <div class="grid grid-cols-3 gap-2 mt-2.5"><button class="btn py-1.5 text-[13px]" data-qtstart="${t.id}" ${t.fragen.length ? '' : 'disabled'}>Live starten</button><button class="btn ghost py-1.5 text-[13px]" data-qtedit="${t.id}">Bearbeiten</button><button class="btn ghost py-1.5 text-[13px]" data-qtcopy="${t.id}">Kopieren</button></div></div>`).join('')}</div>`
       : empty('Noch keine Tests. Lege einen an oder übernimm Fragen aus dem Fragenkatalog.')}
     ${done.length ? `${secTitle('Ergebnisse')}<div class="card">${done.map((s, i) => `<div class="${i ? 'border-t border-line' : ''}">${row(s)}</div>`).join('')}</div>` : ''}
-    <p class="text-[12px] text-muted mt-2">Auswahlfragen wertet AzubiHub automatisch aus, Freitext bewertest du selbst. Teilnehmende sehen Lösungen und Punkte erst, wenn du die Ergebnisse freigibst.</p>`;
+    <p class="text-[12px] text-muted mt-2">Auswahlfragen wertet Stufenwerk automatisch aus, Freitext bewertest du selbst. Teilnehmende sehen Lösungen und Punkte erst, wenn du die Ergebnisse freigibst.</p>`;
 }
 function qTestsBind() {
   $('#qtNew') && ($('#qtNew').onclick = () => qTestEditor(null));
