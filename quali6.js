@@ -68,25 +68,38 @@ async function orgFetch(table, col, von, bis, sel = '*') {
    Reiter „Organisation“ in der unteren Leiste (nur Trainer und Koordination)
    ===================================================================== */
 const qOrgVisible = () => { try { qIcons(); return isQuali() && !!S.me && !isAzubi() && !isMA(); } catch { return false; } };
-const QOrgView = {
-  async load() {
-    qIcons(); S.org ||= { tab: 'verw' };
-    await Promise.all([qGroupsLoad(), qLoadAll()]);
-    await orgLoad();
-  },
-  html() {
-    const t = S.org.tab;
-    return `<h1 class="text-[26px] font-bold mt-1">Organisation</h1>
-      <p class="text-[14px] text-muted mt-1">${t === 'verw' ? 'Deine Teilnehmenden: Gruppe, Einsatz, Praktikum, Status.' : t === 'gk' ? 'Grundkompetenz-Phase (3 Monate) nach dem Einstellungstest.' : t === 'kb' ? 'Was wurde wann in welcher Gruppe gemacht, mit Anwesenheit.' : t === 'ein' ? 'Wo du eingesetzt warst – mit Zähler für Audits.' : 'Daten auswählen, Zeitraum wählen, als ZIP herunterladen.'}</p>
-      <div class="seg mt-4 mb-1">${orgTabs().map(([k, l]) => `<button aria-pressed="${t === k}" data-otab="${k}">${l}</button>`).join('')}</div>
-      ${t === 'verw' ? orgVerwHTML() : t === 'gk' ? orgGkHTML() : t === 'kb' ? orgKbHTML() : t === 'ein' ? orgEinHTML() : orgExpHTML()}`;
-  },
-  bind() {
-    $$('[data-otab]').forEach(b => b.onclick = () => { S.org.tab = b.dataset.otab; go('qorg'); });
-    const t = S.org.tab;
-    if (t === 'verw') orgVerwBind(); else if (t === 'gk') orgGkBind(); else if (t === 'kb') orgKbBind(); else if (t === 'ein') orgEinBind(); else orgExpBind();
-  }
+/* Eigene Hauptreiter: Teilnehmer/Gruppen (Verwaltung), Praktika, GK, Klassenbuch, Einsatzplan */
+const ORG_VIEWS = {
+  qverw: ['Verwaltung', 'Teilnehmende, Gruppen und Kurse – alles an einem Ort.'],
+  qpk: ['Praktika', 'Praktika im Werk planen, Rückmeldungen einholen und freigeben.'],
+  qgk: ['Grundkompetenz (GK)', 'Drei Monate Grundkompetenz nach dem Einstellungstest.'],
+  qkb: ['Klassenbuch', 'Dokumentation der Trainingsdurchführung je Gruppe und Woche.'],
+  qein: ['Einsatzplan', 'Wo du eingesetzt warst – mit Zähler für Audits.']
 };
+const ORG_VERW_TABS = [['verw', 'Teilnehmende'], ['gruppen', 'Gruppen'], ['kurse', 'Kurse'], ['exp', 'Export']];
+const orgTabOf = v => v === 'qverw' ? (ORG_VERW_TABS.some(t => t[0] === S.org.vtab) ? S.org.vtab : 'verw') : { qpk: 'pk', qgk: 'gk', qkb: 'kb', qein: 'ein' }[v];
+function orgViewOf(v) {
+  return {
+    async load() {
+      qIcons(); S.org ||= {}; S.org.tab = orgTabOf(v);
+      await Promise.all([qGroupsLoad(), qLoadAll()]);
+      await orgLoad();
+    },
+    html() {
+      const t = S.org.tab;
+      return `<h1 class="text-[26px] font-bold mt-1">${ORG_VIEWS[v][0]}</h1><p class="text-[14px] text-muted mt-1">${ORG_VIEWS[v][1]}</p>
+        ${v === 'qverw' ? `<div class="seg mt-4 mb-1">${ORG_VERW_TABS.map(([k, l]) => `<button aria-pressed="${t === k}" data-otab="${k}">${l}</button>`).join('')}</div>` : ''}
+        ${t === 'verw' ? orgVerwHTML() : t === 'gruppen' ? qGruppenHTML() : t === 'kurse' ? qKurseHTML() : t === 'exp' ? orgExpHTML() : t === 'pk' ? qPraktikaHTML() : t === 'gk' ? orgGkHTML() : t === 'kb' ? orgKbHTML() : orgEinHTML()}`;
+    },
+    bind() {
+      $$('[data-otab]').forEach(b => b.onclick = () => { S.org.vtab = b.dataset.otab; go('qverw'); });
+      const t = S.org.tab;
+      ({ verw: orgVerwBind, gruppen: qGruppenBind, kurse: qKurseBind, exp: orgExpBind, pk: qPraktikaBind, gk: orgGkBind, kb: orgKbBind, ein: orgEinBind })[t]();
+    }
+  };
+}
+const QVerwView = orgViewOf('qverw'), QPkView = orgViewOf('qpk'), QGkView = orgViewOf('qgk'), QKbView = orgViewOf('qkb'), QEinView = orgViewOf('qein');
+const QOrgView = QVerwView;
 async function orgLoad() {
   const t = S.org.tab, today = localDate();
   if (t === 'verw') {
@@ -97,16 +110,6 @@ async function orgLoad() {
     Object.assign(S.org, { pk, gk, anw });
   } else if (t === 'gk') {
     S.org.gk = await q(sb.from('quali_gk').select('*').order('von', { ascending: false }));
-  } else if (t === 'kb') {
-    const gs = orgMyGroups(); if (!gs.some(g => g.id === S.org.kbG)) S.org.kbG = (gs.find(g => orgMembers(g.id).length) || gs[0])?.id || null;
-    S.org.kbW ||= qMonday(today);
-    const von = S.org.kbW, bis = qAddDays(von, 6);
-    if (!S.org.kbG) { S.org.kb = []; S.org.kbAnw = []; return; }
-    const ids = orgMembers(S.org.kbG).map(p => p.id);
-    const [kb, anw] = await Promise.all([
-      q(sb.from('klassenbuch').select('*').eq('gruppe_id', S.org.kbG).gte('datum', von).lte('datum', bis).order('datum').order('von')),
-      ids.length ? q(sb.from('anwesenheit').select('azubi_id,datum,status,minuten').in('azubi_id', ids).gte('datum', von).lte('datum', bis)) : []]);
-    Object.assign(S.org, { kb, kbAnw: anw });
   } else if (t === 'ein') {
     S.org.einM ||= today.slice(0, 7);
     if (!qCanTeam() || !S.org.einT) S.org.einT = qCanTeam() ? (S.org.einT || S.me.id) : S.me.id;
@@ -116,6 +119,10 @@ async function orgLoad() {
       q(sb.from('quali_einsatz').select('*').eq('trainer_id', S.org.einT).gte('datum', m0).lte('datum', m1)),
       orgFetch('quali_einsatz', 'datum', S.org.cV, S.org.cB, 'trainer_id,datum,art,anteil')]);
     Object.assign(S.org, { einMon: mon, einCnt: qCanTeam() ? cnt : cnt.filter(r => r.trainer_id === S.me.id) });
+  } else if (t === 'pk') {
+    S.quali.pk = await q(sb.from('quali_praktika').select('*').order('von', { ascending: false }));
+  } else if (t === 'kb') {
+    await qKbLoad();
   } else if (t === 'exp') {
     S.org.bk = isAdmin() ? await sb.rpc('backup_status').then(r => r.data).catch(() => null) : null;
   }
@@ -154,7 +161,7 @@ function orgVerwHTML() {
       ${svg('arrow', 'w-4 h-4 text-muted flex-none')}</button>`; };
   return `<div class="seg mt-3">${chips.map(([k, l, n]) => `<button aria-pressed="${f === k}" data-ovf="${k}">${l} <span class="tnum opacity-70">${n}</span></button>`).join('')}</div>
     ${order.length ? order.map(g => `${secTitle(g === '_' ? 'Ohne Gruppe' : esc(qGruppe(g)?.name || 'Gruppe'), `<span class="chip tnum">${by[g].length}</span>`)}<div class="card">${by[g].map(row).join('')}</div>`).join('')
-      : empty(all.length ? 'Niemand in dieser Auswahl.' : orgMyGroups().length ? 'In deinen Gruppen sind noch keine Teilnehmenden.' : 'Du hast noch keine Gruppe. Übernimm eine unter Qualifizierung › Gruppen.')}
+      : empty(all.length ? 'Niemand in dieser Auswahl.' : orgMyGroups().length ? 'In deinen Gruppen sind noch keine Teilnehmenden.' : 'Du hast noch keine Gruppe. Lege unter Verwaltung › Gruppen eine an oder übernimm eine.')}
     <p class="text-[12px] text-muted mt-3">Du siehst nur deine Gruppen und Gruppen, für die du gerade Vertretung hast.</p>`;
 }
 function orgVerwBind() {
@@ -196,7 +203,7 @@ function orgTnSheet(uid) {
     try {
       if (t.id) await q(sb.from('quali_teilnahmen').update(row).eq('id', t.id));
       else await q(sb.from('quali_teilnahmen').insert({ ...row, azubi_id: uid, betrieb_id: orgBetrieb(), module: [], pruefung: {} }));
-      closeSheet(); toast('Gespeichert'); go('qorg');
+      closeSheet(); toast('Gespeichert'); go(S.view);
     } catch (er) { toast(errText(er)); }
   };
   $('#otPk').onclick = () => { closeSheet(); S.quali.pk ||= []; qPkEditSheet(null); setTimeout(() => { const s = $('#pkA'); if (s) s.value = uid; }, 0); };
@@ -280,7 +287,7 @@ function orgGkSheet(r0, preset = {}) {
     try {
       if (r0) await q(sb.from('quali_gk').update(row).eq('id', r0.id));
       else await q(sb.from('quali_gk').insert({ ...row, betrieb_id: orgBetrieb(), created_by: S.me.id }));
-      closeSheet(); toast('Gespeichert'); S.org.tab = 'gk'; go('qorg');
+      closeSheet(); toast('Gespeichert'); go(S.view);
     } catch (er) { toast(errText(er)); }
   };
   $('#gkForm').onsubmit = e => { e.preventDefault(); save(read()); };
@@ -297,7 +304,7 @@ function orgGkSheet(r0, preset = {}) {
       await save(row);
     } catch (er) { toast(errText(er)); }
   });
-  $('#gkDel') && ($('#gkDel').onclick = e => qConfirm(e.currentTarget, async () => { try { await q(sb.from('quali_gk').delete().eq('id', r0.id)); closeSheet(); toast('Gelöscht'); go('qorg'); } catch (er) { toast(errText(er)); } }));
+  $('#gkDel') && ($('#gkDel').onclick = e => qConfirm(e.currentTarget, async () => { try { await q(sb.from('quali_gk').delete().eq('id', r0.id)); closeSheet(); toast('Gelöscht'); go(S.view); } catch (er) { toast(errText(er)); } }));
 }
 async function orgGkPdf() {
   const P = await qPdfStart(true), { doc, FONT, W, M } = P, today = localDate();
@@ -319,125 +326,6 @@ async function orgGkPdf() {
   });
   P.foot('GK-Übersicht');
   return { doc, name: `GK-Uebersicht_${today}.pdf` };
-}
-
-/* =====================================================================
-   Klassenbuch je Gruppe und Woche
-   ===================================================================== */
-function orgKbHTML() {
-  const gs = orgMyGroups(), gid = S.org.kbG;
-  if (!gs.length) return empty('Du hast noch keine Gruppe. Übernimm eine unter Qualifizierung › Gruppen.');
-  const von = S.org.kbW, mem = orgMembers(gid), kb = S.org.kb || [], anw = S.org.kbAnw || [];
-  const days = []; for (let i = 0; i < 7; i++) { const d = qAddDays(von, i), wd = new Date(d + 'T12:00:00').getDay(); if ((wd !== 0 && wd !== 6) || kb.some(e => e.datum === d)) days.push(d); }
-  const today = localDate();
-  const dayHTML = d => {
-    const es = kb.filter(e => e.datum === d), a = anw.filter(x => x.datum === d), da = s => a.filter(x => x.status === s);
-    const fehl = [...da('entschuldigt'), ...da('unentschuldigt')].map(x => S.profiles[x.azubi_id]?.full_name.split(' ')[0]).filter(Boolean);
-    return `<div class="card mt-3 ${d === today ? 'ring-1 ring-[var(--accent)]' : ''}"><div class="flex items-center justify-between gap-2 p-3.5 pb-2">
-      <div><div class="text-[14px] font-bold">${orgWd(d)}, ${fmtDate(d)}</div>
-      <div class="text-[12px] text-muted tnum">${a.length ? `Anwesend ${da('anwesend').length + da('verspaetet').length} von ${mem.length}${da('verspaetet').length ? ` · ${da('verspaetet').length} verspätet` : ''}${fehl.length ? ' · fehlt: ' + esc(fehl.join(', ')) : ''}` : 'Anwesenheit noch nicht erfasst'}</div></div>
-      <button class="text-[13px] font-semibold text-accent flex-none" data-kbnew="${d}">+ Eintrag</button></div>
-      ${es.length ? es.map(e => `<button class="w-full text-left p-3.5 border-t border-line flex gap-3" data-kb="${e.id}">
-        <div class="flex-none w-[58px] text-[12px] text-muted tnum">${e.von ? e.von.slice(0, 5) : ''}${e.bis ? '<br>' + e.bis.slice(0, 5) : ''}</div>
-        <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap">${e.art ? `<span class="ek ek-${e.art}">${EIN_ART[e.art][0]}</span>` : ''}<span class="text-[14px] font-semibold">${esc(e.thema)}</span></div>
-        ${e.inhalt ? `<div class="text-[13px] mt-0.5" style="white-space:pre-line">${esc(e.inhalt)}</div>` : ''}
-        <div class="text-[12px] text-muted mt-0.5">${[e.lernort, e.modul ? 'Modul ' + e.modul : '', (e.rp_nrs || []).length ? 'RP ' + e.rp_nrs.join(', ') : '', S.profiles[e.trainer_id]?.full_name].filter(Boolean).map(esc).join(' · ')}</div>
-        ${e.bemerkung ? `<div class="text-[12px] mt-0.5"><span class="text-muted">Bemerkung:</span> ${esc(e.bemerkung)}</div>` : ''}</div>
-        <span class="chip ${e.abgezeichnet_at ? 'ok' : ''} flex-none self-start">${e.abgezeichnet_at ? '✓ abgezeichnet' : 'offen'}</span></button>`).join('') : '<div class="px-3.5 pb-3.5 text-[13px] text-muted">Noch kein Eintrag.</div>'}</div>`;
-  };
-  const open = kb.filter(e => !e.abgezeichnet_at).length;
-  return `<div class="flex gap-2 mt-3 items-end">${gs.length > 1 ? `<div class="flex-1"><label class="lbl" for="kbG">Gruppe</label><select id="kbG" class="field">${gs.map(g => `<option value="${g.id}" ${g.id === gid ? 'selected' : ''}>${esc(orgGName(g))}</option>`).join('')}</select></div>` : `<div class="flex-1 text-[15px] font-semibold pb-2">${esc(orgGName(gs[0]))}</div>`}</div>
-    <div class="flex items-center justify-between gap-2 mt-3"><button class="btn ghost py-2 px-3" id="kbPrev" aria-label="Vorige Woche">‹</button>
-      <div class="text-center"><div class="text-[15px] font-bold">KW ${orgKw(von)}</div><div class="text-[12px] text-muted tnum">${fmtDate(von)} – ${fmtDate(qAddDays(von, 6))}</div></div>
-      <button class="btn ghost py-2 px-3" id="kbNext" aria-label="Nächste Woche">›</button></div>
-    <div class="text-[12px] text-muted mt-2 text-center">${mem.length} Teilnehmende in der Gruppe${von !== qMonday(today) ? ' · <button class="text-accent font-semibold" id="kbToday">zur aktuellen Woche</button>' : ''}</div>
-    ${days.map(dayHTML).join('')}
-    <div class="grid grid-cols-2 gap-2 mt-4">${open ? `<button class="btn ghost" id="kbSign">Woche abzeichnen (${open})</button>` : ''}<button class="btn ghost ${open ? '' : 'col-span-2'}" id="kbPdf">Woche als PDF</button><button class="btn ghost col-span-2" id="kbMail">PDF per E-Mail senden</button></div>
-    <p class="text-[12px] text-muted mt-3">Abgezeichnete Einträge sind festgeschrieben. Ändern kann sie danach nur die Koordination.</p>`;
-}
-function orgKbBind() {
-  $('#kbG') && ($('#kbG').onchange = () => { S.org.kbG = $('#kbG').value; go('qorg'); });
-  $('#kbPrev') && ($('#kbPrev').onclick = () => { S.org.kbW = qAddDays(S.org.kbW, -7); go('qorg'); });
-  $('#kbNext') && ($('#kbNext').onclick = () => { S.org.kbW = qAddDays(S.org.kbW, 7); go('qorg'); });
-  $('#kbToday') && ($('#kbToday').onclick = () => { S.org.kbW = qMonday(localDate()); go('qorg'); });
-  $$('[data-kbnew]').forEach(b => b.onclick = () => orgKbSheet(null, b.dataset.kbnew));
-  $$('[data-kb]').forEach(b => b.onclick = () => orgKbSheet((S.org.kb || []).find(e => e.id === b.dataset.kb)));
-  $('#kbSign') && ($('#kbSign').onclick = e => qConfirm(e.currentTarget, async () => {
-    const ids = (S.org.kb || []).filter(x => !x.abgezeichnet_at).map(x => x.id);
-    try { await q(sb.from('klassenbuch').update({ abgezeichnet_von: S.me.id, abgezeichnet_at: new Date().toISOString() }).in('id', ids)); toast('Abgezeichnet'); go('qorg'); } catch (er) { toast(errText(er)); }
-  }, 'Festschreiben? Nochmal tippen'));
-  $('#kbPdf') && ($('#kbPdf').onclick = async e => { const btn = e.currentTarget; btn.disabled = true; try { const r = await orgKbPdf(); r.doc.save(r.name); toast('PDF erstellt'); } catch (er) { toast(errText(er)); } finally { btn.disabled = false; PDF_DE = false; } });
-  $('#kbMail') && ($('#kbMail').onclick = () => qMailSheet('Klassenbuch per E-Mail', () => orgKbPdf(), `Klassenbuch ${qGruppe(S.org.kbG)?.name || ''}, KW ${orgKw(S.org.kbW)}`));
-}
-function orgKbSheet(e0, datum) {
-  const e = e0 ? { ...e0 } : { datum, von: '08:00', bis: '15:30', art: 'S', lernort: '', thema: '', inhalt: '', modul: null, rp_nrs: [], bemerkung: '' };
-  const locked = !!e.abgezeichnet_at && !isAdmin();
-  const t0 = (S.quali.rows || []).find(r => orgMembers(S.org.kbG).some(p => p.id === r.azubi_id)), k = qKat(t0), lo = APP.abteilungen || [];
-  sheetShell(e0 ? 'Klassenbuch-Eintrag' : 'Neuer Eintrag', `<form id="kbForm" class="card p-4 flex flex-col gap-3">
-    ${locked ? `<div class="text-[13px] text-muted">Abgezeichnet von ${esc(S.profiles[e.abgezeichnet_von]?.full_name || '')} am ${fmtDate(e.abgezeichnet_at)}. Nur die Koordination kann den Eintrag noch ändern.</div>` : ''}
-    <div class="grid grid-cols-3 gap-2"><div><label class="lbl" for="kbD">Datum</label><input id="kbD" type="date" class="field" required value="${e.datum}"></div><div><label class="lbl" for="kbV">Von</label><input id="kbV" type="time" class="field" value="${(e.von || '').slice(0, 5)}"></div><div><label class="lbl" for="kbB">Bis</label><input id="kbB" type="time" class="field" value="${(e.bis || '').slice(0, 5)}"></div></div>
-    <div><div class="lbl">Wo</div><div class="seg mt-1" id="kbArt">${Object.entries(EIN_ART).map(([a, [kz, l]]) => `<button type="button" aria-pressed="${e.art === a}" data-art="${a}">${kz} · ${l}</button>`).join('')}</div></div>
-    <div><label class="lbl" for="kbL">Lernort / Raum <span class="font-normal text-muted">(optional)</span></label><input id="kbL" class="field" list="kbLl" maxlength="80" value="${esc(e.lernort || '')}"><datalist id="kbLl">${lo.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
-    <div><label class="lbl" for="kbT">Thema</label><input id="kbT" class="field" required maxlength="200" value="${esc(e.thema)}" placeholder="z. B. Werkstoffkunde: Kautschukarten"></div>
-    <div><label class="lbl" for="kbI">Inhalt und Ablauf <span class="font-normal text-muted">(optional)</span></label><textarea id="kbI" class="field" rows="4" maxlength="3000">${esc(e.inhalt || '')}</textarea></div>
-    <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="kbM">Modul</label><select id="kbM" class="field"><option value="">–</option>${Array.from({ length: Math.max(k?.module.length || 0, 8) }, (_, i) => `<option ${e.modul === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('')}</select></div>
-      <div><label class="lbl" for="kbR">Rahmenplan-Nr.</label><input id="kbR" class="field" maxlength="80" value="${esc((e.rp_nrs || []).join(', '))}" placeholder="z. B. K3, K4"></div></div>
-    <div><label class="lbl" for="kbBe">Bemerkung <span class="font-normal text-muted">(optional)</span></label><input id="kbBe" class="field" maxlength="1000" value="${esc(e.bemerkung || '')}" placeholder="z. B. Gastreferent, Ausfall, Prüfung"></div>
-    ${locked ? '' : `<button class="btn">${e0 ? 'Speichern' : 'Eintragen'}</button>`}
-    ${e0 && !locked ? '<button type="button" class="btn danger" id="kbDel">Eintrag löschen</button>' : ''}</form>`);
-  let art = e.art;
-  $$('#kbArt [data-art]').forEach(b => b.onclick = () => { art = art === b.dataset.art ? null : b.dataset.art; $$('#kbArt [data-art]').forEach(x => x.setAttribute('aria-pressed', x.dataset.art === art)); });
-  if (locked) { $$('#kbForm input, #kbForm textarea, #kbForm select, #kbArt button').forEach(x => x.disabled = true); return; }
-  $('#kbForm').onsubmit = async ev => {
-    ev.preventDefault();
-    const row = { datum: $('#kbD').value, von: $('#kbV').value || null, bis: $('#kbB').value || null, art, lernort: $('#kbL').value.trim() || null, thema: $('#kbT').value.trim(), inhalt: $('#kbI').value.trim() || null,
-      modul: $('#kbM').value ? Number($('#kbM').value) : null, rp_nrs: $('#kbR').value.split(/[,;\s]+/).map(x => x.trim()).filter(Boolean).slice(0, 20), bemerkung: $('#kbBe').value.trim() || null, updated_at: new Date().toISOString() };
-    if (!row.thema) return toast('Bitte ein Thema eintragen.');
-    if (row.von && row.bis && row.bis < row.von) return toast('„Bis“ liegt vor „Von“.');
-    try {
-      if (e0) await q(sb.from('klassenbuch').update(row).eq('id', e0.id));
-      else await q(sb.from('klassenbuch').insert({ ...row, gruppe_id: S.org.kbG, betrieb_id: orgBetrieb(), trainer_id: S.me.id }));
-      if (row.datum < S.org.kbW || row.datum > qAddDays(S.org.kbW, 6)) S.org.kbW = qMonday(row.datum);
-      closeSheet(); toast('Gespeichert'); go('qorg');
-    } catch (er) { toast(errText(er)); }
-  };
-  $('#kbDel') && ($('#kbDel').onclick = ev => qConfirm(ev.currentTarget, async () => { try { await q(sb.from('klassenbuch').delete().eq('id', e0.id)); closeSheet(); toast('Gelöscht'); go('qorg'); } catch (er) { toast(errText(er)); } }));
-}
-async function orgKbPdf() {
-  const g = qGruppe(S.org.kbG); if (!g) throw new Error('Keine Gruppe gewählt.');
-  const von = S.org.kbW, bis = qAddDays(von, 6), kb = S.org.kb || [], anw = S.org.kbAnw || [], mem = orgMembers(g.id);
-  const P = await qPdfStart(false), { doc, FONT, W, M } = P, title = 'Klassenbuch';
-  doc.setFont(FONT, 'bold'); doc.setFontSize(16); doc.text(title, M, 18);
-  doc.setFont(FONT, 'normal'); doc.setFontSize(10); doc.setTextColor(80);
-  doc.text(pdfSafe(`${S.hotel || ''} · ${g.name} · KW ${orgKw(von)} (${fmtDate(von)} – ${fmtDate(bis)}) · ${mem.length} Teilnehmende`), M, 25); doc.setTextColor(0);
-  let y = 34;
-  const need = h => { if (y + h > 272) { doc.addPage(); y = 18; } };
-  const days = [...new Set([...kb.map(e => e.datum), ...Array.from({ length: 5 }, (_, i) => qAddDays(von, i))])].sort();
-  days.forEach(d => {
-    const es = kb.filter(e => e.datum === d), a = anw.filter(x => x.datum === d), n = s => a.filter(x => x.status === s);
-    const fehl = [...n('entschuldigt').map(x => S.profiles[x.azubi_id]?.full_name + ' (E)'), ...n('unentschuldigt').map(x => S.profiles[x.azubi_id]?.full_name + ' (U)'), ...n('verspaetet').map(x => S.profiles[x.azubi_id]?.full_name + ` (V${x.minuten ? ' ' + x.minuten + ' Min.' : ''})`)].filter(Boolean);
-    need(16);
-    doc.setFillColor(238, 242, 242); doc.rect(M, y - 4.5, W - 2 * M, 7, 'F');
-    doc.setFont(FONT, 'bold'); doc.setFontSize(10); doc.text(pdfSafe(`${orgWd(d)}, ${fmtDate(d)}`), M + 1.5, y);
-    doc.setFont(FONT, 'normal'); doc.setFontSize(8.5);
-    doc.text(pdfSafe(a.length ? `Anwesend ${n('anwesend').length + n('verspaetet').length} von ${mem.length}` : 'Anwesenheit nicht erfasst'), W - M - 1.5, y, { align: 'right' }); y += 7;
-    if (fehl.length) { const l = doc.splitTextToSize(pdfSafe('Abwesend/verspätet: ' + fehl.join(', ')), W - 2 * M - 3); need(l.length * 4); doc.setTextColor(90); doc.text(l, M + 1.5, y); doc.setTextColor(0); y += l.length * 4 + 1; }
-    if (!es.length) { doc.setTextColor(150); doc.text('Kein Eintrag', M + 1.5, y); doc.setTextColor(0); y += 6; return; }
-    es.forEach(e => {
-      const body = doc.splitTextToSize(pdfSafe([e.inhalt, e.bemerkung ? 'Bemerkung: ' + e.bemerkung : ''].filter(Boolean).join('\n')), W - 2 * M - 34);
-      const meta = [e.art ? EIN_ART[e.art][1] : '', e.lernort, e.modul ? 'Modul ' + e.modul : '', (e.rp_nrs || []).length ? 'RP ' + e.rp_nrs.join(', ') : '', S.profiles[e.trainer_id]?.full_name, e.abgezeichnet_at ? 'abgezeichnet ' + fmtDate(e.abgezeichnet_at) : 'nicht abgezeichnet'].filter(Boolean).join(' · ');
-      need(10 + body.length * 4);
-      doc.setFontSize(8.5); doc.setTextColor(90); doc.text(pdfSafe(`${(e.von || '').slice(0, 5)}${e.bis ? '–' + e.bis.slice(0, 5) : ''}`), M + 1.5, y); doc.setTextColor(0);
-      doc.setFont(FONT, 'bold'); doc.setFontSize(9.5); doc.text(pdfSafe(e.thema).slice(0, 110), M + 32, y); doc.setFont(FONT, 'normal'); y += 4.5;
-      if (body.length) { doc.setFontSize(8.5); doc.text(body, M + 32, y); y += body.length * 4; }
-      doc.setFontSize(7.5); doc.setTextColor(110); doc.text(pdfSafe(meta).slice(0, 160), M + 32, y); doc.setTextColor(0); y += 6;
-    });
-    y += 1;
-  });
-  need(24); y += 12; doc.setDrawColor(120); doc.line(M, y, M + 70, y); doc.line(W - M - 70, y, W - M, y);
-  doc.setFontSize(8); doc.setTextColor(90); doc.text(pdfSafe('Datum, Unterschrift Trainer/in'), M, y + 4); doc.text(pdfSafe('Datum, Unterschrift Koordination'), W - M - 70, y + 4); doc.setTextColor(0);
-  P.foot(title);
-  return { doc, name: `Klassenbuch_${orgAscii(g.name)}_KW${orgKw(von)}_${von.slice(0, 4)}.pdf`, subject: `Klassenbuch ${g.name}, KW ${orgKw(von)}` };
 }
 
 /* =====================================================================
@@ -479,12 +367,12 @@ function orgEinHTML() {
     <p class="text-[12px] text-muted mt-3">Halbe Tage zählen 0,5. ${qCanTeam() ? 'Als Koordination kannst du für alle Trainer eintragen.' : 'Du trägst deine eigenen Einsätze ein; die Koordination sieht sie für die Auswertung.'}</p>`;
 }
 function orgEinBind() {
-  $('#einT') && ($('#einT').onchange = () => { S.org.einT = $('#einT').value; go('qorg'); });
-  const mv = n => { S.org.einM = orgAddMonths(S.org.einM + '-01', n).slice(0, 7); go('qorg'); };
+  $('#einT') && ($('#einT').onchange = () => { S.org.einT = $('#einT').value; go(S.view); });
+  const mv = n => { S.org.einM = orgAddMonths(S.org.einM + '-01', n).slice(0, 7); go(S.view); };
   $('#einPrev').onclick = () => mv(-1); $('#einNext').onclick = () => mv(1);
   $$('[data-ein]').forEach(b => b.onclick = () => orgEinDaySheet(b.dataset.ein));
   $('#einRange').onclick = () => orgEinRangeSheet();
-  const upd = () => { const v = $('#cV').value, b = $('#cB').value, min = qAddDays(localDate(), -3653); if (!v || !b) return; if (b < v) return toast('„Bis“ liegt vor „Von“.'); S.org.cV = v < min ? min : v; S.org.cB = b; go('qorg'); };
+  const upd = () => { const v = $('#cV').value, b = $('#cB').value, min = qAddDays(localDate(), -3653); if (!v || !b) return; if (b < v) return toast('„Bis“ liegt vor „Von“.'); S.org.cV = v < min ? min : v; S.org.cB = b; go(S.view); };
   $('#cV').onchange = upd; $('#cB').onchange = upd;
   $$('[data-cpre]').forEach(b => b.onclick = () => {
     const t = localDate(), y = t.slice(0, 4), k = b.dataset.cpre;
@@ -493,7 +381,7 @@ function orgEinBind() {
     if (k === 'j') { S.org.cV = y + '-01-01'; S.org.cB = t; }
     if (k === 'vj') { S.org.cV = (y - 1) + '-01-01'; S.org.cB = (y - 1) + '-12-31'; }
     if (k === '12') { S.org.cV = qAddDays(orgAddMonths(t, -12), 1); S.org.cB = t; }
-    go('qorg');
+    go(S.view);
   });
   $('#einPdf').onclick = async e => { const btn = e.currentTarget; btn.disabled = true; try { const r = await orgEinPdf(); r.doc.save(r.name); toast('PDF erstellt'); } catch (er) { toast(errText(er)); } finally { btn.disabled = false; PDF_DE = false; } };
   $('#einMail').onclick = () => qMailSheet('Einsatznachweis per E-Mail', () => orgEinPdf(), `Einsatznachweis ${fmtDate(S.org.cV)} bis ${fmtDate(S.org.cB)}`);
@@ -520,7 +408,7 @@ function orgEinDaySheet(ds) {
       if (del.length) await q(sb.from('quali_einsatz').delete().in('id', del));
       const up = Object.entries(pick).filter(([, v]) => v).map(([art, v]) => ({ betrieb_id: orgBetrieb(), trainer_id: S.org.einT, datum: ds, art, anteil: Number(v), gruppe_id: gid, notiz, updated_at: new Date().toISOString() }));
       if (up.length) await q(sb.from('quali_einsatz').upsert(up, { onConflict: 'trainer_id,datum,art' }));
-      closeSheet(); toast('Gespeichert'); go('qorg');
+      closeSheet(); toast('Gespeichert'); go(S.view);
     } catch (er) { toast(errText(er)); }
   };
 }
@@ -542,7 +430,7 @@ function orgEinRangeSheet() {
     if (orgDays(v, b) > 185) return toast('Höchstens ein halbes Jahr auf einmal.');
     const rows = []; for (let d = v; d <= b; d = qAddDays(d, 1)) { const wd = new Date(d + 'T12:00:00').getDay(); if (!wk || (wd !== 0 && wd !== 6)) rows.push({ betrieb_id: orgBetrieb(), trainer_id: S.org.einT, datum: d, art, anteil, gruppe_id: $('#erG')?.value || null, updated_at: new Date().toISOString() }); }
     if (!rows.length) return toast('Keine Tage im Zeitraum.');
-    try { await q(sb.from('quali_einsatz').upsert(rows, { onConflict: 'trainer_id,datum,art' })); closeSheet(); toast(`${rows.length} Tage eingetragen`); S.org.einM = v.slice(0, 7); go('qorg'); } catch (er) { toast(errText(er)); }
+    try { await q(sb.from('quali_einsatz').upsert(rows, { onConflict: 'trainer_id,datum,art' })); closeSheet(); toast(`${rows.length} Tage eingetragen`); S.org.einM = v.slice(0, 7); go(S.view); } catch (er) { toast(errText(er)); }
   };
 }
 async function orgEinPdf() {

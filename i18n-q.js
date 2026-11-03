@@ -21,3 +21,8 @@ window.I18N_X = {"en":{"Nachweis":"Record","Qualifizierung":"Qualification","Tes
   };
   ['en', 'tr', 'ru', 'ar'].forEach((l, i) => { X[l] = X[l] || {}; Object.entries(add).forEach(([de, v]) => { if (!X[l][de]) X[l][de] = v[i]; }); });
 })(window.I18N_X);
+/* Anwesenheit: Frei und Urlaub */
+(function (X) {
+  const add = { 'Frei': ['Day off', 'Serbest gün', 'Выходной', 'يوم حر'], 'Urlaub': ['Holiday', 'İzin', 'Отпуск', 'إجازة'] };
+  ['en', 'tr', 'ru', 'ar'].forEach((l, i) => { X[l] = X[l] || {}; Object.entries(add).forEach(([de, v]) => { if (!X[l][de]) X[l][de] = v[i]; }); });
+})(window.I18N_X);

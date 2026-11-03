@@ -137,7 +137,7 @@ async function qBeschPdf(onlyId) {
     box(M, mine.length, 'erfasste Tage'); box(M + 36, da, 'anwesend'); box(M + 72, c('entschuldigt'), 'entschuldigt'); box(M + 108, c('unentschuldigt'), 'unentschuldigt'); box(M + 144, String(stunden).replace('.', ','), 'Stunden (ca.)');
     y += 18;
     doc.setFontSize(8.5); doc.setTextColor(90);
-    doc.text(doc.splitTextToSize(pdfSafe(`Verspätungen: ${c('verspaetet')}${min ? ' (zusammen ' + min + ' Minuten)' : ''}. Stunden = anwesende Tage × ${String(std).replace('.', ',')} Std. abzüglich Verspätungen. Quote: ${mine.length ? Math.round(da * 100 / mine.length) + ' %' : '–'}.`), W - 2 * M), M, y); doc.setTextColor(0); y += 9;
+    doc.text(doc.splitTextToSize(pdfSafe(`Verspätungen: ${c('verspaetet')}${min ? ' (zusammen ' + min + ' Minuten)' : ''}. Stunden = anwesende Tage × ${String(std).replace('.', ',')} Std. abzüglich Verspätungen. Quote: ${mine.filter(qAnwZaehlt).length ? Math.round(da * 100 / mine.filter(qAnwZaehlt).length) + ' %' : '–'}${c('frei') + c('urlaub') ? ` (ohne ${c('frei')} Tage frei und ${c('urlaub')} Tage Urlaub)` : ''}.`), W - 2 * M), M, y); doc.setTextColor(0); y += 9;
     /* Kalender: alle Tage des Monats */
     const cw = (W - 2 * M) / 7, ch = 11, wd = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     doc.setFont(FONT, 'bold'); doc.setFontSize(8.5); wd.forEach((w, i) => doc.text(w, M + i * cw + 2, y)); y += 2.5; doc.setFont(FONT, 'normal');
@@ -147,11 +147,11 @@ async function qBeschPdf(onlyId) {
       if (col >= 5) { doc.setFillColor(246, 247, 248); doc.rect(x, yy, cw, ch, 'F'); }
       doc.setDrawColor(225); doc.rect(x, yy, cw, ch);
       doc.setFontSize(7.5); doc.setTextColor(120); doc.text(String(d), x + 1.5, yy + 3.6); doc.setTextColor(0);
-      if (a) { const colr = { anwesend: [35, 106, 64], verspaetet: [138, 80, 11], entschuldigt: [15, 92, 95], unentschuldigt: [168, 50, 50] }[a.status];
+      if (a) { const colr = ANW_COL[a.status] || [0, 0, 0];
         doc.setTextColor(...colr); doc.setFont(FONT, 'bold'); doc.setFontSize(9.5); doc.text(ANW[a.status][0] + (a.status === 'verspaetet' && a.minuten ? ' ' + a.minuten + "'" : ''), x + cw / 2, yy + 8.2, { align: 'center' }); doc.setFont(FONT, 'normal'); doc.setTextColor(0); }
     }
     y += Math.ceil((first + last) / 7) * ch + 5;
-    doc.setFontSize(8); doc.setTextColor(90); doc.text(pdfSafe('A = anwesend · V = verspätet (Minuten) · E = entschuldigt · U = unentschuldigt · leer = kein Maßnahmetag oder nicht erfasst'), M, y); doc.setTextColor(0); y += 8;
+    doc.setFontSize(8); doc.setTextColor(90); doc.text(pdfSafe('A = anwesend · V = verspätet (Minuten) · E = entschuldigt · U = unentschuldigt · F = frei · Ur = Urlaub · leer = kein Maßnahmetag oder nicht erfasst'), M, y); doc.setTextColor(0); y += 8;
     const fehl = mine.filter(r => r.status === 'entschuldigt' || r.status === 'unentschuldigt').sort((a, b) => a.datum.localeCompare(b.datum));
     if (fehl.length) { doc.setFont(FONT, 'bold'); doc.setFontSize(10); doc.text('Fehltage', M, y); y += 5; doc.setFont(FONT, 'normal'); doc.setFontSize(9);
       doc.text(doc.splitTextToSize(pdfSafe(fehl.map(r => `${fmtDate(r.datum)} (${ANW[r.status][1].toLowerCase()})`).join(', ')), W - 2 * M), M, y); y += 5 * Math.ceil(fehl.length / 4) + 4; }

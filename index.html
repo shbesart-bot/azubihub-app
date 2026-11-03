@@ -263,15 +263,16 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-02b"></script>
-<script src="./ausbildung.js?v=2026-11-02b"></script>
-<script src="./ausbau2.js?v=2026-11-02b"></script>
-<script src="./quali.js?v=2026-11-02b"></script>
-<script src="./quali2.js?v=2026-11-02b"></script>
-<script src="./quali3.js?v=2026-11-02b"></script>
-<script src="./quali4.js?v=2026-11-02b"></script>
-<script src="./quali5.js?v=2026-11-02b"></script>
-<script src="./quali6.js?v=2026-11-02b"></script>
+<script src="./schule.js?v=2026-11-03a"></script>
+<script src="./ausbildung.js?v=2026-11-03a"></script>
+<script src="./ausbau2.js?v=2026-11-03a"></script>
+<script src="./quali.js?v=2026-11-03a"></script>
+<script src="./quali2.js?v=2026-11-03a"></script>
+<script src="./quali3.js?v=2026-11-03a"></script>
+<script src="./quali4.js?v=2026-11-03a"></script>
+<script src="./quali5.js?v=2026-11-03a"></script>
+<script src="./quali6.js?v=2026-11-03a"></script>
+<script src="./quali7.js?v=2026-11-03a"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -439,7 +440,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-02b';
+const APP_VERSION = '2026-11-03a';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -682,12 +683,14 @@ async function startApp(user) {
 /* =====================================================================
    Navigation
    ===================================================================== */
-const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock'], ['qorg', 'Organisation', 'orga']];
+const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock'], ['qverw', 'Teilnehmer/Gruppen', 'gruppe'], ['qpk', 'Praktika', 'koffer'], ['qgk', 'GK', 'stufe'], ['qkb', 'Klassenbuch', 'kbuch'], ['qein', 'Einsatzplan', 'orga']];
 const EXTRA_VIEWS = ['home', 'admin', 'chat', 'uw', 'news', 'dienst'];
 // Übergabebuch ist seit 27.10.2026 ausgeblendet (Daten bleiben erhalten); Schule und IHK gibt es nicht für Mitarbeiter/innen
-const visible = v => v === 'uebergabe' ? false : v === 'qorg' ? typeof qOrgVisible === 'function' && qOrgVisible() : (v === 'qanw' || v === 'qtests') ? (typeof qViewVisible === 'function' && qViewVisible(v)) : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
+const visible = v => v === 'uebergabe' ? false : ['qorg', 'qverw', 'qpk', 'qgk', 'qkb', 'qein'].includes(v) ? typeof qOrgVisible === 'function' && qOrgVisible() : (v === 'qanw' || v === 'qtests') ? (typeof qViewVisible === 'function' && qViewVisible(v)) : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
 function renderTabs() {
-  const tabs = TABS.filter(([id]) => visible(id));
+  const tabs = TABS.filter(([id]) => visible(id) && id !== 'qorg');
+  // Qualifizierungsmodus: eigene Reihenfolge, Ausblenden und „Mehr“ (quali7.js)
+  if (typeof qNavOn === 'function' && qNavOn()) { qNavRender(tabs); return; }
   $('#tabs').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
   // Mehr als fünf Reiter auf dem Handy: kurze Beschriftung
   const SHORT = { quali: 'Quali', qanw: 'Anwesend', qorg: 'Orga' }, short = tabs.length > 5 && window.innerWidth < 1024;
@@ -703,7 +706,7 @@ async function go(v) {
   try { await VIEWS[v].load?.(); } catch (e) { if (tok === navToken) $('#app').innerHTML = `<div class="card p-4 mt-2 text-[14px]">Laden fehlgeschlagen: ${esc(errText(e))} <button class="btn ghost mt-3 w-full" data-go="${v}">Erneut versuchen</button></div>`; return; }
   if (tok === navToken) { render(); if (S.navByUser) { S.navByUser = false; $('#app').focus({ preventScroll: true }); } }
 }
-const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung', qorg: 'Organisation' };
+const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung', qorg: 'Verwaltung', qverw: 'Verwaltung', qpk: 'Praktika', qgk: 'GK', qkb: 'Klassenbuch', qein: 'Einsatzplan' };
 function render() {
   const V = VIEWS[S.view];
   try { const t = VIEW_TITLES[S.view] || (S.view === 'home' ? 'Start' : mod(S.view)?.tab) || ''; document.title = (t ? t + ' – ' : '') + (BR.appName || 'AzubiHub'); } catch {}
@@ -4291,7 +4294,7 @@ async function showClass() {
   };
 }
 
-const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, qanw: typeof QAnwView !== 'undefined' ? QAnwView : Home, qtests: typeof QTestsView !== 'undefined' ? QTestsView : Home, qorg: typeof QOrgView !== 'undefined' ? QOrgView : Home, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
+const VIEWS = { home: Home, bericht: Bericht, wiki: Wiki, buddy: Buddy, uebergabe: Uebergabe, schule: SchoolView, ihk: IhkView, quali: QualiView, qanw: typeof QAnwView !== 'undefined' ? QAnwView : Home, qtests: typeof QTestsView !== 'undefined' ? QTestsView : Home, qorg: typeof QOrgView !== 'undefined' ? QOrgView : Home, qverw: typeof QVerwView !== 'undefined' ? QVerwView : Home, qpk: typeof QPkView !== 'undefined' ? QPkView : Home, qgk: typeof QGkView !== 'undefined' ? QGkView : Home, qkb: typeof QKbView !== 'undefined' ? QKbView : Home, qein: typeof QEinView !== 'undefined' ? QEinView : Home, dienst: Dienst, admin: Admin, chat: Chat, uw: UW, news: News };
 function updateAdminBtn() { $('#admBtn').hidden = !canManage(); }
 
 /* =====================================================================

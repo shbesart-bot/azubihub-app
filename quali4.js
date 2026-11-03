@@ -108,8 +108,8 @@ async function qPruefungsakte(uid, docs) {
   Q_PRUEF.forEach(([key, l]) => row([[pr[key] ? '[x]' : '[ ]', 0, 8], [l, 8, 120], [pr[key] ? fmtDate(pr[key]) : '', 140, 40]]));
   row([['Anmeldeschluss: ' + (pr.anmeldeschluss ? fmtDate(pr.anmeldeschluss) : '–'), 0, 60], ['schriftlich: ' + (pr.schriftlich ? fmtDate(pr.schriftlich) : '–'), 62, 55], ['praktisch: ' + (pr.praktisch ? fmtDate(pr.praktisch) : '–'), 120, 60]]);
   h2('3. Anwesenheit');
-  const c = s => anw.filter(a => a.status === s).length, q0 = anw.length ? Math.round((c('anwesend') + c('verspaetet')) * 100 / anw.length) : null;
-  line(anw.length ? `${anw.length} erfasste Tage seit ${fmtDate(since)}: ${c('anwesend')} anwesend, ${c('verspaetet')} verspätet, ${c('entschuldigt')} entschuldigt, ${c('unentschuldigt')} unentschuldigt. Anwesenheitsquote ${q0} %.` : 'Keine Anwesenheit erfasst.');
+  const c = s => anw.filter(a => a.status === s).length, zt = anw.filter(a => a.status !== 'frei' && a.status !== 'urlaub').length, q0 = zt ? Math.round((c('anwesend') + c('verspaetet')) * 100 / zt) : null;
+  line(anw.length ? `${anw.length} erfasste Tage seit ${fmtDate(since)}: ${c('anwesend')} anwesend, ${c('verspaetet')} verspätet, ${c('entschuldigt')} entschuldigt, ${c('unentschuldigt')} unentschuldigt${c('frei') ? ', ' + c('frei') + ' frei' : ''}${c('urlaub') ? ', ' + c('urlaub') + ' Urlaub' : ''}. Anwesenheitsquote ${q0 ?? '–'} %.` : 'Keine Anwesenheit erfasst.');
   h2('4. Lern- und Tätigkeitsnachweis');
   const ab = reps.filter(r => r.status === 'abgezeichnet').length, ein = reps.filter(r => r.status === 'eingereicht').length;
   line(`${reps.length} Wochenberichte angelegt, davon ${ab} abgezeichnet und ${ein} eingereicht.`);
@@ -169,7 +169,7 @@ function qAuswRows() {
   const rows = (S.quali.rows || []).filter(r => S.profiles[r.azubi_id] && canSchool(S.profiles[r.azubi_id]))
     .filter(r => (!A.gruppe || (A.gruppe === '_' ? !r.gruppe_id : r.gruppe_id === A.gruppe)) && (!A.standort || (r.standort || '') === A.standort) && (!A.massnahme || r.massnahme === A.massnahme));
   return rows.map(r => {
-    const p = S.profiles[r.azubi_id], k = qKat(r), an = D.anw.filter(a => a.azubi_id === r.azubi_id), ok = an.filter(a => a.status === 'anwesend' || a.status === 'verspaetet').length;
+    const p = S.profiles[r.azubi_id], k = qKat(r), an = D.anw.filter(a => a.azubi_id === r.azubi_id && a.status !== 'frei' && a.status !== 'urlaub'), ok = an.filter(a => a.status === 'anwesend' || a.status === 'verspaetet').length;
     const tpc = D.ab.filter(a => a.azubi_id === r.azubi_id).map(a => { const s = D.ss.find(x => x.id === a.sitzung_id), te = D.ts.find(x => x.id === s?.test_id), mx = qMax(te), pt = qPts(a, te); return s && mx && pt != null ? pt * 100 / mx : null; }).filter(v => v != null);
     const ex = qExamInfo(r);
     return { p, r, k, mods: k?.module.length || 0, done: qDone(r), cur: qCur(r)?.nr || null, quote: an.length ? Math.round(ok * 100 / an.length) : null, tage: an.length, unent: an.filter(a => a.status === 'unentschuldigt').length,

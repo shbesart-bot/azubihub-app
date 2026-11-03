@@ -572,6 +572,7 @@
       { id: 'demo-q-gr-lag', betrieb_id: B, name: 'Lagerlogistik', trainer_id: Q.petra.id, notiz: null, created_at: iso(day(-420)) },
       { id: 'demo-q-gr-maf', betrieb_id: B, name: 'Intensivkurs Maschinen- und Anlagenführer', trainer_id: null, notiz: 'Start Herbst', created_at: iso(day(-75)) }
     ];
+    DB.quali_gruppen.forEach(g => { g.kurs = { 'demo-q-gr-kuk': 'tq-kuk', 'demo-q-gr-iel': 'tq-iel', 'demo-q-gr-lag': 'tq-lag', 'demo-q-gr-maf': 'ik-maf' }[g.id] || null; });
     const GR = { dennis: 'kuk', olga: 'kuk', andrzej: 'kuk', tobias: 'iel', svetlana: 'lag', juergen: 'lag', mehmet: 'maf' };
     DB.quali_teilnahmen.forEach(t => { const k = Object.keys(Q).find(x => Q[x].id === t.azubi_id); if (GR[k]) t.gruppe_id = 'demo-q-gr-' + GR[k]; });
     DB.quali_vertretungen = [{ id: uuid(), betrieb_id: B, gruppe_id: 'demo-q-gr-iel', trainer_id: Q.trainer.id, von: ymd(day(-1)), bis: ymd(day(4)), notiz: 'Frank auf Schulung', created_by: Q.frank.id, created_at: iso(day(-3)) }];
@@ -597,7 +598,7 @@
     /* Anwesenheit: die letzten zehn Werktage, heute teilweise erfasst */
     DB.anwesenheit = [];
     const TN = ['dennis', 'olga', 'mehmet', 'tobias', 'svetlana', 'juergen', 'andrzej'];
-    const abw = { 'olga|3': ['entschuldigt', null, 'Krankmeldung liegt vor'], 'olga|4': ['entschuldigt', null, 'Krankmeldung liegt vor'], 'mehmet|2': ['verspaetet', 15, 'Bus ausgefallen'], 'juergen|6': ['verspaetet', 10, ''], 'tobias|8': ['unentschuldigt', null, 'Nicht erreicht, Gespräch geplant'], 'svetlana|5': ['entschuldigt', null, 'Arzttermin, vorher abgesprochen'] };
+    const abw = { 'olga|3': ['entschuldigt', null, 'Krankmeldung liegt vor'], 'olga|4': ['entschuldigt', null, 'Krankmeldung liegt vor'], 'mehmet|2': ['verspaetet', 15, 'Bus ausgefallen'], 'juergen|6': ['verspaetet', 10, ''], 'tobias|8': ['unentschuldigt', null, 'Nicht erreicht, Gespräch geplant'], 'juergen|3': ['urlaub', null, 'Jahresurlaub, genehmigt'], 'juergen|4': ['urlaub', null, 'Jahresurlaub, genehmigt'], 'svetlana|7': ['frei', null, 'Brückentag, Lernstandort geschlossen'], 'svetlana|5': ['entschuldigt', null, 'Arzttermin, vorher abgesprochen'] };
     for (let i = 0, n = 0; n < 11; i++) {
       const d = day(-i, 7), wd = d.getDay(); if (wd === 0 || wd === 6) continue;
       TN.forEach(k => { if (n === 0 && !['dennis', 'olga', 'andrzej'].includes(k)) return; const a = abw[k + '|' + n] || ['anwesend', null, ''];
@@ -612,15 +613,25 @@
       gkR('demo-q-gk-3', 'Ruslan', 'Iskakov', 'iel', 38, 7, 99, 'geplant', ['Mathematik', 'Technische Grundlagen'], 'tq-iel'),
       gkR('demo-q-gk-4', 'Jana', 'Schreiber', 'kuk', 52, -130, -38, 'bestanden', ['Mathematik', 'Digitale Grundlagen'], 'tq-kuk', { ergebnis: 'Abschlusstest 74 %. Startet mit der nächsten Gruppe.' })
     ];
-    const KB = [['Werkstoffkunde: Kautschukarten und ihre Eigenschaften', 'S', 'NR, SBR, EPDM im Vergleich; Übungsblatt.', 2, ['K3']], ['Mischsaal: Rezeptur lesen und Chargen kennzeichnen', 'W', 'Rundgang mit Meister, danach Übung an der Musterrezeptur.', 2, ['K4']],
-      ['Arbeitssicherheit an Walzwerken', 'W', 'Not-Aus, Einzugsstellen, Persönliche Schutzausrüstung. Unterweisung unterschrieben.', 2, ['K1']], ['Vulkanisation: Druck, Temperatur, Zeit', 'S', 'Grundlagen und Rechenbeispiele.', 3, ['K6']],
-      ['Lernplattform und Prüfungsfragen', 'O', 'Online-Lerneinheit mit Quiz, Fragen im Chat.', 3, ['K6']], ['Qualitätsprüfung am Rohling', 'W', 'Prüfmerkmale, Fehlerbilder, Protokoll.', 3, ['K7']], ['Lerngespräche und Planung Praktika', 'S', 'Einzelgespräche, Praktikumsplätze abgestimmt.', null, []]];
+    /* Klassenbuch nach Vorlage „Dokumentation Trainingsdurchführung“ (Inhalte erfunden) */
+    const KBT = [
+      ['Präsenzunterricht', [['Werkstoffkunde: Kautschukarten NR, SBR, EPDM und ihre Eigenschaften', ['Vt', 'Präs', 'LG'], 3], ['Pause'], ['Übungsblatt Werkstoffe, Ergebnisse vergleichen', ['EA', 'PA', 'Disk'], 3], ['Pause'], ['Vertiefung der Unterrichtsinhalte', ['EA', 'GA'], 2]], '2.1'],
+      ['Werkstattphase', [['Mischsaal: Rezeptur lesen, Chargen kennzeichnen, Musterrezeptur ansetzen', ['Demo', 'Ü', 'Ü'], 3], ['Pause'], ['Arbeitssicherheit an Walzwerken: Not-Aus, Einzugsstellen, PSA', ['Demo', 'LG', 'Ü'], 3], ['Pause'], ['Werkstatt aufräumen, Tagesprotokoll', ['EA', 'Disk'], 2]], '2.3'],
+      ['Virtueller Unterricht', [['Vulkanisation: Druck, Temperatur und Zeit – Grundlagen und Rechenbeispiele', ['Präs', 'Vt', 'Ü'], 3], ['Pause'], ['Lernplattform: Prüfungsfragen Modul 3', ['EA', 'EA', 'Disk'], 3], ['Pause'], ['Vertiefung der Unterrichtsinhalte', ['EA', 'GA'], 2]], '3.1'],
+      ['Präsenzunterricht', [['Qualitätsprüfung am Rohling: Prüfmerkmale, Fehlerbilder, Protokoll', ['Vt', 'Demo', 'GA'], 3], ['Pause'], ['Fehlerbilder in Gruppen auswerten und präsentieren', ['GA', 'GA', 'Präs'], 3], ['Pause'], ['Planung Praktikumsphase', ['EA', 'PA'], 2]], '3.4'],
+      ['Werkstattphase', [['Heizpresse: Rüsten, Beschicken, Entformen unter Anleitung', ['Demo', 'Ü', 'Ü'], 3], ['Pause'], ['Rollenspiel: Übergabe an die Folgeschicht', ['RS', 'Disk', 'LG'], 3], ['Pause'], ['Lerngespräche und Wochenrückblick', ['LG', 'Disk'], 2]], '3.5']
+    ];
+    const kbSt = (blocks, kap) => { const out = []; let h = 8; blocks.forEach(([t, ms, n]) => { if (t === 'Pause') { out.push({ h: String(h).padStart(2, '0') + ':00', thema: 'Pause', methodik: '', kapitel: '' }); h++; return; } for (let j = 0; j < n; j++) { out.push({ h: String(h).padStart(2, '0') + ':00', thema: t, methodik: ms[j % ms.length], kapitel: j === 0 ? kap : '' }); h++; } }); return out; };
     DB.klassenbuch = []; let kbi = 0;
-    for (let i = 13; i >= 0; i--) { const d = day(-i, 8), wd = d.getDay(); if (wd === 0 || wd === 6) continue;
-      const [thema, art, inhalt, modul, rp] = KB[kbi++ % KB.length];
-      DB.klassenbuch.push({ id: 'demo-q-kb-' + i, betrieb_id: B, gruppe_id: 'demo-q-gr-kuk', datum: ymd(d), von: '07:30:00', bis: art === 'O' ? '12:00:00' : '15:00:00', art, lernort: art === 'W' ? 'Lernwerkstatt Nord' : art === 'S' ? 'Schulungsraum 2' : null, thema, inhalt, modul, rp_nrs: rp, bemerkung: i === 6 ? 'Gastreferent aus der Vulkanisation' : null, trainer_id: Q.trainer.id, abgezeichnet_von: i > 6 ? Q.trainer.id : null, abgezeichnet_at: i > 6 ? iso(day(-i + 1, 16)) : null, created_at: iso(d), updated_at: iso(d) });
-      if (i < 6 && wd !== 5) DB.klassenbuch.push({ id: 'demo-q-kbe-' + i, betrieb_id: B, gruppe_id: 'demo-q-gr-iel', datum: ymd(d), von: '07:30:00', bis: '15:00:00', art: wd % 2 ? 'W' : 'S', lernort: wd % 2 ? 'Lernwerkstatt Elektro' : 'Schulungsraum 1', thema: wd % 2 ? 'Schützschaltung mit Selbsthaltung' : 'Schutzmaßnahmen nach DIN VDE 0100', inhalt: null, modul: 2, rp_nrs: ['E4'], bemerkung: null, trainer_id: i < 3 ? Q.trainer.id : Q.frank.id, abgezeichnet_von: null, abgezeichnet_at: null, created_at: iso(d), updated_at: iso(d) });
+    for (let i = 13; i >= 1; i--) { const d = day(-i, 8), wd = d.getDay(); if (wd === 0 || wd === 6) continue;
+      const [ua, blocks, kap] = KBT[kbi++ % KBT.length], st = kbSt(blocks, kap);
+      DB.klassenbuch.push({ id: 'demo-q-kb-' + i, betrieb_id: B, gruppe_id: 'demo-q-gr-kuk', datum: ymd(d), unterrichtsart: ua, dozent: Q.trainer.full_name, stunden: st, thema: st[0].thema, von: '08:00', bis: '18:00', art: null, bemerkung: i === 6 ? 'Gastreferent aus der Vulkanisation' : null, trainer_id: Q.trainer.id, abgezeichnet_von: i > 6 ? Q.trainer.id : null, abgezeichnet_at: i > 6 ? iso(day(-i + 1, 16)) : null, created_at: iso(d), updated_at: iso(d) });
+      if (i < 6 && wd !== 5) DB.klassenbuch.push({ id: 'demo-q-kbe-' + i, betrieb_id: B, gruppe_id: 'demo-q-gr-iel', datum: ymd(d), unterrichtsart: wd % 2 ? 'Werkstattphase' : 'Präsenzunterricht', dozent: i < 3 ? Q.trainer.full_name : Q.frank.full_name, stunden: kbSt([[wd % 2 ? 'Schützschaltung mit Selbsthaltung verdrahten und prüfen' : 'Schutzmaßnahmen nach DIN VDE 0100', wd % 2 ? ['Demo', 'Ü', 'Ü'] : ['Vt', 'LG', 'EA'], 3], ['Pause'], ['Messprotokoll und Fehlersuche', ['PA', 'Ü', 'Disk'], 3]], '1.2'), thema: null, trainer_id: i < 3 ? Q.trainer.id : Q.frank.id, abgezeichnet_von: null, abgezeichnet_at: null, created_at: iso(d), updated_at: iso(d) });
     }
+    DB.quali_kurse = [
+      { id: 'demo-q-ku-gk', betrieb_id: B, name: 'Grundkompetenz Technik (GK)', art: 'Grundkompetenz', beruf: null, abschluss: 'Teilnahmebescheinigung', dauer_monate: 3, module: [{ titel: 'Deutsch und Mathematik', monate: 1 }, { titel: 'Technische Grundlagen', monate: 1 }, { titel: 'Arbeitssicherheit und Lernen lernen', monate: 1 }], beschreibung: 'Vorbereitung auf die Teilqualifizierung nach dem Einstellungstest.', aktiv: true, created_by: Q.koord.id, created_at: iso(day(-200)), updated_at: iso(day(-200)) },
+      { id: 'demo-q-ku-stapler', betrieb_id: B, name: 'Staplerschein (Flurförderzeuge)', art: 'Lehrgang', beruf: null, abschluss: 'Fahrausweis nach DGUV Grundsatz 308-001', dauer_monate: 0.5, module: [], beschreibung: null, aktiv: true, created_by: Q.petra.id, created_at: iso(day(-90)), updated_at: iso(day(-90)) }
+    ];
     DB.quali_einsatz = []; const PL = { trainer: ['S', 'W', 'W', 'S', 'ORG'], frank: ['W', 'W', 'S', 'W', 'O'], petra: ['S', 'W', 'O', 'W', 'ORG'], koord: ['ORG', 'ORG', 'S', 'ORG', 'O'] };
     Object.entries(PL).forEach(([k, pl]) => { for (let i = 1; i <= 160; i++) { const d = day(-i), wd = d.getDay(); if (wd === 0 || wd === 6 || (i * 7 + k.length) % 23 === 0) continue;
       const art = pl[(wd - 1 + Math.floor(i / 35)) % 5], half = wd === 5 && art !== 'ORG';

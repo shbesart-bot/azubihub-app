@@ -19,11 +19,14 @@
 async function qGroupsLoad() {
   try {
     if (!isQuali()) { S.qgr = null; return; }
-    const [g, v, tn] = await Promise.all([
+    const [g, v, tn, ku] = await Promise.all([
       q(sb.from('quali_gruppen').select('*').order('name')),
       q(sb.from('quali_vertretungen').select('*').gte('bis', localDate(new Date(Date.now() - 30 * 864e5))).order('von')),
-      q(sb.from('quali_teilnahmen').select('azubi_id,gruppe_id'))
+      q(sb.from('quali_teilnahmen').select('azubi_id,gruppe_id')),
+      q(sb.from('quali_kurse').select('*').order('name')).catch(() => []),
+      typeof qNavLoad === 'function' ? qNavLoad() : null
     ]);
+    if (typeof qKurseMerge === 'function') qKurseMerge(ku);
     S.qgr = { g, v, tn: Object.fromEntries(tn.map(r => [r.azubi_id, r.gruppe_id])) };
   } catch { S.qgr = null; }
 }
@@ -46,6 +49,7 @@ const qGroupLabel = uid => { const g = qGruppe(S.qgr?.tn?.[uid]); return g ? g.n
    Reiter-Weiche für quali2.js: Gruppen, Praktika (Trainer), Praktikum (Teilnehmende)
    ===================================================================== */
 async function q3Load() {
+  if (!isAzubi() && S.view === 'quali' && ['gruppen', 'praktika'].includes(S.quali.tab)) S.quali.tab = 'stand';
   const tab = S.quali.tab;
   if (!isAzubi() && tab === 'gruppen') { await qGroupsLoad(); return true; }
   if (!isAzubi() && tab === 'auswertung') { await qAuswLoad(); return true; }
@@ -84,7 +88,7 @@ function qGruppenHTML() {
     const canEndV = v => qCanTeam() || v.trainer_id === me || v.created_by === me || mine;
     return `<div class="card p-4 mt-3">
       <div class="flex items-start gap-3"><div class="flex-1 min-w-0"><div class="font-display font-bold text-[17px]">${esc(g.name)}</div>
-        <div class="text-[13px] text-muted mt-0.5">${tr ? `Trainer/in: <b class="text-fg">${esc(tr.full_name)}</b>` : '<span style="color:var(--warn)">noch ohne Trainer/in</span>'}${g.notiz ? ' · ' + esc(g.notiz) : ''}</div></div>
+        <div class="text-[13px] text-muted mt-0.5">${tr ? `Trainer/in: <b class="text-fg">${esc(tr.full_name)}</b>` : '<span style="color:var(--warn)">noch ohne Trainer/in</span>'}${g.kurs && Q_KATALOG[g.kurs] ? ' · Kurs: ' + esc(Q_KATALOG[g.kurs].kurz) : ''}${g.notiz ? ' · ' + esc(g.notiz) : ''}</div></div>
         ${mine ? '<span class="chip ok">deine Gruppe</span>' : meV ? `<span class="chip brass">du vertrittst bis ${fmtDate(meV.bis)}</span>` : ''}</div>
       ${m.length ? `<div class="flex flex-wrap gap-1.5 mt-3">${m.map(p => `<span class="chip">${esc(p.full_name)}</span>`).join('')}</div>` : '<div class="text-[13px] text-muted mt-3">Noch keine Teilnehmenden zugeordnet.</div>'}
       ${vs.length ? `<div class="mt-3 flex flex-col gap-1.5">${vs.map(v => `<div class="flex items-center gap-2 text-[13px] p-2 rounded-lg" style="background:var(--sunk)"><span class="flex-1 min-w-0">Vertretung: <b>${esc(S.profiles[v.trainer_id]?.full_name || '')}</b> · ${fmtDate(v.von)}–${fmtDate(v.bis)}${qVertAktiv(v) ? ' · <span style="color:var(--ok)">aktiv</span>' : ''}${v.notiz ? ' · ' + esc(v.notiz) : ''}</span>${canEndV(v) ? `<button class="text-[12px] font-semibold" style="color:var(--crit)" data-gvdel="${v.id}">beenden</button>` : ''}</div>`).join('')}</div>` : ''}
@@ -92,12 +96,12 @@ function qGruppenHTML() {
         ${!g.trainer_id && isAusbilder() ? `<button class="btn py-1.5 text-[13px]" data-gtake="${g.id}">Gruppe übernehmen</button>` : ''}
         ${mine ? `<button class="btn ghost py-1.5 text-[13px]" data-gvert="${g.id}">Vertretung eintragen</button><button class="btn ghost py-1.5 text-[13px]" data-ggive="${g.id}">Gruppe abgeben</button>` : ''}
         ${g.trainer_id && !mine && !meV && S.me.role === 'ausbilder' ? `<button class="btn ghost py-1.5 text-[13px]" data-gvself="${g.id}">Ich vertrete diese Gruppe</button>` : ''}
-        ${qCanTeam() ? `<button class="btn ghost py-1.5 text-[13px]" data-gedit="${g.id}">Bearbeiten</button>` : ''}
+        ${qCanTeam() || mine ? `<button class="btn ghost py-1.5 text-[13px]" data-gedit="${g.id}">${qCanTeam() ? 'Bearbeiten' : 'Umbenennen / Teilnehmende'}</button>` : ''}
       </div></div>`;
   };
   const mineFirst = G.g.slice().sort((a, b) => (b.trainer_id === me) - (a.trainer_id === me) || a.name.localeCompare(b.name));
-  return `${secTitle('Gruppen', qCanTeam() ? '<button id="gNew" class="text-[13px] font-semibold text-accent">+ Neue Gruppe</button>' : '')}
-    ${G.g.length ? mineFirst.map(card).join('') : empty(qCanTeam() ? 'Noch keine Gruppen. Lege eine an und ordne Teilnehmende und Trainer zu.' : 'Noch keine Gruppen angelegt. Das übernimmt die Koordination.')}
+  return `${secTitle('Gruppen', '<button id="gNew" class="text-[13px] font-semibold text-accent">+ Neue Gruppe</button>')}
+    ${G.g.length ? mineFirst.map(card).join('') : empty('Noch keine Gruppen. Lege eine an: Namen frei wählen, Kurs zuordnen, Teilnehmende auswählen.')}
     ${ohne.length && G.g.length ? `${secTitle('Ohne Gruppe', `<span class="chip warn tnum">${ohne.length}</span>`)}<div class="card p-4 flex flex-wrap gap-1.5">${ohne.map(p => `<span class="chip">${esc(p.full_name)}</span>`).join('')}</div>
       <p class="text-[12px] text-muted mt-2">Diese Teilnehmenden sieht nur die Koordination, bis sie einer Gruppe zugeordnet sind.</p>` : ''}
     <div class="card p-4 mt-4 text-[13px] text-muted flex flex-col gap-2">
@@ -133,20 +137,22 @@ function qVertretungSheet(g, self) {
   };
 }
 function qGruppeSheet(g0) {
-  const g = g0 ? { ...g0 } : { name: '', trainer_id: null, notiz: '' };
+  const g = g0 ? { ...g0 } : { name: '', trainer_id: qCanTeam() ? null : S.me.id, notiz: '', kurs: '' };
   const rows = (S.quali.rows || []).map(r => ({ r, p: S.profiles[r.azubi_id] })).filter(x => x.p).sort((a, b) => a.p.full_name.localeCompare(b.p.full_name));
   const trainers = Object.values(S.profiles).filter(p => ['ausbilder', 'admin'].includes(p.role) && p.aktiv !== false).sort((a, b) => a.full_name.localeCompare(b.full_name));
   sheetShell(g0 ? 'Gruppe bearbeiten' : 'Neue Gruppe', `<form id="gForm" class="flex flex-col gap-3"><div class="card p-4 flex flex-col gap-3">
-    <div><label class="lbl" for="gN">Name</label><input id="gN" class="field" maxlength="80" required value="${esc(g.name)}" placeholder="z. B. TQ Kautschuk Gruppe A"></div>
-    <div><label class="lbl" for="gT">Trainer/in</label><select id="gT" class="field"><option value="">– noch offen –</option>${trainers.map(p => `<option value="${p.id}" ${g.trainer_id === p.id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}</select></div>
+    <div><label class="lbl" for="gN">Name der Gruppe</label><input id="gN" class="field" maxlength="80" required value="${esc(g.name)}" placeholder="frei wählbar, z. B. TQ2 Kautschuk Herbst 2026"></div>
+    <div><label class="lbl" for="gK">Kurs</label><select id="gK" class="field"><option value="">– kein Kurs –</option>${Object.entries(Q_KATALOG).map(([k, x]) => `<option value="${k}" ${g.kurs === k ? 'selected' : ''}>${esc(x.kurz)}</option>`).join('')}</select><p class="text-[12px] text-muted mt-1">Fehlt der Kurs? Unter Verwaltung › Kurse frei anlegen.</p></div>
+    ${qCanTeam() ? `<div><label class="lbl" for="gT">Trainer/in</label><select id="gT" class="field"><option value="">– noch offen –</option>${trainers.map(p => `<option value="${p.id}" ${g.trainer_id === p.id ? 'selected' : ''}>${esc(p.full_name)}</option>`).join('')}</select></div>` : `<div class="text-[13px] text-muted">Trainer/in: <b class="text-fg">${esc(S.profiles[g.trainer_id]?.full_name || S.me.full_name)}</b></div>`}
     <div><label class="lbl" for="gZ">Notiz <span class="font-normal text-muted">(optional)</span></label><input id="gZ" class="field" maxlength="300" value="${esc(g.notiz || '')}" placeholder="z. B. Frühschicht, Standort Nord"></div></div>
     <div class="flex items-center justify-between"><div class="eyebrow">Teilnehmende</div><span class="text-[12px] text-muted">nur mit zugeordneter Maßnahme</span></div>
     <div class="card">${rows.length ? rows.map(({ r, p }, i) => { const other = r.gruppe_id && r.gruppe_id !== g0?.id ? qGruppe(r.gruppe_id) : null; return `<label class="flex items-center gap-3 p-3 ${i ? 'border-t border-line' : ''}"><input type="checkbox" class="cbx" data-gm="${r.id}" ${g0 && r.gruppe_id === g0.id ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--accent)">
       <span class="flex-1 min-w-0"><span class="block text-[14px] font-semibold truncate">${esc(p.full_name)}</span><span class="block text-[12px] text-muted truncate">${esc(Q_KATALOG[r.massnahme]?.kurz || '')}${other ? ` · jetzt in „${esc(other.name)}“` : ''}</span></span></label>`; }).join('') : '<div class="p-4 text-[13px] text-muted">Noch keine Teilnehmenden mit Maßnahme.</div>'}</div>
-    <button class="btn">Speichern</button>${g0 ? '<button type="button" class="btn danger" id="gDel">Gruppe löschen</button>' : ''}</form>`);
+    <button class="btn">Speichern</button>${g0 && qCanTeam() ? '<button type="button" class="btn danger" id="gDel">Gruppe löschen</button>' : ''}</form>`);
   $('#gForm').onsubmit = async e => {
     e.preventDefault();
-    const row = { name: $('#gN').value.trim(), trainer_id: $('#gT').value || null, notiz: $('#gZ').value.trim() || null };
+    const row = { name: $('#gN').value.trim(), kurs: $('#gK').value || null, trainer_id: $('#gT') ? $('#gT').value || null : g.trainer_id || S.me.id, notiz: $('#gZ').value.trim() || null };
+    if (!g0) row.betrieb_id = S.betrieb?.id || S.me.betrieb_id;
     if (!row.name) return toast('Bitte einen Namen eingeben.');
     try {
       const saved = g0 ? await q(sb.from('quali_gruppen').update(row).eq('id', g0.id).select().single()) : await q(sb.from('quali_gruppen').insert(row).select().single());
@@ -154,6 +160,8 @@ function qGruppeSheet(g0) {
       const add = rows.filter(({ r }) => want.has(r.id) && r.gruppe_id !== saved.id).map(({ r }) => r.id);
       const rem = rows.filter(({ r }) => !want.has(r.id) && r.gruppe_id === saved.id).map(({ r }) => r.id);
       if (add.length) await q(sb.from('quali_teilnahmen').update({ gruppe_id: saved.id }).in('id', add));
+      const ohneM = rows.filter(({ r }) => want.has(r.id) && !Q_KATALOG[r.massnahme]).map(({ r }) => r.id);
+      if (saved.kurs && ohneM.length) { await q(sb.from('quali_teilnahmen').update({ massnahme: saved.kurs }).in('id', ohneM)); (S.quali.rows || []).forEach(r => { if (ohneM.includes(r.id)) r.massnahme = saved.kurs; }); }
       if (rem.length) await q(sb.from('quali_teilnahmen').update({ gruppe_id: null }).in('id', rem));
       (S.quali.rows || []).forEach(r => { if (add.includes(r.id)) r.gruppe_id = saved.id; if (rem.includes(r.id)) r.gruppe_id = null; });
       closeSheet(); await qGroupsLoad(); toast('Gruppe gespeichert'); renderTabs(); go(S.view);

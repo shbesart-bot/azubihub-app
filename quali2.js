@@ -4,7 +4,12 @@
 (() => {
   const css = `
   .anw-row{display:flex;flex-direction:column;gap:8px}
-  .anw-st{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .anw-st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  @media (min-width:640px){.anw-st{grid-template-columns:repeat(6,minmax(0,1fr))}}
+  .anw-line{display:grid;grid-template-columns:1fr;gap:8px}
+  @media (min-width:640px){.anw-line{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:center}}
+  .anw-st button[aria-pressed="true"][data-st="frei"]{background:var(--sunk);border-color:var(--muted);color:var(--fg)}
+  .anw-st button[aria-pressed="true"][data-st="urlaub"]{background:var(--brass-soft, var(--warn-soft));border-color:var(--brass, var(--warn));color:var(--brass, var(--warn))}
   .anw-st button{padding:7px 4px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:12.5px;font-weight:600;color:var(--muted)}
   .anw-st button[aria-pressed="true"][data-st="anwesend"]{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
   .anw-st button[aria-pressed="true"][data-st="verspaetet"]{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
@@ -76,14 +81,17 @@ function qBrand(on) {
   document.querySelectorAll('link[rel=icon]').forEach(l => { l.type = 'image/svg+xml'; l.href = url; });
 }
 
-const ANW = { anwesend: ['A', 'Anwesend', 'ok', 'Anwesend'], verspaetet: ['V', 'Verspätet', 'warn', 'Verspätet'], entschuldigt: ['E', 'Entschuldigt', 'accent', 'Entsch.'], unentschuldigt: ['U', 'Unentschuldigt', 'crit', 'Unentsch.'] };
+const ANW = { anwesend: ['A', 'Anwesend', 'ok', 'Anwesend'], verspaetet: ['V', 'Verspätet', 'warn', 'Verspätet'], entschuldigt: ['E', 'Entschuldigt', 'accent', 'Entsch.'], unentschuldigt: ['U', 'Unentschuldigt', 'crit', 'Unentsch.'], frei: ['F', 'Frei', '', 'Frei'], urlaub: ['Ur', 'Urlaub', 'brass', 'Urlaub'] };
+/* Frei und Urlaub sind keine Maßnahmetage: sie zählen nicht in die Quote */
+const ANW_COL = { anwesend: [35, 106, 64], verspaetet: [138, 80, 11], entschuldigt: [15, 92, 95], unentschuldigt: [168, 50, 50], frei: [110, 110, 110], urlaub: [120, 92, 20] };
+const qAnwZaehlt = a => a && a.status !== 'frei' && a.status !== 'urlaub';
 const qNum = v => String(Math.round((+v || 0) * 100) / 100).replace('.', ',');
 const qWd = d => new Date(d + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short' });
 const qAddDays = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return localDate(x); };
 const qMonday = d => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return localDate(x); };
 const qCanTests = () => isAdmin() || can('team') || can('lernziele');
 const qTnList = () => azubis().filter(p => p.aktiv !== false).sort((a, b) => a.full_name.localeCompare(b.full_name));
-function qStaffTabs() { return [['stand', 'Teilnehmende'], ['gruppen', 'Gruppen'], ['praktika', 'Praktika'], ['auswertung', 'Auswertung']]; }
+function qStaffTabs() { return [['stand', 'Teilnehmende'], ['auswertung', 'Auswertung']]; }
 /* Eigene Reiter unten in der Leiste: Anwesenheit und Tests */
 function qViewVisible(v) {
   try { if (!isQuali() || !S.me || isMA()) return false; if (isAzubi()) return true;
@@ -167,8 +175,8 @@ function qAnwHTML() {
     </div>
     ${shown.length ? `<div class="card mt-3">${shown.map((p, i) => { const a = by[p.id]; return `<div class="p-3.5 anw-row ${i ? 'border-t border-line' : ''}">
       <div class="flex items-center gap-3">${avatar(p, 34)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name)}</div><div class="text-[12px] text-muted truncate">${esc(Q_KATALOG[qMassOf(p.id)]?.kurz || p.beruf || '')}</div></div>${a ? '' : '<span class="chip">offen</span>'}</div>
-      <div class="anw-st" role="group" aria-label="Anwesenheit ${esc(p.full_name)}">${Object.entries(ANW).map(([k, [, l, , sh]]) => `<button data-anw="${p.id}" data-st="${k}" aria-pressed="${a?.status === k}" aria-label="${l}" title="${l}">${sh}</button>`).join('')}</div>
-      ${a && a.status !== 'anwesend' ? `<div class="grid ${a.status === 'verspaetet' ? 'grid-cols-3' : 'grid-cols-1'} gap-2">${a.status === 'verspaetet' ? `<input class="field" type="number" min="0" max="600" inputmode="numeric" placeholder="Minuten" value="${a.minuten ?? ''}" data-anwmin="${p.id}" aria-label="Minuten verspätet">` : ''}<input class="field" style="grid-column:span ${a.status === 'verspaetet' ? 2 : 1}" maxlength="300" placeholder="Notiz, z. B. Krankmeldung liegt vor" value="${esc(a.notiz || '')}" data-anwnote="${p.id}" aria-label="Notiz"></div>` : ''}
+      <div class="anw-line"><div class="anw-st" role="group" aria-label="Anwesenheit ${esc(p.full_name)}">${Object.entries(ANW).map(([k, [, l, , sh]]) => `<button data-anw="${p.id}" data-st="${k}" aria-pressed="${a?.status === k}" aria-label="${l}" title="${l}">${sh}</button>`).join('')}</div>
+      ${a ? `<div class="flex gap-2">${a.status === 'verspaetet' ? `<input class="field" style="width:96px;flex:none" type="number" min="0" max="600" inputmode="numeric" placeholder="Min." value="${a.minuten ?? ''}" data-anwmin="${p.id}" aria-label="Minuten verspätet">` : ''}<input class="field flex-1 min-w-0" maxlength="300" placeholder="${{ anwesend: 'Bemerkung (optional)', verspaetet: 'Begründung, z. B. Bus ausgefallen', entschuldigt: 'Begründung, z. B. Krankmeldung liegt vor', unentschuldigt: 'Begründung, z. B. nicht erreicht', frei: 'Begründung, z. B. Brückentag, Betriebsruhe', urlaub: 'Begründung, z. B. Jahresurlaub genehmigt' }[a.status]}" value="${esc(a.notiz || '')}" data-anwnote="${p.id}" aria-label="Begründung"></div>` : ''}</div>
     </div>`; }).join('')}</div>` : empty('Keine Teilnehmenden in dieser Auswahl.')}
     ${secTitle('Export')}
     <div class="card p-4 flex flex-col gap-3">
@@ -240,7 +248,7 @@ async function qAnwPdf() {
   doc.setFont(FONT, 'bold'); doc.setFontSize(16); doc.text(title, M, 16);
   doc.setFont(FONT, 'normal'); doc.setFontSize(9.5); doc.setTextColor(80);
   doc.text(pdfSafe(`${S.hotel || ''} · Zeitraum ${fmtDate(von)} bis ${fmtDate(bis)} · ${f ? Q_KATALOG[f]?.kurz || '' : 'alle Maßnahmen'}`), M, 22); doc.setTextColor(0);
-  const nameW = 52, sumW = 11, nSum = 5, dayW = Math.max(5.5, Math.min(14, (W - 2 * M - nameW - nSum * sumW) / days.length));
+  const nameW = 50, sumW = 10, nSum = 7, dayW = Math.max(5.5, Math.min(14, (W - 2 * M - nameW - nSum * sumW) / days.length));
   const perPage = Math.max(1, Math.floor((W - 2 * M - nameW - nSum * sumW) / dayW)), chunks = [];
   for (let i = 0; i < days.length; i += perPage) chunks.push(days.slice(i, i + perPage));
   chunks.forEach((ds, ci) => {
@@ -251,7 +259,7 @@ async function qAnwPdf() {
       doc.text('Name', M + 1.5, y + 1.5);
       ds.forEach((d, i) => { const x = M + nameW + i * dayW + dayW / 2; doc.text(pdfSafe(qWd(d)), x, y - 0.6, { align: 'center' }); doc.text(d.slice(8, 10) + '.' + d.slice(5, 7) + '.', x, y + 3.2, { align: 'center' }); });
       const sx = M + nameW + ds.length * dayW;
-      ['A', 'V', 'E', 'U', '%'].forEach((l, i) => doc.text(l, sx + i * sumW + sumW / 2, y + 1.5, { align: 'center' }));
+      ['A', 'V', 'E', 'U', 'F', 'Ur', '%'].forEach((l, i) => doc.text(l, sx + i * sumW + sumW / 2, y + 1.5, { align: 'center' }));
       y += 9;
     };
     head();
@@ -261,19 +269,19 @@ async function qAnwPdf() {
       doc.setFont(FONT, 'normal'); doc.setFontSize(8.5); doc.text(pdfSafe(p.full_name).slice(0, 34), M + 1.5, y);
       ds.forEach((d, i) => { const a = by[p.id + '|' + d]; if (!a) { doc.setTextColor(170); doc.text('–', M + nameW + i * dayW + dayW / 2, y, { align: 'center' }); doc.setTextColor(0); return; }
         const s = ANW[a.status][0] + (a.status === 'verspaetet' && a.minuten ? a.minuten : '');
-        const col = { anwesend: [35, 106, 64], verspaetet: [138, 80, 11], entschuldigt: [15, 92, 95], unentschuldigt: [168, 50, 50] }[a.status];
+        const col = ANW_COL[a.status] || [0, 0, 0];
         doc.setTextColor(...col); doc.setFont(FONT, 'bold'); doc.text(s, M + nameW + i * dayW + dayW / 2, y, { align: 'center' }); doc.setTextColor(0); doc.setFont(FONT, 'normal'); });
       const all = days.map(d => by[p.id + '|' + d]).filter(Boolean), c = k => all.filter(a => a.status === k).length;
-      const quote = all.length ? Math.round((c('anwesend') + c('verspaetet')) * 100 / all.length) : null;
+      const zt = all.filter(qAnwZaehlt).length, quote = zt ? Math.round((c('anwesend') + c('verspaetet')) * 100 / zt) : null;
       const sx = M + nameW + ds.length * dayW;
-      [c('anwesend'), c('verspaetet'), c('entschuldigt'), c('unentschuldigt'), quote == null ? '–' : quote + ' %'].forEach((v, i) => doc.text(String(v), sx + i * sumW + sumW / 2, y, { align: 'center' }));
+      [c('anwesend'), c('verspaetet'), c('entschuldigt'), c('unentschuldigt'), c('frei'), c('urlaub'), quote == null ? '–' : quote + ' %'].forEach((v, i) => doc.text(String(v), sx + i * sumW + sumW / 2, y, { align: 'center' }));
       y += 6.4;
     });
     doc.setDrawColor(210); doc.line(M, y - 3.5, W - M, y - 3.5);
     if (ci === chunks.length - 1) {
       y += 4; if (y > 180) { doc.addPage(); y = 20; }
       doc.setFontSize(8); doc.setTextColor(90);
-      doc.text(pdfSafe('A = anwesend · V = verspätet (Zahl = Minuten) · E = entschuldigt · U = unentschuldigt · – = nicht erfasst. Summen und Quote (anwesend + verspätet) über den gesamten Zeitraum.'), M, y);
+      doc.text(pdfSafe('A = anwesend · V = verspätet (Zahl = Minuten) · E = entschuldigt · U = unentschuldigt · F = frei · Ur = Urlaub · – = nicht erfasst. Quote = (anwesend + verspätet) / Tage ohne Frei und Urlaub.'), M, y);
       const notes = rows.filter(r => r.notiz && people.some(p => p.id === r.azubi_id)).sort((a, b) => a.datum.localeCompare(b.datum));
       if (notes.length) { y += 6; doc.setFont(FONT, 'bold'); doc.text('Notizen', M, y); doc.setFont(FONT, 'normal');
         notes.slice(0, 30).forEach(n => { y += 4.4; if (y > 192) { doc.addPage(); y = 20; } doc.text(pdfSafe(`${fmtDate(n.datum)} · ${S.profiles[n.azubi_id]?.full_name || ''}: ${n.notiz}`).slice(0, 180), M, y); }); }
@@ -311,7 +319,7 @@ function qMailSheet(title, make, defText) {
 /* Eigene Anwesenheit (Teilnehmende) */
 function qMyAnwHTML() {
   const list = S.quali.myAnw || [], c = k => list.filter(a => a.status === k).length;
-  const quote = list.length ? Math.round((c('anwesend') + c('verspaetet')) * 100 / list.length) : null;
+  const zt = list.filter(qAnwZaehlt).length, quote = zt ? Math.round((c('anwesend') + c('verspaetet')) * 100 / zt) : null;
   return `${secTitle('Deine Anwesenheit', quote == null ? '' : `<span class="chip ${quote >= 90 ? 'ok' : quote >= 75 ? 'warn' : 'crit'} tnum">${quote} %</span>`)}
     ${list.length ? `<div class="flex flex-wrap gap-1.5 mb-2 text-[12px]">${Object.entries(ANW).map(([k, [, l, col]]) => `<span class="chip ${col} tnum">${c(k)} ${l}</span>`).join('')}</div>
     <div class="card">${list.slice(0, 40).map((a, i) => `<div class="flex items-center gap-3 p-3 ${i ? 'border-t border-line' : ''}"><div class="flex-1 min-w-0"><div class="text-[14px] font-semibold tnum">${qWd(a.datum)}, ${fmtDate(a.datum)}</div>${a.notiz ? `<div class="text-[12px] text-muted truncate">${esc(a.notiz)}</div>` : ''}</div><span class="chip ${ANW[a.status][2]}">${ANW[a.status][1]}${a.status === 'verspaetet' && a.minuten ? ` ${a.minuten} Min.` : ''}</span></div>`).join('')}</div>
