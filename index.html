@@ -271,17 +271,17 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03l"></script>
-<script src="./ausbildung.js?v=2026-11-03l"></script>
-<script src="./ausbau2.js?v=2026-11-03l"></script>
-<script src="./quali.js?v=2026-11-03l"></script>
-<script src="./quali2.js?v=2026-11-03l"></script>
-<script src="./quali3.js?v=2026-11-03l"></script>
-<script src="./quali4.js?v=2026-11-03l"></script>
-<script src="./quali5.js?v=2026-11-03l"></script>
-<script src="./quali6.js?v=2026-11-03l"></script>
-<script src="./quali7.js?v=2026-11-03l"></script>
-<script src="./quali8.js?v=2026-11-03l"></script>
+<script src="./schule.js?v=2026-11-03m"></script>
+<script src="./ausbildung.js?v=2026-11-03m"></script>
+<script src="./ausbau2.js?v=2026-11-03m"></script>
+<script src="./quali.js?v=2026-11-03m"></script>
+<script src="./quali2.js?v=2026-11-03m"></script>
+<script src="./quali3.js?v=2026-11-03m"></script>
+<script src="./quali4.js?v=2026-11-03m"></script>
+<script src="./quali5.js?v=2026-11-03m"></script>
+<script src="./quali6.js?v=2026-11-03m"></script>
+<script src="./quali7.js?v=2026-11-03m"></script>
+<script src="./quali8.js?v=2026-11-03m"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -394,6 +394,12 @@ function applyConfig() {
   ABTEILUNGEN = APP.abteilungen.map(a => a.name);
   ABT_SOLL = Object.fromEntries(APP.abteilungen.map(a => [a.name, a.wochen]));
   PLAN_JAHRE = APP.plan;
+  /* Qualifizierungsmodus (Desk): solange die Hotel-Vorgaben unverändert sind, Industrie-Bausteine verwenden */
+  if (typeof isQuali === 'function' && isQuali() && typeof Q_GEN !== 'undefined') {
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    if (!APP.genPhrases?.length || same(APP.genPhrases, DEFAULT_APP.genPhrases)) APP.genPhrases = clone(Q_GEN.phrases);
+    if (!APP.genLinks?.length || same(APP.genLinks, DEFAULT_APP.genLinks)) APP.genLinks = Q_GEN.links.slice();
+  }
   PHRASES = APP.genPhrases.map(p => [p.keys.map(k => k.toLowerCase()).filter(Boolean), p.satz]);
   LINKS = APP.genLinks.length ? APP.genLinks : DEFAULT_APP.genLinks;
   const r = document.documentElement.style;
@@ -449,7 +455,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03l';
+const APP_VERSION = '2026-11-03m';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -1134,9 +1140,9 @@ const Bericht = {
     ${secTitle('Tagesbericht-Generator')}
     <div class="card p-4 flex flex-col gap-3">
       <div><div class="flex items-center justify-between gap-2"><label class="lbl" for="genIn">Was hast du heute gemacht? <span class="font-normal text-muted">(ein Stichpunkt pro Zeile)</span></label>${dkMicBtn('data-dkfield="#genIn"', 'Stichpunkte einsprechen')}</div>
-        <textarea id="genIn" rows="4" class="field" placeholder="Check-in 6 Gäste&#10;Telefon angenommen&#10;Beschwerde wegen Lärm aufgenommen"></textarea></div>
+        <textarea id="genIn" rows="4" class="field" placeholder="${isQuali() ? Q_GEN.ph : 'Check-in 6 Gäste&#10;Telefon angenommen&#10;Beschwerde wegen Lärm aufgenommen'}"></textarea></div>
       <div><label class="lbl" for="genLearn">Was hast du gelernt? <span class="font-normal text-muted">(optional)</span></label>
-        <input id="genLearn" class="field" placeholder="wie man eine Firmenrechnung anlegt"></div>
+        <input id="genLearn" class="field" placeholder="${isQuali() ? Q_GEN.phLearn : 'wie man eine Firmenrechnung anlegt'}"></div>
       <button id="genBtn" class="btn">${svg('spark', 'w-4 h-4')} Formulieren</button>
       <div id="genOut" ${S.rep.genOut ? '' : 'hidden'}>
         <div class="eyebrow mb-1.5">Vorschlag</div>

@@ -8,6 +8,24 @@ const qCfg = () => { try { return APP.quali || {}; } catch { return {}; } };
 /* Frühwarnung, Stimmungs-Check und Stationsfeedback sind im Qualifizierungsmodus aus, bis der Betriebsrat zugestimmt hat */
 const qAuswertungAn = () => !isQuali() || qCfg().auswertungen === true;
 
+/* Tagesbericht-Generator im Qualifizierungsmodus: Industrie statt Hotel. Jeder Satz ordnet den Stichpunkt nur ein
+   und übernimmt ihn wörtlich – es werden keine Tätigkeiten dazuerfunden, die nicht eingetragen wurden. */
+const Q_GEN = {
+  phrases: [
+    { keys: ['unterweis', 'schulung', 'einweisung', 'arbeitsschutz', 'sicherheitsbelehrung'], satz: 'habe ich an einer Unterweisung teilgenommen: {x}.' },
+    { keys: ['theorie', 'unterricht', 'e-learning', 'ipad', 'prüfungsvorbereitung', 'lernmodul'], satz: 'habe ich im Theorieunterricht gelernt: {x}.' },
+    { keys: ['wartung', 'instandhalt', 'tpm', 'schmier', 'inspektion', 'reparat'], satz: 'habe ich Wartungs- und Instandhaltungsarbeiten durchgeführt: {x}.' },
+    { keys: ['stapler', 'flurförder', 'hubwagen', 'kran'], satz: 'habe ich mit Flurförderzeugen gearbeitet: {x}.' },
+    { keys: ['kabel', 'verdraht', 'schaltschrank', 'schaltplan', 'sps', 'klemm', 'leitung', 'sicherung', 'spannung', 'elektr', 'motor', 'sensor'], satz: 'habe ich an elektrischen Anlagen gearbeitet: {x}.' },
+    { keys: ['wareneingang', 'warenausgang', 'einlager', 'auslager', 'kommission', 'versand', 'verpack', 'inventur', 'lager', 'palette', 'scanner'], satz: 'habe ich in der Lagerlogistik gearbeitet: {x}.' },
+    { keys: ['prüf', 'mess', 'kontroll', 'protokoll', 'qualität'], satz: 'habe ich Prüf- und Messaufgaben erledigt: {x}.' },
+    { keys: ['maschine', 'anlage', 'rüst', 'einricht', 'störung', 'produktion', 'extrud', 'kalander', 'presse', 'vulkanis', 'spritzguss', 'mischung'], satz: 'habe ich an Maschinen und Anlagen gearbeitet: {x}.' },
+    { keys: ['feilen', 'bohren', 'sägen', 'drehen', 'fräsen', 'gewinde', 'montier', 'baugruppe', 'werkstück', 'werkstatt'], satz: 'habe ich in der Werkstatt gearbeitet: {x}.' }
+  ],
+  links: ['Zu Beginn des Tages', 'Anschließend', 'Außerdem', 'Danach', 'Zum Abschluss des Tages'],
+  ph: 'Kabel im Schaltschrank verdrahtet&#10;Wareneingang geprüft und eingelagert&#10;Sicherheitsunterweisung Gabelstapler',
+  phLearn: 'wie man einen Schaltplan liest'
+};
 const Q_KUK = 'Kunststoff- und Kautschuktechnologe/-in', Q_MAF = 'Maschinen- und Anlagenführer/-in';
 const Q_IEL = 'Industrieelektriker/-in Betriebstechnik', Q_LAG = 'Fachkraft für Lagerlogistik';
 const Q_STD = { zeit: 'Vollzeit, 37,5 Std./Woche, Mo–Fr', zert: 'IHK-Zertifikat nach jedem Modul', abschluss: 'IHK-Berufsabschluss über die Externenprüfung',

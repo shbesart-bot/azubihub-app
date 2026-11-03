@@ -331,17 +331,6 @@
       { key: 'app', value: { typ: 'qualifizierung', quali: { auswertungen: false },
         modules: { wiki: { on: false }, buddy: { on: false }, bericht: { tab: 'Nachweis', title: 'Lern- und Tätigkeitsnachweis', sub: 'Woche eintragen: Theorie, Werkstatt, Arbeitsplatz.' } },
         abteilungen: LO.map(n => ({ name: n, wochen: 0 })), wochenSoll: 37.5,
-        genPhrases: [
-          { keys: ['extrud', 'spritzkopf'], satz: 'habe ich am Extruder mitgearbeitet, Temperaturen kontrolliert und das Profil geprüft ({x}).' },
-          { keys: ['kalander', 'gummier'], satz: 'habe ich am Kalander Stahlcord bzw. Gewebe gummiert und die Bahndicke gemessen ({x}).' },
-          { keys: ['vulkanis', 'heizpresse', 'presse'], satz: 'habe ich an der Vulkanisationspresse Rohlinge eingelegt, Heizzeit und Temperatur überwacht und Reifen entnommen ({x}).' },
-          { keys: ['reifenaufbau', 'konfektion', 'rohling'], satz: 'habe ich beim Reifenaufbau Lagen aufgelegt und den Rohling nach Vorgabe aufgebaut ({x}).' },
-          { keys: ['mischung', 'kneter', 'walzwerk'], satz: 'habe ich im Mischsaal Kautschukmischungen vorbereitet und nach Rezeptur verwogen ({x}).' },
-          { keys: ['wartung', 'tpm', 'schmier', 'inspektion'], satz: 'habe ich nach Wartungsplan inspiziert, geschmiert und Befunde dokumentiert ({x}).' },
-          { keys: ['shore', 'prüf', 'mess'], satz: 'habe ich Prüfungen durchgeführt und die Messwerte im Protokoll eingetragen ({x}).' },
-          { keys: ['ipad', 'theorie', 'e-learning', 'unterricht'], satz: 'habe ich im Theorieunterricht gelernt: {x}.' },
-          { keys: ['feilen', 'bohren', 'gewinde', 'baugruppe'], satz: 'habe ich in der Werkstatt Bauteile gefertigt und eine Baugruppe montiert ({x}).' }
-        ],
         botHello: 'Hallo {name}! Frag mich zu deiner Maßnahme, zum Beispiel zu Modulen, Prüfung oder Lernzeiten.' } },
       { key: 'branding', value: { loginText: 'Lern- und Tätigkeitsnachweis, Module und Prüfungsvorbereitung für die Qualifizierung.', berufe: [KUK, IEL, LAG, MAF] } }
     ];
