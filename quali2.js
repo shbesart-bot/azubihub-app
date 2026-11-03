@@ -30,10 +30,10 @@
 
 
 /* =====================================================================
-   Eigenes Erscheinungsbild im Qualifizierungsmodus: Name „Stufenwerk“, Logo, Farben
+   Eigenes Erscheinungsbild im Qualifizierungsmodus: Name „C1TT Desk“, Logo (brand/c1tt-desk-*.png), Farben
    Gilt nur, solange der Betrieb Name und Farben nicht selbst geändert hat.
    ===================================================================== */
-const Q_BRAND = { name: 'Stufenwerk', brand: '#1d3c6e', brand2: '#b8643a', text: 'Lern- und Tätigkeitsnachweis, Module, Anwesenheit und Tests für die Qualifizierung.' };
+const Q_BRAND = { name: 'C1TT Desk', brand: '#2f3539', brand2: '#e08a00', old: ['Stufenwerk', '#1d3c6e', '#b8643a'], text: 'Lern- und Tätigkeitsnachweis, Module, Anwesenheit und Tests für die Qualifizierung.' };
 function qLogoSVG(bg = Q_BRAND.brand, ring = '#ffffff', last = '#d98a5c') {
   const cx = 256, cy = 256, r1 = 150, r2 = 112, n = 5, gap = 7 * Math.PI / 180, pt = (r, a) => `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
   let seg = '';
@@ -41,7 +41,7 @@ function qLogoSVG(bg = Q_BRAND.brand, ring = '#ffffff', last = '#d98a5c') {
     seg += `<path d="M${pt(r1, a0)} A${r1} ${r1} 0 0 1 ${pt(r1, a1)} L${pt(r2, a1)} A${r2} ${r2} 0 0 0 ${pt(r2, a0)}Z" fill="${i === n - 1 ? last : ring}"/>`; }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="116" fill="${bg}"/>${seg}<path d="m212 258 30 30 60-66" fill="none" stroke="${ring}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
-const qLogoURL = () => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qLogoSVG());
+const qLogoURL = (s = 192) => `./brand/c1tt-desk-${s}.png`;
 (() => {
   const css = `
   :root.quali { --bg:#eef1f5; --surface:#ffffff; --sunk:#e2e7ee; --line:#d2d9e3; --fg:#121c2c; --muted:#4c586b; --scrim:rgba(12,20,34,.45); }
@@ -68,8 +68,8 @@ function qBrand(on) {
     return;
   }
   root.classList.add('quali');
-  if (BR.appName === DEFAULT_BRANDING.appName) BR.appName = Q_BRAND.name;
-  if (BR.brand === DEFAULT_BRANDING.brand && BR.brand2 === DEFAULT_BRANDING.brand2) { BR.brand = Q_BRAND.brand; BR.brand2 = Q_BRAND.brand2; }
+  if (BR.appName === DEFAULT_BRANDING.appName || BR.appName === Q_BRAND.old[0]) BR.appName = Q_BRAND.name;
+  if ((BR.brand === DEFAULT_BRANDING.brand && BR.brand2 === DEFAULT_BRANDING.brand2) || (BR.brand === Q_BRAND.old[1] && BR.brand2 === Q_BRAND.old[2])) { BR.brand = Q_BRAND.brand; BR.brand2 = Q_BRAND.brand2; }
   if (!BR.loginText || BR.loginText === DEFAULT_BRANDING.loginText) BR.loginText = Q_BRAND.text;
   root.style.setProperty('--brand', BR.brand); root.style.setProperty('--brand2', BR.brand2);
   document.title = BR.appName;
@@ -78,7 +78,7 @@ function qBrand(on) {
   const lt = document.getElementById('loginText'); if (lt) lt.textContent = BR.loginText;
   const url = qLogoURL();
   imgs.forEach(i => { i.src = url; i.dataset.qlogo = '1'; });
-  document.querySelectorAll('link[rel=icon]').forEach(l => { l.type = 'image/svg+xml'; l.href = url; });
+  document.querySelectorAll('link[rel=icon]').forEach(l => { l.type = 'image/png'; l.href = qLogoURL(32); });
 }
 
 const ANW = { anwesend: ['A', 'Anwesend', 'ok', 'Anwesend'], verspaetet: ['V', 'Verspätet', 'warn', 'Verspätet'], entschuldigt: ['E', 'Entschuldigt', 'accent', 'Entsch.'], unentschuldigt: ['U', 'Unentschuldigt', 'crit', 'Unentsch.'], frei: ['F', 'Frei', '', 'Frei'], urlaub: ['Ur', 'Urlaub', 'brass', 'Urlaub'] };
@@ -349,7 +349,7 @@ function qTestsHTML() {
       <div class="grid grid-cols-3 gap-2 mt-2.5"><button class="btn py-1.5 text-[13px]" data-qtstart="${t.id}" ${t.fragen.length ? '' : 'disabled'}>Live starten</button><button class="btn ghost py-1.5 text-[13px]" data-qtedit="${t.id}">Bearbeiten</button><button class="btn ghost py-1.5 text-[13px]" data-qtcopy="${t.id}">Kopieren</button></div></div>`).join('')}</div>`
       : empty('Noch keine Tests. Lege einen an oder übernimm Fragen aus dem Fragenkatalog.')}
     ${done.length ? `${secTitle('Ergebnisse')}<div class="card">${done.map((s, i) => `<div class="${i ? 'border-t border-line' : ''}">${row(s)}</div>`).join('')}</div>` : ''}
-    <p class="text-[12px] text-muted mt-2">Auswahlfragen wertet Stufenwerk automatisch aus, Freitext bewertest du selbst. Teilnehmende sehen Lösungen und Punkte erst, wenn du die Ergebnisse freigibst.</p>`;
+    <p class="text-[12px] text-muted mt-2">Auswahlfragen wertet C1TT Desk automatisch aus, Freitext bewertest du selbst. Teilnehmende sehen Lösungen und Punkte erst, wenn du die Ergebnisse freigibst.</p>`;
 }
 function qTestsBind() {
   $('#qtNew') && ($('#qtNew').onclick = () => qTestEditor(null));

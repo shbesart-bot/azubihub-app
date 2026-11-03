@@ -545,7 +545,7 @@ async function orgExport(btn) {
         if (S.org.expJson) zip.file(`json/${tb}.json`, JSON.stringify(rows, null, 1));
       } catch (er) { summary.push(`${area[1]} / ${tb}: nicht lesbar (${errText(er)})`); }
     }
-    zip.file('LIESMICH.txt', `${BR.appName || 'Stufenwerk'} – Datenexport\nBetrieb: ${S.betrieb?.name || S.hotel || ''}\nZeitraum: ${fmtDate(von)} bis ${fmtDate(bis)}\nErstellt: ${new Date().toLocaleString('de-DE')} von ${S.me.full_name}\n\nJeder Ordner ist ein Bereich. Die CSV-Dateien öffnen sich in Excel (Trennzeichen Semikolon, UTF-8).\nEnthalten sind nur Daten, die ${S.me.full_name} in der App sehen darf.\n\nEnthaltene Datensätze:\n${summary.join('\n')}\n\nHinweis: Diese Datei enthält personenbezogene Daten. Sicher aufbewahren und nach Ablauf der Aufbewahrungsfristen löschen.\n`);
+    zip.file('LIESMICH.txt', `${BR.appName || 'C1TT Desk'} – Datenexport\nBetrieb: ${S.betrieb?.name || S.hotel || ''}\nZeitraum: ${fmtDate(von)} bis ${fmtDate(bis)}\nErstellt: ${new Date().toLocaleString('de-DE')} von ${S.me.full_name}\n\nJeder Ordner ist ein Bereich. Die CSV-Dateien öffnen sich in Excel (Trennzeichen Semikolon, UTF-8).\nEnthalten sind nur Daten, die ${S.me.full_name} in der App sehen darf.\n\nEnthaltene Datensätze:\n${summary.join('\n')}\n\nHinweis: Diese Datei enthält personenbezogene Daten. Sicher aufbewahren und nach Ablauf der Aufbewahrungsfristen löschen.\n`);
     st('ZIP wird erstellt …');
     const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Export_${orgAscii(S.betrieb?.name || S.hotel || 'Betrieb')}_${von}_bis_${bis}.zip`;
