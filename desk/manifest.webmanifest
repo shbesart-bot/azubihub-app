@@ -1,0 +1,16 @@
+{
+  "id": "/?app=desk",
+  "name": "Desk",
+  "short_name": "Desk",
+  "description": "Qualifizierung, Anwesenheit, Klassenbuch und Tests für Trainer und Teilnehmende.",
+  "lang": "de",
+  "start_url": "/?app=desk",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef1f5",
+  "theme_color": "#2f3539",
+  "icons": [
+    { "src": "/brand/desk-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/brand/desk-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -306,10 +306,10 @@
     return Math.round(sum * 100) / 100;
   }
 
-  /* ---------- C1TT-Demo: Qualifizierung für Erwachsene (Teilqualifizierung, Intensivkurs). Alle Personen sind erfunden. ---------- */
+  /* ---------- Desk-Demo: Qualifizierung für Erwachsene (Teilqualifizierung, Intensivkurs). Alle Personen sind erfunden. ---------- */
   function c1ttApply() {
     const KUK = 'Kunststoff- und Kautschuktechnologe/-in', MAF = 'Maschinen- und Anlagenführer/-in', IEL = 'Industrieelektriker/-in Betriebstechnik', LAG = 'Fachkraft für Lagerlogistik';
-    const LO = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'C1TT-Werkstatt', 'Arbeitsplatz im Werk'];
+    const LO = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'Lernwerkstatt', 'Arbeitsplatz im Werk'];
     const Q = {
       koord: { id: 'demo-q-koord', full_name: 'Katrin Vogt', role: 'admin', position: 'Koordination Qualifizierung', kontakt_email: 'katrin.vogt@example.com', telefon: '0511 000-100', abteilung: LO[1] },
       trainer: { id: 'demo-q-trainer', full_name: 'Michael Berger', role: 'ausbilder', position: 'Trainer Kunststoff- und Kautschuktechnik', kontakt_email: 'michael.berger@example.com', telefon: '0511 000-120', rechte: ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'unterweisungen', 'dienstplan'], bereiche: LO, abteilung: LO[2] },
@@ -326,7 +326,7 @@
     };
     const base = { betrieb_id: B, aktiv: true, foto: null, rechte: [], bereiche: [], lehrjahr: 1, beruf: '', start_datum: ymd(day(-900)), unter18: false, position: '', kontakt_email: '', telefon: '', betreuer_id: null, zp_datum: null, ap_datum: null, gruppen_leitung: false, sprache: 'de', created_at: iso(day(-700)) };
     DB.profiles = Object.values(Q).map(p => ({ ...base, ...p }));
-    DB.betriebe = [{ id: B, name: 'C1TT Lernstandort (Demo)', invite_code: 'C1TT-DEMO', aktiv: true, slug: 'c1tt-demo' }];
+    DB.betriebe = [{ id: B, name: 'Lernstandort (Demo)', invite_code: 'DESK-DEMO', aktiv: true, slug: 'desk-demo' }];
     DB.app_config = [
       { key: 'app', value: { typ: 'qualifizierung', quali: { auswertungen: false },
         modules: { wiki: { on: false }, buddy: { on: false }, bericht: { tab: 'Nachweis', title: 'Lern- und Tätigkeitsnachweis', sub: 'Woche eintragen: Theorie, Werkstatt, Arbeitsplatz.' } },
@@ -621,7 +621,7 @@
       ['Präsenzunterricht', [['Qualitätsprüfung am Rohling: Prüfmerkmale, Fehlerbilder, Protokoll', ['Vt', 'Demo', 'GA'], 3], ['Pause'], ['Fehlerbilder in Gruppen auswerten und präsentieren', ['GA', 'GA', 'Präs'], 3], ['Pause'], ['Planung Praktikumsphase', ['EA', 'PA'], 2]], '3.4'],
       ['Werkstattphase', [['Heizpresse: Rüsten, Beschicken, Entformen unter Anleitung', ['Demo', 'Ü', 'Ü'], 3], ['Pause'], ['Rollenspiel: Übergabe an die Folgeschicht', ['RS', 'Disk', 'LG'], 3], ['Pause'], ['Lerngespräche und Wochenrückblick', ['LG', 'Disk'], 2]], '3.5']
     ];
-    const kbSt = (blocks, kap) => { const out = []; let h = 8; blocks.forEach(([t, ms, n]) => { if (t === 'Pause') { out.push({ h: String(h).padStart(2, '0') + ':00', thema: 'Pause', methodik: '', kapitel: '' }); h++; return; } for (let j = 0; j < n; j++) { out.push({ h: String(h).padStart(2, '0') + ':00', thema: t, methodik: ms[j % ms.length], kapitel: j === 0 ? kap : '' }); h++; } }); return out; };
+    const kbSt = (blocks, kap) => { const out = []; let h = 8; blocks.forEach(([t, ms, n]) => { if (t === 'Pause') { out.push({ h: String(h).padStart(2, '0') + ':00', thema: 'Pause', methodik: '', kapitel: '' }); h++; return; } for (let j = 0; j < n; j++) { out.push({ h: String(h).padStart(2, '0') + ':00', thema: t, methodik: ms[j % ms.length], kapitel: j === 0 ? kap : '', ...(j === 1 && h < 11 ? { notiz: 'Arbeitsblatt ausgeteilt' } : {}) }); h++; } }); return out; };
     DB.klassenbuch = []; let kbi = 0;
     for (let i = 13; i >= 1; i--) { const d = day(-i, 8), wd = d.getDay(); if (wd === 0 || wd === 6) continue;
       const [ua, blocks, kap] = KBT[kbi++ % KBT.length], st = kbSt(blocks, kap);
@@ -632,11 +632,19 @@
       { id: 'demo-q-ku-gk', betrieb_id: B, name: 'Grundkompetenz Technik (GK)', art: 'Grundkompetenz', beruf: null, abschluss: 'Teilnahmebescheinigung', dauer_monate: 3, module: [{ titel: 'Deutsch und Mathematik', monate: 1 }, { titel: 'Technische Grundlagen', monate: 1 }, { titel: 'Arbeitssicherheit und Lernen lernen', monate: 1 }], beschreibung: 'Vorbereitung auf die Teilqualifizierung nach dem Einstellungstest.', aktiv: true, created_by: Q.koord.id, created_at: iso(day(-200)), updated_at: iso(day(-200)) },
       { id: 'demo-q-ku-stapler', betrieb_id: B, name: 'Staplerschein (Flurförderzeuge)', art: 'Lehrgang', beruf: null, abschluss: 'Fahrausweis nach DGUV Grundsatz 308-001', dauer_monate: 0.5, module: [], beschreibung: null, aktiv: true, created_by: Q.petra.id, created_at: iso(day(-90)), updated_at: iso(day(-90)) }
     ];
-    DB.quali_einsatz = []; const PL = { trainer: ['S', 'W', 'W', 'S', 'ORG'], frank: ['W', 'W', 'S', 'W', 'O'], petra: ['S', 'W', 'O', 'W', 'ORG'], koord: ['ORG', 'ORG', 'S', 'ORG', 'O'] };
+    DB.quali_einsatz = []; const PL = { trainer: ['S', 'W', 'UV', 'S', 'ORG'], frank: ['W', 'W', 'S', 'BP', 'O'], petra: ['S', 'W', 'O', 'W', 'UV'], koord: ['ORG', 'A', 'S', 'ORG', 'P'] };
     Object.entries(PL).forEach(([k, pl]) => { for (let i = 1; i <= 160; i++) { const d = day(-i), wd = d.getDay(); if (wd === 0 || wd === 6 || (i * 7 + k.length) % 23 === 0) continue;
       const art = pl[(wd - 1 + Math.floor(i / 35)) % 5], half = wd === 5 && art !== 'ORG';
       DB.quali_einsatz.push({ id: uuid(), betrieb_id: B, trainer_id: Q[k].id, datum: ymd(d), art, anteil: half ? 0.5 : 1, gruppe_id: null, notiz: null, created_at: iso(d), updated_at: iso(d) });
       if (half) DB.quali_einsatz.push({ id: uuid(), betrieb_id: B, trainer_id: Q[k].id, datum: ymd(d), art: 'ORG', anteil: 0.5, gruppe_id: null, notiz: 'Dokumentation', created_at: iso(d), updated_at: iso(d) }); } });
+    /* Diese und nächste Woche: Urlaub, Prüfung, Audit, kritischer Tag (Demo) */
+    const dpX = (k, off, art, anteil = 1, notiz = null) => { const d = day(off), wd = d.getDay(); if (wd === 0 || wd === 6) return; DB.quali_einsatz = DB.quali_einsatz.filter(e => !(e.trainer_id === Q[k].id && e.datum === ymd(d))); DB.quali_einsatz.push({ id: uuid(), betrieb_id: B, trainer_id: Q[k].id, datum: ymd(d), art, anteil, gruppe_id: null, notiz, created_at: iso(d), updated_at: iso(d) }); };
+    for (let i = -1; i <= 9; i++) { dpX('trainer', i, ['S', 'W', 'UV', 'S', 'ORG'][(day(i).getDay() + 6) % 7] || 'S'); dpX('frank', i, i >= 0 && i <= 4 ? 'U' : 'W', 1, i >= 0 && i <= 4 ? 'Jahresurlaub' : null); dpX('petra', i, i === 0 ? 'PRF' : i === 2 ? 'X' : 'S', 1, i === 0 ? 'TQ-Prüfung Lager' : null); dpX('koord', i, i === 1 ? 'A' : 'ORG', 1, i === 1 ? 'Audit Träger' : null); }
+    DB.quali_einsatz.push({ id: uuid(), betrieb_id: B, trainer_id: Q.trainer.id, datum: ymd(day(0)), art: 'K', anteil: 1, gruppe_id: null, notiz: 'Frank im Urlaub – Elektro mitbetreuen', created_at: iso(day(0)), updated_at: iso(day(0)) });
+    const abl = (typ, titel, a0, a1, modul = null) => ({ typ, titel, von: ymd(day(a0)), bis: ymd(day(a1)), modul });
+    DB.quali_gruppen.find(g => g.id === 'demo-q-gr-kuk').ablauf = [abl('tq', 'Modul 2: Baugruppen herstellen', -260, -140, 2), abl('pruefung', 'Prüfung Modul 2', -142, -140), abl('pause', 'TQ-Pause', -139, -126), abl('tq', 'Modul 3: Fertigung vorbereiten', -125, 0, 3), abl('praktikum', 'Praktika im Werk', -60, -47), abl('pruefung', 'Prüfung Modul 3', 1, 3), abl('urlaub', 'Weihnachtsferien', 50, 63), abl('tq', 'Modul 4: Verfahrenstechniken', 4, 150, 4), abl('pruefung', 'Prüfung Modul 4', 148, 150)];
+    DB.quali_gruppen.find(g => g.id === 'demo-q-gr-iel').ablauf = [abl('gk', 'Grundkompetenz', -200, -110), abl('tq', 'Modul 1: Grundlagen Elektrotechnik', -109, 20, 1), abl('pruefung', 'Prüfung Modul 1', 18, 20), abl('pause', 'TQ-Pause', 21, 34), abl('tq', 'Modul 2: Steuerungstechnik', 35, 160, 2)];
+    DB.quali_gruppen.find(g => g.id === 'demo-q-gr-lag').ablauf = [abl('tq', 'Modul 3: Lagerprozesse', -90, 30, 3), abl('praktikum', 'Praktikum Versand', 10, 19), abl('pruefung', 'Prüfung Modul 3', 28, 30), abl('tq', 'Modul 4: Kommissionierung', 31, 150, 4)];
     DB.quali_teilnahmen.forEach(t => { t.status ||= 'aktiv'; if (t.azubi_id === Q.tobias.id) t.einsatzort = 'Lernwerkstatt Elektro'; if (t.azubi_id === Q.olga.id) t.einsatzort = 'Lernwerkstatt Nord'; });
     /* Tests */
     const F = (id, typ, frage, optionen, richtig, punkte, loesung) => ({ id, typ, frage, optionen, richtig, punkte, ...(loesung ? { loesung } : {}) });
@@ -694,7 +702,7 @@
     const me = () => DB.profiles.find(p => p.id === meId);
     const RPC = {
       bewerbung_dateien: () => [{ bewerbung_id: 'demo-bew-mia', pfad: 'demo-bew-mia/1700000000000_Lebenslauf_Mia_Hoffmann.pdf', groesse: 284000 }, { bewerbung_id: 'demo-bew-mia', pfad: 'demo-bew-mia/1700000000001_Zeugnis.docx', groesse: 51000 }],
-      my_betrieb_status: () => ({ id: B, name: QM ? 'C1TT Lernstandort (Demo)' : 'Hotel Seeblick', aktiv: true, plattform: false, status: 'aktiv', slug: 'hotel-seeblick-demo', gruppen_leitung: false }),
+      my_betrieb_status: () => ({ id: B, name: QM ? 'Lernstandort (Demo)' : 'Hotel Seeblick', aktiv: true, plattform: false, status: 'aktiv', slug: 'hotel-seeblick-demo', gruppen_leitung: false }),
       my_chats2: () => {
         const out = [], mine = DB.messages.filter(m => !m.gruppe_id && (m.sender_id === meId || m.recipient_id === meId));
         const partners = [...new Set(mine.map(m => m.sender_id === meId ? m.recipient_id : m.sender_id))];
@@ -810,7 +818,7 @@
       praktika_meine: () => (DB.quali_praktika || []).filter(p => p.azubi_id === meId).sort((x, y) => y.von.localeCompare(x.von)).map(p => ({ id: p.id, abteilung: p.abteilung, ansprechpartner: p.ansprechpartner, von: p.von, bis: p.bis, aufgaben: p.aufgaben, fb_tn: p.fb_tn, fb_tn_at: p.fb_tn_at, abgesegnet_at: p.abgesegnet_at, fb_al_da: !!p.fb_al, fb_al: p.abgesegnet_at ? p.fb_al : null })),
       praktikum_tn_feedback: a => { const p = DB.quali_praktika.find(x => x.id === a.p_id && x.azubi_id === meId); if (!p || p.abgesegnet_at || ymd(new Date()) < p.von) throw new Error('Rückmeldung ist für dieses Praktikum gerade nicht möglich'); p.fb_tn = a.p_fb; p.fb_tn_at = iso(new Date()); return null; },
       praktikum_link: a => { const p = (DB.quali_praktika || []).find(x => x.token === a.p_token); if (!p) return null; const t = DB.profiles.find(x => x.id === p.azubi_id), h = ymd(new Date()), end90 = ymd(new Date(new Date(p.bis + 'T12:00:00').getTime() + 90 * 864e5));
-        return { teilnehmer: t.full_name, beruf: t.beruf, betrieb: 'C1TT Lernstandort (Demo)', abteilung: p.abteilung, ansprechpartner: p.ansprechpartner, von: p.von, bis: p.bis, aufgaben: p.aufgaben, fb_al: p.fb_al, fb_al_at: p.fb_al_at, abgesegnet: !!p.abgesegnet_at, offen: !p.abgesegnet_at && h >= p.von && h <= end90, heute: h, fb_tn: p.abgesegnet_at && p.an_abteilung ? p.fb_tn : null }; },
+        return { teilnehmer: t.full_name, beruf: t.beruf, betrieb: 'Lernstandort (Demo)', abteilung: p.abteilung, ansprechpartner: p.ansprechpartner, von: p.von, bis: p.bis, aufgaben: p.aufgaben, fb_al: p.fb_al, fb_al_at: p.fb_al_at, abgesegnet: !!p.abgesegnet_at, offen: !p.abgesegnet_at && h >= p.von && h <= end90, heute: h, fb_tn: p.abgesegnet_at && p.an_abteilung ? p.fb_tn : null }; },
       praktikum_link_feedback: a => { const p = (DB.quali_praktika || []).find(x => x.token === a.p_token); if (!p || p.abgesegnet_at) throw new Error('Die Rückmeldung ist über diesen Link nicht mehr möglich'); p.fb_al = a.p_fb; p.fb_al_at = iso(new Date()); return null; },
       test_verlaengern: a => { const s = DB.test_sitzungen.find(x => x.id === a.p_sitzung); s.endet_at = iso(new Date(new Date(s.endet_at).getTime() + (a.p_min || 5) * 60e3)); return s.endet_at; }
     };

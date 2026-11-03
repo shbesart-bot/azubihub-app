@@ -96,6 +96,7 @@ function qGruppenHTML() {
         ${!g.trainer_id && isAusbilder() ? `<button class="btn py-1.5 text-[13px]" data-gtake="${g.id}">Gruppe übernehmen</button>` : ''}
         ${mine ? `<button class="btn ghost py-1.5 text-[13px]" data-gvert="${g.id}">Vertretung eintragen</button><button class="btn ghost py-1.5 text-[13px]" data-ggive="${g.id}">Gruppe abgeben</button>` : ''}
         ${g.trainer_id && !mine && !meV && S.me.role === 'ausbilder' ? `<button class="btn ghost py-1.5 text-[13px]" data-gvself="${g.id}">Ich vertrete diese Gruppe</button>` : ''}
+        ${qCanTeam() || mine ? `<button class="btn ghost py-1.5 text-[13px]" data-gablauf="${g.id}">TQ-Ablauf${(g.ablauf || []).length ? ` (${g.ablauf.length})` : ''}</button>` : ''}
         ${qCanTeam() || mine ? `<button class="btn ghost py-1.5 text-[13px]" data-gedit="${g.id}">${qCanTeam() ? 'Bearbeiten' : 'Umbenennen / Teilnehmende'}</button>` : ''}
       </div></div>`;
   };
@@ -112,6 +113,7 @@ function qGruppenBind() {
   const after = async msg => { await qGroupsLoad(); toast(msg); renderTabs(); go(S.view); };
   $('#gNew') && ($('#gNew').onclick = () => qGruppeSheet(null));
   $$('[data-gedit]').forEach(b => b.onclick = () => qGruppeSheet(qGruppe(b.dataset.gedit)));
+  $$('[data-gablauf]').forEach(b => b.onclick = () => typeof qAblaufSheet === 'function' && qAblaufSheet(b.dataset.gablauf));
   $$('[data-gtake]').forEach(b => b.onclick = async () => { try { await q(sb.rpc('quali_gruppe_uebernehmen', { p_gruppe: b.dataset.gtake })); await after('Gruppe übernommen'); } catch (e) { toast(errText(e)); } });
   $$('[data-ggive]').forEach(b => b.onclick = () => qConfirm(b, async () => { try { await q(sb.rpc('quali_gruppe_abgeben', { p_gruppe: b.dataset.ggive })); await after('Gruppe abgegeben'); } catch (e) { toast(errText(e)); } }, 'Wirklich abgeben?'));
   $$('[data-gvert]').forEach(b => b.onclick = () => qVertretungSheet(qGruppe(b.dataset.gvert), false));

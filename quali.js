@@ -1,5 +1,5 @@
-/* AzubiHub · Qualifizierungsmodus (z. B. C1TT): Teilqualifizierungen und Intensivkurse für erwachsene Beschäftigte
-   ohne Berufsabschluss. Statt Berufsschule und IHK-Zwischenprüfung gibt es Module mit IHK-Zertifikat, Theorie bei C1TT
+/* AzubiHub · Qualifizierungsmodus : Teilqualifizierungen und Intensivkurse für erwachsene Beschäftigte
+   ohne Berufsabschluss. Statt Berufsschule und IHK-Zwischenprüfung gibt es Module mit IHK-Zertifikat, Theorie beim Träger
    (virtuell oder im Schulungsraum), Praxis in der Werkstatt und am Ende die Externenprüfung (§ 45 Abs. 2 BBiG).
    Wird vor dem Hauptskript geladen und greift erst zur Laufzeit auf S, APP usw. zu. */
 
@@ -11,14 +11,14 @@ const qAuswertungAn = () => !isQuali() || qCfg().auswertungen === true;
 const Q_KUK = 'Kunststoff- und Kautschuktechnologe/-in', Q_MAF = 'Maschinen- und Anlagenführer/-in';
 const Q_IEL = 'Industrieelektriker/-in Betriebstechnik', Q_LAG = 'Fachkraft für Lagerlogistik';
 const Q_STD = { zeit: 'Vollzeit, 37,5 Std./Woche, Mo–Fr', zert: 'IHK-Zertifikat nach jedem Modul', abschluss: 'IHK-Berufsabschluss über die Externenprüfung',
-  lernorte: 'Je Modul mindestens ein Drittel Praxis in der C1TT-Werkstatt, zwei Drittel Theorie virtuell auf dem iPad oder im Schulungsraum.' };
+  lernorte: 'Je Modul mindestens ein Drittel Praxis in der Lernwerkstatt, zwei Drittel Theorie virtuell auf dem iPad oder im Schulungsraum.' };
 /* Maßnahmen nach den öffentlichen Angaben auf c1tt.de (Stand Oktober 2026). Modulnamen gekürzt; die genaue Zuordnung
-   der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag und muss von C1TT bestätigt werden. */
+   der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag und muss vom Träger bestätigt werden. */
 const Q_KATALOG = {
   'tq-kuk': {
     art: 'Teilqualifizierung', kurz: 'TQ Kunststoff und Kautschuk', beruf: Q_KUK, fachrichtung: 'Mehrschichtkautschukteile',
     zeit: 'Vollzeit, 37,5 Std./Woche, Mo–Fr', dauer: '24 Monate',
-    lernorte: 'Je Modul mindestens ein Drittel Praxis in der C1TT-Werkstatt, zwei Drittel Theorie virtuell auf dem iPad oder im Schulungsraum.',
+    lernorte: 'Je Modul mindestens ein Drittel Praxis in der Lernwerkstatt, zwei Drittel Theorie virtuell auf dem iPad oder im Schulungsraum.',
     zert: 'IHK-Zertifikat nach jedem Modul', abschluss: 'IHK-Berufsabschluss über die Externenprüfung', ausbildungsjahre: 3,
     module: [
       { nr: 1, titel: 'Grundlagen: einfache Baugruppen und polymere Werkstoffe', monate: 6, rp: ['A1', 'A2', 'I1', 'I2', 'I3'] },
@@ -321,7 +321,7 @@ function qStaffHTML() {
     ${secTitle('Hinweise')}<div class="card p-4 text-[13px] text-muted flex flex-col gap-2">
       <div>Frühwarnung, Stimmungs-Check und Stationsfeedback sind im Qualifizierungsmodus ausgeschaltet. Einschalten erst nach Abstimmung mit dem Betriebsrat (§ 87 Abs. 1 Nr. 6 BetrVG).</div>
       <div>Qualifizierungs-Guides sehen nur den Stand der Maßnahme ihrer Begleitungen, keine Berichte, Noten oder Beurteilungen.</div>
-      <div>Maßnahmen nach den öffentlichen Angaben von C1TT. Die Zuordnung der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag.</div></div>`}`;
+      <div>Maßnahmen nach öffentlich zugänglichen Angaben. Die Zuordnung der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag.</div></div>`}`;
 }
 
 /* ---------- Bearbeiten (Koordination / Trainer mit Recht „Team“) ---------- */
@@ -335,7 +335,7 @@ function qEditSheet(uid) {
       <div class="card p-4 flex flex-col gap-3">
         <div><label class="lbl" for="qM">Maßnahme</label><select id="qM" class="field"><option value="">– bitte wählen –</option>${Object.entries(Q_KATALOG).map(([key, x]) => `<option value="${key}" ${t.massnahme === key ? 'selected' : ''}>${esc(x.art)} · ${esc(x.beruf)}</option>`).join('')}</select></div>
         <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="qB">Beginn</label><input id="qB" type="date" class="field" value="${t.beginn || ''}"></div><div><label class="lbl" for="qE">Ende</label><input id="qE" type="date" class="field" value="${t.ende || ''}"></div></div>
-        <div><label class="lbl" for="qS">C1TT-Standort</label><input id="qS" class="field" maxlength="80" value="${esc(t.standort || '')}"></div>
+        <div><label class="lbl" for="qS">Standort</label><input id="qS" class="field" maxlength="80" value="${esc(t.standort || '')}"></div>
         ${(S.qgr?.g || []).length ? `<div><label class="lbl" for="qGr">Gruppe</label><select id="qGr" class="field"><option value="">– keine –</option>${S.qgr.g.map(g => `<option value="${g.id}" ${t.gruppe_id === g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></div>` : ''}
         <div><label class="lbl" for="qG">Qualifizierungs-Guide</label><select id="qG" class="field"><option value="">– keiner –</option>${guides.map(g => `<option value="${g.id}" ${t.guide_id === g.id ? 'selected' : ''}>${esc(g.full_name)}${g.position ? ' · ' + esc(g.position) : ''}</option>`).join('')}</select></div>
         ${k?.voraussetzung ? `<div><label class="lbl" for="qJ">Berufserfahrung in Jahren</label><input id="qJ" type="number" min="0" step="0.5" class="field" value="${t.erfahrung_jahre ?? ''}"><p class="text-[12px] text-muted mt-1">${esc(k.voraussetzung)}</p></div>` : ''}

@@ -74,10 +74,11 @@ const ORG_VIEWS = {
   qpk: ['Praktika', 'Praktika im Werk planen, Rückmeldungen einholen und freigeben.'],
   qgk: ['Grundkompetenz (GK)', 'Drei Monate Grundkompetenz nach dem Einstellungstest.'],
   qkb: ['Klassenbuch', 'Dokumentation der Trainingsdurchführung je Gruppe und Woche.'],
-  qein: ['Einsatzplan', 'Wo du eingesetzt warst – mit Zähler für Audits.']
+  qein: ['Dienstplan', 'Wer macht wann was – mit Kürzeln, Team-Übersicht, TQ-Ablauf und Zähler für Audits.']
 };
-const ORG_VERW_TABS = [['verw', 'Teilnehmende'], ['gruppen', 'Gruppen'], ['kurse', 'Kurse'], ['exp', 'Export']];
-const orgTabOf = v => v === 'qverw' ? (ORG_VERW_TABS.some(t => t[0] === S.org.vtab) ? S.org.vtab : 'verw') : { qpk: 'pk', qgk: 'gk', qkb: 'kb', qein: 'ein' }[v];
+const ORG_VERW_TABS0 = [['verw', 'Teilnehmende'], ['gruppen', 'Gruppen'], ['kurse', 'Kurse'], ['rechte', 'Rechte'], ['exp', 'Export']];
+const orgVerwTabs = () => ORG_VERW_TABS0.filter(([k]) => k !== 'rechte' || isAdmin());
+const orgTabOf = v => v === 'qverw' ? (orgVerwTabs().some(t => t[0] === S.org.vtab) ? S.org.vtab : 'verw') : { qpk: 'pk', qgk: 'gk', qkb: 'kb', qein: 'ein' }[v];
 function orgViewOf(v) {
   return {
     async load() {
@@ -88,13 +89,13 @@ function orgViewOf(v) {
     html() {
       const t = S.org.tab;
       return `<h1 class="text-[26px] font-bold mt-1">${ORG_VIEWS[v][0]}</h1><p class="text-[14px] text-muted mt-1">${ORG_VIEWS[v][1]}</p>
-        ${v === 'qverw' ? `<div class="seg mt-4 mb-1">${ORG_VERW_TABS.map(([k, l]) => `<button aria-pressed="${t === k}" data-otab="${k}">${l}</button>`).join('')}</div>` : ''}
-        ${t === 'verw' ? orgVerwHTML() : t === 'gruppen' ? qGruppenHTML() : t === 'kurse' ? qKurseHTML() : t === 'exp' ? orgExpHTML() : t === 'pk' ? qPraktikaHTML() : t === 'gk' ? orgGkHTML() : t === 'kb' ? orgKbHTML() : orgEinHTML()}`;
+        ${v === 'qverw' ? `<div class="seg mt-4 mb-1">${orgVerwTabs().map(([k, l]) => `<button aria-pressed="${t === k}" data-otab="${k}">${l}</button>`).join('')}</div>` : ''}
+        ${t === 'verw' ? orgVerwHTML() : t === 'gruppen' ? qGruppenHTML() : t === 'kurse' ? qKurseHTML() : t === 'rechte' ? qRechteHTML() : t === 'exp' ? orgExpHTML() : t === 'pk' ? qPraktikaHTML() : t === 'gk' ? orgGkHTML() : t === 'kb' ? orgKbHTML() : orgEinHTML()}`;
     },
     bind() {
       $$('[data-otab]').forEach(b => b.onclick = () => { S.org.vtab = b.dataset.otab; go('qverw'); });
       const t = S.org.tab;
-      ({ verw: orgVerwBind, gruppen: qGruppenBind, kurse: qKurseBind, exp: orgExpBind, pk: qPraktikaBind, gk: orgGkBind, kb: orgKbBind, ein: orgEinBind })[t]();
+      ({ verw: orgVerwBind, gruppen: qGruppenBind, kurse: qKurseBind, rechte: qRechteBind, exp: orgExpBind, pk: qPraktikaBind, gk: orgGkBind, kb: orgKbBind, ein: orgEinBind })[t]();
     }
   };
 }
@@ -545,7 +546,7 @@ async function orgExport(btn) {
         if (S.org.expJson) zip.file(`json/${tb}.json`, JSON.stringify(rows, null, 1));
       } catch (er) { summary.push(`${area[1]} / ${tb}: nicht lesbar (${errText(er)})`); }
     }
-    zip.file('LIESMICH.txt', `${BR.appName || 'C1TT Desk'} – Datenexport\nBetrieb: ${S.betrieb?.name || S.hotel || ''}\nZeitraum: ${fmtDate(von)} bis ${fmtDate(bis)}\nErstellt: ${new Date().toLocaleString('de-DE')} von ${S.me.full_name}\n\nJeder Ordner ist ein Bereich. Die CSV-Dateien öffnen sich in Excel (Trennzeichen Semikolon, UTF-8).\nEnthalten sind nur Daten, die ${S.me.full_name} in der App sehen darf.\n\nEnthaltene Datensätze:\n${summary.join('\n')}\n\nHinweis: Diese Datei enthält personenbezogene Daten. Sicher aufbewahren und nach Ablauf der Aufbewahrungsfristen löschen.\n`);
+    zip.file('LIESMICH.txt', `${BR.appName || 'Desk'} – Datenexport\nBetrieb: ${S.betrieb?.name || S.hotel || ''}\nZeitraum: ${fmtDate(von)} bis ${fmtDate(bis)}\nErstellt: ${new Date().toLocaleString('de-DE')} von ${S.me.full_name}\n\nJeder Ordner ist ein Bereich. Die CSV-Dateien öffnen sich in Excel (Trennzeichen Semikolon, UTF-8).\nEnthalten sind nur Daten, die ${S.me.full_name} in der App sehen darf.\n\nEnthaltene Datensätze:\n${summary.join('\n')}\n\nHinweis: Diese Datei enthält personenbezogene Daten. Sicher aufbewahren und nach Ablauf der Aufbewahrungsfristen löschen.\n`);
     st('ZIP wird erstellt …');
     const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Export_${orgAscii(S.betrieb?.name || S.hotel || 'Betrieb')}_${von}_bis_${bis}.zip`;

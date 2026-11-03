@@ -263,16 +263,17 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03b"></script>
-<script src="./ausbildung.js?v=2026-11-03b"></script>
-<script src="./ausbau2.js?v=2026-11-03b"></script>
-<script src="./quali.js?v=2026-11-03b"></script>
-<script src="./quali2.js?v=2026-11-03b"></script>
-<script src="./quali3.js?v=2026-11-03b"></script>
-<script src="./quali4.js?v=2026-11-03b"></script>
-<script src="./quali5.js?v=2026-11-03b"></script>
-<script src="./quali6.js?v=2026-11-03b"></script>
-<script src="./quali7.js?v=2026-11-03b"></script>
+<script src="./schule.js?v=2026-11-03d"></script>
+<script src="./ausbildung.js?v=2026-11-03d"></script>
+<script src="./ausbau2.js?v=2026-11-03d"></script>
+<script src="./quali.js?v=2026-11-03d"></script>
+<script src="./quali2.js?v=2026-11-03d"></script>
+<script src="./quali3.js?v=2026-11-03d"></script>
+<script src="./quali4.js?v=2026-11-03d"></script>
+<script src="./quali5.js?v=2026-11-03d"></script>
+<script src="./quali6.js?v=2026-11-03d"></script>
+<script src="./quali7.js?v=2026-11-03d"></script>
+<script src="./quali8.js?v=2026-11-03d"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -440,7 +441,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03b';
+const APP_VERSION = '2026-11-03d';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -548,14 +549,15 @@ const RIGHTS = [
   ['inhalte', 'Inhalte pflegen', 'Standards, Checklisten, Quiz, Onboarding, Kontakte, Rahmenplan'],
   ['unterweisungen', 'Unterweisungen', 'Unterweisungen anlegen und sehen, wer unterschrieben hat'],
   ['ankuendigungen', 'Pinnwand', 'Ankündigungen schreiben und Lesebestätigungen sehen'],
-  ['bewerbungen', 'Karriere & Bewerbungen', 'Karriereseite gestalten und Bewerbungen bearbeiten']
+  ['bewerbungen', 'Karriere & Bewerbungen', 'Karriereseite gestalten und Bewerbungen bearbeiten'],
+  ['einstellungen', 'Aufbau & Texte', 'Lernorte bzw. Abteilungen, Texte, Logo, Farben und Funktionen der App einstellen']
 ];
 const DEFAULT_RIGHTS = ['berichte', 'lernziele', 'gespraeche', 'abwesenheiten', 'uebergabe'];
 const canP = (p, r) => p?.role === 'admin' || (p?.role === 'ausbilder' && (p.rechte || []).includes(r));
 const can = r => canP(S.me, r);
 const scopeOk = (p, abt) => p?.role === 'admin' || !(p?.bereiche || []).length || (p.bereiche || []).includes(abt);
 const inScope = abt => scopeOk(S.me, abt);
-const canManage = () => isAdmin() || can('team') || can('inhalte') || can('bewerbungen') || !!S.betrieb?.plattform;
+const canManage = () => isAdmin() || can('team') || can('inhalte') || can('bewerbungen') || can('einstellungen') || !!S.betrieb?.plattform;
 /* Wer zeichnet die Berichte eines Azubis ab? Ausbilder/innen mit Recht + passender Abteilung, sonst die Leitung. */
 function reviewersFor(abt, exclude) {
   const staff = Object.values(S.profiles).filter(p => p.aktiv !== false && p.role !== 'azubi' && p.id !== exclude);
@@ -574,12 +576,12 @@ let authMode = 'login';
 $$('[data-auth]').forEach(b => b.onclick = () => {
   authMode = b.dataset.auth;
   $$('[data-auth]').forEach(x => x.setAttribute('aria-pressed', x === b));
-  $$('[data-reg],[data-biz]').forEach(x => x.hidden = !((authMode === 'register' && x.hasAttribute('data-reg') && !(x.hasAttribute('data-azfield') && $('#aRolle').value !== 'azubi')) || (authMode === 'betrieb' && x.hasAttribute('data-biz'))));
+  $$('[data-reg],[data-biz]').forEach(x => x.hidden = !((authMode === 'register' && x.hasAttribute('data-reg') && !(x.hasAttribute('data-azfield') && ($('#aRolle').value !== 'azubi' || (typeof deskOn === 'function' && deskOn())))) || (authMode === 'betrieb' && x.hasAttribute('data-biz'))));
   $('#authBtn').textContent = authMode === 'login' ? 'Anmelden' : authMode === 'betrieb' ? 'Betrieb anlegen' : 'Konto erstellen';
   $('#aPass').autocomplete = authMode === 'login' ? 'current-password' : 'new-password';
   authMsg('');
 });
-$('#aRolle').onchange = () => { $('[data-azfield]').hidden = $('#aRolle').value !== 'azubi'; };
+$('#aRolle').onchange = () => { $('[data-azfield]').hidden = $('#aRolle').value !== 'azubi' || (typeof deskOn === 'function' && deskOn()); };
 { const st = new URLSearchParams(location.search).get('start'); if (st === 'betrieb' || st === 'register') $(`[data-auth="${st}"]`)?.click(); }
 function authMsg(t, kind = 'crit') { const m = $('#authMsg'); m.hidden = !t; m.textContent = t; m.style.color = `var(--${kind})`; }
 $('#authForm').onsubmit = async e => {
@@ -600,6 +602,7 @@ $('#authForm').onsubmit = async e => {
       const meta = { full_name, betrieb, position, sprache: LANG };
       if (!$('#bAgb').checked) return authMsg('Bitte AGB und Auftragsverarbeitung akzeptieren.');
       meta.agb = '1';
+      if (!lizenz && typeof deskOn === 'function' && deskOn()) return authMsg('Bitte den Freischalt-Code eintragen.');
       if (lizenz) meta.lizenz = lizenz; else meta.testphase = '1';
       const { data, error } = await sb.auth.signUp({ email, password, options: { data: meta } });
       if (error) throw error;
@@ -611,7 +614,7 @@ $('#authForm').onsubmit = async e => {
       if (!invite_code) return authMsg('Bitte den Hotel-Code eingeben.');
       if (await pwLeaked(password)) return authMsg(PW_LEAK_MSG);
       const rolle = $('#aRolle').value;
-      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name, invite_code, rolle, sprache: LANG, ...(rolle === 'azubi' ? { lehrjahr: $('#aJahr').value, beruf: $('#aBeruf').value } : {}) } } });
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name, invite_code, rolle, sprache: LANG, ...(rolle === 'azubi' && !(typeof deskOn === 'function' && deskOn()) ? { lehrjahr: $('#aJahr').value, beruf: $('#aBeruf').value } : {}) } } });
       if (error) throw error;
       if (!data.session) authMsg('Fast geschafft: Bitte bestätige den Link in deiner E-Mail und melde dich dann an.', 'ok');
     }
@@ -683,7 +686,7 @@ async function startApp(user) {
 /* =====================================================================
    Navigation
    ===================================================================== */
-const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock'], ['qverw', 'Teilnehmer/Gruppen', 'gruppe'], ['qpk', 'Praktika', 'koffer'], ['qgk', 'GK', 'stufe'], ['qkb', 'Klassenbuch', 'kbuch'], ['qein', 'Einsatzplan', 'orga']];
+const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock'], ['qverw', 'Teilnehmer/Gruppen', 'gruppe'], ['qpk', 'Praktika', 'koffer'], ['qgk', 'GK', 'stufe'], ['qkb', 'Klassenbuch', 'kbuch'], ['qein', 'Dienstplan', 'orga']];
 const EXTRA_VIEWS = ['home', 'admin', 'chat', 'uw', 'news', 'dienst'];
 // Übergabebuch ist seit 27.10.2026 ausgeblendet (Daten bleiben erhalten); Schule und IHK gibt es nicht für Mitarbeiter/innen
 const visible = v => v === 'uebergabe' ? false : ['qorg', 'qverw', 'qpk', 'qgk', 'qkb', 'qein'].includes(v) ? typeof qOrgVisible === 'function' && qOrgVisible() : (v === 'qanw' || v === 'qtests') ? (typeof qViewVisible === 'function' && qViewVisible(v)) : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
@@ -706,7 +709,7 @@ async function go(v) {
   try { await VIEWS[v].load?.(); } catch (e) { if (tok === navToken) $('#app').innerHTML = `<div class="card p-4 mt-2 text-[14px]">Laden fehlgeschlagen: ${esc(errText(e))} <button class="btn ghost mt-3 w-full" data-go="${v}">Erneut versuchen</button></div>`; return; }
   if (tok === navToken) { render(); if (S.navByUser) { S.navByUser = false; $('#app').focus({ preventScroll: true }); } }
 }
-const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung', qorg: 'Verwaltung', qverw: 'Verwaltung', qpk: 'Praktika', qgk: 'GK', qkb: 'Klassenbuch', qein: 'Einsatzplan' };
+const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung', qorg: 'Verwaltung', qverw: 'Verwaltung', qpk: 'Praktika', qgk: 'GK', qkb: 'Klassenbuch', qein: 'Dienstplan' };
 function render() {
   const V = VIEWS[S.view];
   try { const t = VIEW_TITLES[S.view] || (S.view === 'home' ? 'Start' : mod(S.view)?.tab) || ''; document.title = (t ? t + ' – ' : '') + (BR.appName || 'AzubiHub'); } catch {}
@@ -1712,7 +1715,7 @@ function adminTabs() {
     can('team') && ['team', 'Team'],
     can('inhalte') && ['inhalte', 'Inhalte'],
     can('bewerbungen') && !isQuali() && ['karriere', 'Karriere'],
-    isAdmin() && ['texte', 'Aufbau & Texte'],
+    can('einstellungen') && ['texte', 'Aufbau & Texte'],
     isAdmin() && ['einst', 'Einstellungen'],
     S.betrieb?.plattform && ['anbieter', 'Anbieter']
   ].filter(Boolean);
@@ -1967,7 +1970,7 @@ function bindCfgForm() {
     let berufe2 = berufe, abt2 = abt;
     if (typ === 'qualifizierung' && APP.typ !== 'qualifizierung' && typeof Q_KATALOG !== 'undefined') {
       if (JSON.stringify(berufe) === JSON.stringify(DEFAULT_BRANDING.berufe)) berufe2 = [...new Set(Object.values(Q_KATALOG).map(k => k.beruf))];
-      if (JSON.stringify(abt.map(a => a.name)) === JSON.stringify(DEFAULT_APP.abteilungen.map(a => a.name))) abt2 = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'C1TT-Werkstatt', 'Arbeitsplatz im Werk'].map(name => ({ name, wochen: 0 }));
+      if (JSON.stringify(abt.map(a => a.name)) === JSON.stringify(DEFAULT_APP.abteilungen.map(a => a.name))) abt2 = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'Lernwerkstatt', 'Arbeitsplatz im Werk'].map(name => ({ name, wochen: 0 }));
     }
     const newBR = { appName, loginText: $('#cLoginText').value.trim(), brand: $('#cBrand').value, brand2: $('#cBrand2').value, berufe: berufe2, datenschutz: $('#cPrivacy').value.trim() || DEFAULT_BRANDING.datenschutz };
     const newAPP = { ...(typ ? { typ } : {}), ...(APP.quali_seed ? { quali_seed: true } : {}), modules, abteilungen: abt2,
@@ -4525,7 +4528,7 @@ function openDemoPicker() {
   const qOnly = new URLSearchParams(location.search).get('demo')?.startsWith('c1tt');
   sheetShell('Demo ansehen', `<p class="text-[14px] text-muted -mt-1 mb-3">Mit Beispieldaten. Du kannst alles ausprobieren, nichts wird gespeichert.</p>
     ${qOnly ? '' : `<div class="eyebrow mb-2">Ausbildung · Hotel Seeblick</div>${list(DEMO_ROLES)}`}
-    <div class="eyebrow mt-4 mb-2">Qualifizierung · C1TT (Teilqualifizierung, Intensivkurs)</div>${list(DEMO_Q_ROLES)}
+    <div class="eyebrow mt-4 mb-2">Qualifizierung (Teilqualifizierung, Intensivkurs)</div>${list(DEMO_Q_ROLES)}
     <p class="text-[12px] text-muted mt-2">Alle Personen sind erfunden. Maßnahmen nach den öffentlichen Angaben auf c1tt.de.</p>`);
 }
 $('#demoBtn').onclick = openDemoPicker;

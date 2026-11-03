@@ -37,7 +37,9 @@
   .kb-ed .hd b{font-variant-numeric:tabular-nums;font-size:14px}
   .kb-ed .hd button{font-size:12px;font-weight:600;color:var(--accent);background:none;border:0;padding:2px 4px}
   .kb-ed .row2{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:6px;margin-top:6px}
-  @media (min-width:720px){.kb-ed{display:grid;grid-template-columns:70px minmax(0,1fr) 210px 92px;gap:8px;align-items:start;padding:8px}.kb-ed .hd{flex-direction:column;align-items:flex-start;margin:0}.kb-ed .row2{display:contents}}
+  .kb-ed .kb-no{grid-column:1/-1}
+  .kb-tab td.n{font-size:12px;color:var(--muted);border-left:1px solid var(--line);white-space:pre-line}
+  @media (min-width:720px){.kb-ed{display:grid;grid-template-columns:62px minmax(0,1.3fr) 190px 84px minmax(0,1fr);gap:8px;align-items:start;padding:8px}.kb-ed .hd{flex-direction:column;align-items:flex-start;margin:0}.kb-ed .row2{display:contents}.kb-ed .kb-no{grid-column:auto}}
   `;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   try {
@@ -73,7 +75,7 @@ function qNavTabs(all) {
   const hid = new Set((N.hidden || []).filter(id => !NAV_FIX.includes(id)));
   return { shown: ord.filter(id => !hid.has(id)).map(id => by[id]), hidden: ord.filter(id => hid.has(id)).map(id => by[id]) };
 }
-const NAV_SHORT = { quali: 'Quali', qanw: 'Anwesend', qverw: 'Gruppen', qkb: 'Klassenb.', qein: 'Einsatz', qpk: 'Praktika' };
+const NAV_SHORT = { quali: 'Quali', qanw: 'Anwesend', qverw: 'Gruppen', qkb: 'Klassenb.', qein: 'Dienst', qpk: 'Praktika' };
 function qNavRender(all) {
   const { shown } = qNavTabs(all), mob = window.innerWidth < 1024, cur = S.view;
   const idx = shown.findIndex(t => t[0] === cur), inMehr = idx > 3 || (idx < 0 && !['home'].includes(cur) && !shown.slice(0, 4).some(t => t[0] === cur));
@@ -208,7 +210,7 @@ const KB_METHODEN = [
 ];
 const kbMethLabel = m => { const x = KB_METHODEN.find(y => y[1] + ' (' + y[0] + ')' === m || y[0] === m); return x ? `${x[1]} (${x[0]})` : (m || ''); };
 const KB_STUNDEN = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
-const kbSlots = e => KB_STUNDEN.map(h => ({ h, thema: '', methodik: '', kapitel: '', ...((e?.stunden || []).find(x => x.h === h) || {}) }));
+const kbSlots = e => KB_STUNDEN.map(h => ({ h, thema: '', methodik: '', kapitel: '', notiz: '', ...((e?.stunden || []).find(x => x.h === h) || {}) }));
 const kbIsPause = s => /^\s*pause\s*$/i.test(s.thema || '');
 /* Zusammenhängende Stunden mit gleichem Thema wie in der Vorlage zusammenfassen (verbundene Zellen) */
 function kbBlocks(slots) {
@@ -241,13 +243,13 @@ function orgKbHTML() {
     const e = kb.find(x => x.datum === d), slots = kbSlots(e), filled = slots.some(s => s.thema || s.methodik);
     const blocks = kbBlocks(slots), start = new Map(blocks.map(b => [b.i, b]));
     const rows = slots.map((s, i) => { const b = start.get(i), p = kbIsPause(s);
-      return `<tr class="${p ? 'pause' : ''}"><td class="z">${s.h}</td>${b ? `<td class="th" rowspan="${b.n}">${esc(s.thema || '')}</td>` : ''}<td class="m">${esc(p ? '' : kbMethLabel(s.methodik))}</td><td class="s">${esc(s.kapitel || '')}</td></tr>`; }).join('');
+      return `<tr class="${p ? 'pause' : ''}"><td class="z">${s.h}</td>${b ? `<td class="th" rowspan="${b.n}">${esc(s.thema || '')}</td>` : ''}<td class="m">${esc(p ? '' : kbMethLabel(s.methodik))}</td><td class="s">${esc(s.kapitel || '')}</td><td class="n">${esc(s.notiz || '')}</td></tr>`; }).join('');
     return `<div class="kb-day" ${d === today ? 'style="border-color:var(--accent)"' : ''}><div class="kb-date"><span>${esc(kbDateLong(d))}</span></div><div class="min-w-0">
       <div class="kb-head"><div>Unterrichtsart:</div><div>${esc(e?.unterrichtsart || '–')}</div><div>Trainer/Dozent:</div><div>${esc(e?.dozent || S.profiles[e?.trainer_id]?.full_name || '–')}</div></div>
       <div class="flex items-center gap-2 px-2.5 py-2 text-[12px] text-muted border-b border-line"><span class="flex-1 min-w-0">${esc(kbAnwText(d))}</span>
         ${e?.abgezeichnet_at ? '<span class="chip ok">✓ abgezeichnet</span>' : ''}<button class="btn ${filled ? 'ghost' : ''} py-1 px-3 text-[12.5px] flex-none" data-kbday="${d}">${filled ? 'Bearbeiten' : 'Ausfüllen'}</button></div>
-      ${filled ? `<div class="overflow-x-auto"><table class="kb-tab"><colgroup><col style="width:52px"><col><col style="width:31%"><col style="width:58px"></colgroup>
-        <thead><tr><th>Zeit</th><th>Thema / Stoff / Ausgeführte Arbeiten</th><th>Methodik</th><th class="svp">Kapitel SVP</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="p-3 text-[13px] text-muted">Noch nicht ausgefüllt.</div>'}
+      ${filled ? `<div class="overflow-x-auto"><table class="kb-tab"><colgroup><col style="width:52px"><col><col style="width:25%"><col style="width:58px"><col style="width:22%"></colgroup>
+        <thead><tr><th>Zeit</th><th>Thema / Stoff / Ausgeführte Arbeiten</th><th>Methodik</th><th class="svp">Kapitel SVP</th><th>Notiz</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="p-3 text-[13px] text-muted">Noch nicht ausgefüllt.</div>'}
       ${e?.bemerkung ? `<div class="p-2.5 text-[12.5px] border-t border-line"><span class="text-muted">Bemerkung:</span> ${esc(e.bemerkung)}</div>` : ''}</div></div>`;
   };
   const open = kb.filter(e => !e.abgezeichnet_at && kbSlots(e).some(s => s.thema)).length;
@@ -292,7 +294,8 @@ function kbDaySheet(d) {
       <div class="hd"><b>${s.h}</b>${i ? `<button type="button" data-same="${i}" title="Thema von ${KB_STUNDEN[i - 1]} übernehmen">↑ wie davor</button>` : ''}<button type="button" data-pause="${i}">${kbIsPause(s) ? 'keine Pause' : 'Pause'}</button></div>
       <textarea class="field" rows="2" maxlength="600" data-th="${i}" placeholder="Thema / Stoff / Ausgeführte Arbeiten" aria-label="Thema ${s.h}">${esc(s.thema || '')}</textarea>
       <div class="row2"><select class="field" data-me="${i}" aria-label="Methodik ${s.h}" ${kbIsPause(s) ? 'disabled' : ''}>${methOpts(s.methodik)}</select>
-      <input class="field" data-ka="${i}" maxlength="20" placeholder="Kapitel SVP" value="${esc(s.kapitel || '')}" aria-label="Kapitel SVP ${s.h}"></div></div>`;
+      <input class="field" data-ka="${i}" maxlength="20" placeholder="Kapitel SVP" value="${esc(s.kapitel || '')}" aria-label="Kapitel SVP ${s.h}">
+      <input class="field kb-no" data-no="${i}" maxlength="300" placeholder="Notiz (Freitext)" value="${esc(s.notiz || '')}" aria-label="Notiz ${s.h}"></div></div>`;
   sheetShell(`${kbDateLong(d)}`, `<form id="kdForm" class="flex flex-col gap-3">
     ${locked ? `<div class="card p-3 text-[13px] text-muted">Abgezeichnet von ${esc(S.profiles[e0.abgezeichnet_von]?.full_name || '')} am ${fmtDate(e0.abgezeichnet_at)}. Nur die Koordination kann den Tag noch ändern.</div>` : ''}
     <div class="card p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -305,7 +308,7 @@ function kbDaySheet(d) {
     <div class="card p-4"><label class="lbl" for="kdB">Bemerkung <span class="font-normal text-muted">(optional)</span></label><input id="kdB" class="field" maxlength="1000" value="${esc(e0?.bemerkung || '')}" placeholder="z. B. Gastreferent, Ausfall, Prüfung"></div>
     ${locked ? '' : '<button class="btn">Speichern</button>'}
     ${e0 && !locked ? '<button type="button" class="btn danger" id="kdDel">Tag leeren</button>' : ''}</form>`);
-  const read = () => slots = slots.map((s, i) => ({ h: s.h, thema: $(`[data-th="${i}"]`).value.trim(), methodik: $(`[data-me="${i}"]`).value, kapitel: $(`[data-ka="${i}"]`).value.trim() }));
+  const read = () => slots = slots.map((s, i) => ({ h: s.h, thema: $(`[data-th="${i}"]`).value.trim(), methodik: $(`[data-me="${i}"]`).value, kapitel: $(`[data-ka="${i}"]`).value.trim(), notiz: $(`[data-no="${i}"]`).value.trim() }));
   const redraw = () => { $('#kdRows').innerHTML = slots.map(rowHTML).join(''); bindRows(); };
   const bindRows = () => {
     $$('[data-same]').forEach(b => b.onclick = () => { read(); const i = +b.dataset.same; slots[i].thema = slots[i - 1].thema; if (!slots[i].methodik) slots[i].methodik = slots[i - 1].methodik; slots[i].kapitel ||= slots[i - 1].kapitel; redraw(); });
@@ -317,7 +320,7 @@ function kbDaySheet(d) {
   if (locked) return;
   $('#kdForm').onsubmit = async ev => {
     ev.preventDefault(); read();
-    const stunden = slots.filter(s => s.thema || s.methodik || s.kapitel);
+    const stunden = slots.filter(s => s.thema || s.methodik || s.kapitel || s.notiz).map(s => s.notiz ? s : { h: s.h, thema: s.thema, methodik: s.methodik, kapitel: s.kapitel });
     if (!stunden.length) return toast('Bitte mindestens eine Stunde ausfüllen.');
     const first = stunden.find(s => s.thema && !kbIsPause(s));
     const row = { unterrichtsart: $('#kdA').value, dozent: $('#kdD').value.trim() || null, stunden, bemerkung: $('#kdB').value.trim() || null, thema: first ? first.thema.slice(0, 200) : null,
@@ -344,7 +347,7 @@ async function orgKbPdf() {
   const info = [['Gruppe', g.name], ['Jahr', von.slice(0, 4)], ['KW', String(orgKw(von))], ['Zeitraum', `${fmtDate(von)} – ${fmtDate(bis)}`], ['Träger', S.hotel || '']];
   let x0 = M; info.forEach(([l, v]) => { const w = l === 'Gruppe' || l === 'Träger' ? 48 : l === 'Zeitraum' ? 44 : 20; doc.setDrawColor(190); doc.setFillColor(255, 248, 225); doc.rect(x0, 27, w - 1.5, 10, 'FD'); doc.setFontSize(7); doc.setTextColor(110); doc.text(pdfSafe(l), x0 + 1.5, 30.2); doc.setTextColor(0); doc.setFontSize(9); doc.text(pdfSafe(v).slice(0, 34), x0 + 1.5, 35); x0 += w; });
   let y = 42;
-  const dW = 12, tX = M + dW, zW = 14, mW = 40, kW = 18, thW = W - 2 * M - dW - zW - mW - kW, rowH = 5.6;
+  const dW = 12, tX = M + dW, zW = 14, mW = 36, kW = 16, nW = 34, thW = W - 2 * M - dW - zW - mW - kW - nW, rowH = 5.6;
   const days = []; for (let i = 0; i < 7; i++) { const d = qAddDays(von, i), wd = new Date(d + 'T12:00:00').getDay(); if ((wd !== 0 && wd !== 6) || kb.some(e => e.datum === d)) days.push(d); }
   days.forEach(d => {
     const e = kb.find(x => x.datum === d), slots = kbSlots(e), blocks = kbBlocks(slots);
@@ -361,21 +364,22 @@ async function orgKbPdf() {
     });
     y = y0 + 12.4;
     // Tabellenkopf
-    doc.setFillColor(...GREY); doc.rect(tX, y, W - M - tX, 6, 'F'); doc.setFillColor(...YEL); doc.rect(W - M - kW, y, kW, 6, 'F');
+    doc.setFillColor(...GREY); doc.rect(tX, y, W - M - tX, 6, 'F'); doc.setFillColor(...YEL); doc.rect(W - M - nW - kW, y, kW, 6, 'F');
     doc.setFont(FONT, 'bold'); doc.setFontSize(7.5);
-    doc.text('Zeit', tX + zW / 2, y + 4, { align: 'center' }); doc.text(pdfSafe('Thema / Stoff / Ausgeführte Arbeiten'), tX + zW + thW / 2, y + 4, { align: 'center' }); doc.text('Methodik', tX + zW + thW + mW / 2, y + 4, { align: 'center' }); doc.setFontSize(7); doc.text('Kapitel SVP', W - M - kW / 2, y + 4, { align: 'center' }); doc.setFontSize(7.5);
+    doc.text('Zeit', tX + zW / 2, y + 4, { align: 'center' }); doc.text(pdfSafe('Thema / Stoff / Ausgeführte Arbeiten'), tX + zW + thW / 2, y + 4, { align: 'center' }); doc.text('Methodik', tX + zW + thW + mW / 2, y + 4, { align: 'center' }); doc.setFontSize(7); doc.text('Kapitel SVP', W - M - nW - kW / 2, y + 4, { align: 'center' }); doc.setFontSize(7.5); doc.text('Notiz', W - M - nW / 2, y + 4, { align: 'center' });
     y += 6;
     const ty = y; doc.setFont(FONT, 'normal'); doc.setDrawColor(200);
     slots.forEach((s, i) => { const yy = ty + i * rowH;
       if (kbIsPause(s)) { doc.setFillColor(242, 242, 242); doc.rect(tX, yy, W - M - tX, rowH, 'F'); }
       doc.setFontSize(8); doc.text(s.h.replace(/^0/, ''), tX + zW / 2, yy + 3.8, { align: 'center' });
       doc.setFontSize(7.5); if (!kbIsPause(s)) doc.text(pdfSafe(kbMethLabel(s.methodik)), tX + zW + thW + mW / 2, yy + 3.8, { align: 'center' });
-      doc.text(pdfSafe(s.kapitel || ''), W - M - kW / 2, yy + 3.8, { align: 'center' });
+      doc.text(pdfSafe(s.kapitel || ''), W - M - nW - kW / 2, yy + 3.8, { align: 'center' });
+      if (s.notiz) { doc.setFontSize(6.3); doc.text(doc.splitTextToSize(pdfSafe(s.notiz), nW - 2).slice(0, 2), W - M - nW + 1, yy + 2.5); doc.setFontSize(7.5); }
       doc.line(tX, yy + rowH, tX + zW, yy + rowH); doc.line(tX + zW + thW, yy + rowH, W - M, yy + rowH); });
     blocks.forEach(b => { const yy = ty + b.i * rowH, h = b.n * rowH;
       doc.line(tX + zW, yy + h, tX + zW + thW, yy + h);
       if (b.thema) { doc.setFontSize(7.5); const ls = doc.splitTextToSize(pdfSafe(b.thema), thW - 3), max = Math.max(1, Math.floor((h - 1.2) / 3.2)); doc.text(ls.slice(0, max), tX + zW + 1.5, yy + 3.4); } });
-    doc.line(tX + zW, ty, tX + zW, ty + slots.length * rowH); doc.line(tX + zW + thW, ty, tX + zW + thW, ty + slots.length * rowH); doc.line(W - M - kW, ty, W - M - kW, ty + slots.length * rowH);
+    doc.line(tX + zW, ty, tX + zW, ty + slots.length * rowH); doc.line(tX + zW + thW, ty, tX + zW + thW, ty + slots.length * rowH); doc.line(W - M - nW - kW, ty, W - M - nW - kW, ty + slots.length * rowH); doc.line(W - M - nW, ty, W - M - nW, ty + slots.length * rowH);
     y = ty + slots.length * rowH;
     doc.setFontSize(7); doc.setTextColor(90); doc.text(pdfSafe(kbAnwText(d) + (e?.bemerkung ? ' · Bemerkung: ' + e.bemerkung : '') + (e?.abgezeichnet_at ? ` · abgezeichnet ${fmtDate(e.abgezeichnet_at)}` : '')).slice(0, 170), tX + 1.5, y + 3.8); doc.setTextColor(0);
     doc.setDrawColor(160); doc.rect(M, y0, W - 2 * M, bh);
@@ -387,3 +391,43 @@ async function orgKbPdf() {
   P.foot('Klassenbuch');
   return { doc, name: `Klassenbuch_${orgAscii(g.name)}_KW${orgKw(von)}_${von.slice(0, 4)}.pdf`, subject: `Dokumentation Trainingsdurchführung ${g.name}, KW ${orgKw(von)}` };
 }
+
+/* =====================================================================
+   Desk als Unterapp: azubihub-app.de/desk/ (bis zur eigenen Domain)
+   Gleiche App und Datenbank, eigenes Erscheinungsbild schon auf der Anmeldeseite.
+   ?app=desk schaltet ein, ?app=hub wieder aus.
+   ===================================================================== */
+function deskOn() {
+  const p = new URLSearchParams(location.search).get('app');
+  try { if (p === 'desk') localStorage.setItem('azubihub.app', 'desk'); else if (p === 'hub') localStorage.removeItem('azubihub.app'); return p === 'desk' || (p !== 'hub' && localStorage.getItem('azubihub.app') === 'desk'); }
+  catch { return p === 'desk'; }
+}
+(() => {
+  if (!deskOn()) return;
+  const set = (sel, attr, v) => { const e = document.querySelector(sel); if (e) e.setAttribute(attr, v); };
+  set('link[rel=manifest]', 'href', './desk/manifest.webmanifest');
+  set('link[rel=apple-touch-icon]', 'href', './brand/desk-192.png');
+  set('meta[name=theme-color]', 'content', '#2f3539');
+  document.title = 'Desk';
+})();
+function deskLogin() {
+  if (!deskOn()) return;
+  try { qBrand(true); } catch {}
+  const tx = (sel, v) => { const e = $(sel); if (e) e.textContent = v; };
+  tx('#loginText', 'Qualifizierung, Anwesenheit, Klassenbuch und Tests für Trainer und Teilnehmende.');
+  tx('[data-auth="betrieb"]', 'Lernstandort anmelden');
+  const biz = $('#authForm p[data-biz]'); if (biz) biz.textContent = 'Für Lernstandorte, die Desk neu nutzen: Trag den Freischalt-Code von NovaWorks ein. Du wirst die Koordination und lädst danach Trainer und Teilnehmende ein.';
+  $('#bName')?.setAttribute('placeholder', 'z. B. Lernstandort Nord');
+  const lic = $('label[for="bLic"]'); if (lic) lic.textContent = 'Freischalt-Code';
+  $('#bLic')?.setAttribute('placeholder', 'z. B. DESK-PRO-XXXX-XXXX');
+  const az = $('#aRolle option[value="azubi"]'); if (az) az.textContent = 'Teilnehmer/in';
+  const cl = $('label[for="aCode"]'); if (cl) cl.textContent = 'Code deines Lernstandorts';
+  $('#aCode')?.setAttribute('placeholder', 'bekommst du von deiner Trainerin oder deinem Trainer');
+  const info = document.querySelector('#authScreen a[href="./start/"]'); if (info) info.parentElement.hidden = true;
+  const bl = $('label[for="bName"]'); if (bl) bl.textContent = 'Name des Lernstandorts';
+  $('#bPos')?.setAttribute('placeholder', 'z. B. Koordination, Trainer/in');
+  const fix = () => setTimeout(() => { const btn = $('#authBtn'); if (btn && /Betrieb anlegen/.test(btn.textContent)) btn.textContent = 'Lernstandort anlegen'; }, 0);
+  $$('[data-auth]').forEach(x => x.addEventListener('click', fix)); fix();
+  const demo = $('#demoBtn'); if (demo) demo.onclick = () => { location.href = './?app=desk&demo=c1tt-trainer'; };
+}
+document.addEventListener('DOMContentLoaded', deskLogin);

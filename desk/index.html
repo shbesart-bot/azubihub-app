@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desk</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2f3539">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" href="../brand/desk-32.png">
+<link rel="apple-touch-icon" href="../brand/desk-192.png">
+<script>
+  /* Desk läuft als Unterapp von AzubiHub: gleiche App, eigenes Erscheinungsbild */
+  try { localStorage.setItem('azubihub.app', 'desk'); } catch (e) {}
+  var q = location.search ? '&' + location.search.slice(1) : '';
+  location.replace('../?app=desk' + q + location.hash);
+</script>
+<style>body{margin:0;font-family:system-ui,sans-serif;background:#eef1f5;color:#2f3539;display:grid;place-items:center;min-height:100vh}a{color:#2f3539}</style>
+</head>
+<body>
+<p><img src="../brand/desk-192.png" alt="" width="96" height="96" style="display:block;margin:0 auto 12px"><a href="../?app=desk">Desk öffnen</a></p>
+</body>
+</html>
