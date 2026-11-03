@@ -180,7 +180,7 @@ const PK_TN = ['Betreuung und Anleitung', 'Abwechslungsreiche Aufgaben', 'Ich ha
 const PK_SCALE = ['', 'mangelhaft', 'ausreichend', 'befriedigend', 'gut', 'sehr gut'];
 const PK_JN = ['Ja', 'Eher ja', 'Eher nein', 'Nein'];
 const qPkState = p => { const t = localDate(); if (p.abgesegnet_at) return ['ok', 'abgeschlossen']; if (t < p.von) return ['', 'geplant']; if (t <= p.bis) return ['brass', 'läuft']; return ['warn', 'Rückmeldung / Freigabe']; };
-const qPkLink = tok => `${location.origin}${location.pathname.replace(/[^/]*$/, '')}?praktikum=${tok}`;
+const qPkLink = tok => `${location.origin}/desk/?praktikum=${tok}`;
 
 function qRateHTML(key, labels, vals = {}) {
   return labels.map((l, i) => `<div><div class="text-[14px] font-semibold mb-1.5">${esc(l)}</div><div class="rate" role="radiogroup" aria-label="${esc(l)}">${[1, 2, 3, 4, 5].map(n => `<button type="button" role="radio" aria-pressed="${vals[l] === n}" aria-checked="${vals[l] === n}" data-rk="${key}" data-ri="${i}" data-rv="${n}" title="${PK_SCALE[n]}">${n}</button>`).join('')}</div></div>`).join('')

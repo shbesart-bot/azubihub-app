@@ -406,7 +406,8 @@ async function orgKbPdf() {
    ===================================================================== */
 function deskOn() {
   const p = new URLSearchParams(location.search).get('app');
-  try { if (p === 'desk') localStorage.setItem('azubihub.app', 'desk'); else if (p === 'hub') localStorage.removeItem('azubihub.app'); return p === 'desk' || (p !== 'hub' && localStorage.getItem('azubihub.app') === 'desk'); }
+  const pub = /[?&](karriere|praktikum|siegel|schule|eltern)=/.test(location.search);
+  try { if (p === 'desk' && !pub) localStorage.setItem('azubihub.app', 'desk'); else if (p === 'hub') localStorage.removeItem('azubihub.app'); return p === 'desk' || (p !== 'hub' && localStorage.getItem('azubihub.app') === 'desk'); }
   catch { return p === 'desk'; }
 }
 (() => {
@@ -417,6 +418,18 @@ function deskOn() {
   set('meta[name=theme-color]', 'content', '#2f3539');
   document.title = 'Desk';
 })();
+/* Nach dem Login entscheidet der Lernstandort, nicht die Adresse: Desk-Konten bekommen immer Desk, Betriebe der Hauptapp nie */
+function deskSync() {
+  if (S.demo) return;
+  const on = isQuali();
+  try { if (on) localStorage.setItem('azubihub.app', 'desk'); else localStorage.removeItem('azubihub.app'); } catch {}
+  const u = new URL(location.href);
+  if (!on && u.searchParams.get('app') === 'desk') { u.searchParams.delete('app'); history.replaceState(null, '', u.pathname + u.search + u.hash); }
+  if (on && !u.searchParams.has('app')) { u.searchParams.set('app', 'desk'); history.replaceState(null, '', u.pathname + u.search + u.hash); }
+  const set = (sel, attr, v) => { const e = document.querySelector(sel); if (e) e.setAttribute(attr, v); };
+  set('link[rel=manifest]', 'href', on ? './desk/manifest.webmanifest' : 'manifest.webmanifest');
+  set('link[rel=apple-touch-icon]', 'href', on ? './brand/desk-192.png' : 'icon-180.png');
+}
 function deskLogin() {
   if (!deskOn()) return;
   try { qBrand(true); } catch {}

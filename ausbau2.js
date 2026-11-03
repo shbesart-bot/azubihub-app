@@ -469,7 +469,7 @@ async function vergleichSheet() {
 /* =====================================================================
    Ausbildungs-Siegel: öffentliche Seite ?siegel=slug (nur wenn die Leitung es einschaltet)
    ===================================================================== */
-const siegelUrl = slug => `${location.origin}${location.pathname}?siegel=${encodeURIComponent(slug)}`;
+const siegelUrl = slug => `${pubBase()}?siegel=${encodeURIComponent(slug)}`;
 async function showSiegel(slug) {
   const el = $('#careerScreen'); el.hidden = false; $('#authScreen').hidden = true; $('#appScreen').hidden = true;
   el.innerHTML = skeleton();
@@ -530,7 +530,7 @@ async function einladungSheet(bew) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(out.email)) return toast('Bitte eine gültige E-Mail-Adresse eingeben.');
     const { error } = await sb.from('einladungen').insert(out);
     if (error) return toast(/einladungen_offen|duplicate/i.test(error.message) ? 'Für diese E-Mail gibt es schon eine offene Einladung.' : errText(error));
-    const link = `${location.origin}${location.pathname}?start=register`;
+    const link = `${pubBase()}?start=register`;
     const mail = `mailto:${encodeURIComponent(out.email)}?subject=${encodeURIComponent('Willkommen bei ' + S.hotel + ' – dein Zugang zu AzubiHub')}&body=${encodeURIComponent(`Hallo ${firstName(out.full_name)},\n\nwir freuen uns auf deine Ausbildung bei uns! Für dein digitales Berichtsheft und alles rund um die Ausbildung nutzen wir AzubiHub.\n\nSo meldest du dich an:\n1. Öffne ${link}\n2. Registriere dich mit dieser E-Mail-Adresse: ${out.email}\n3. Code des Betriebs: ${code}\n\nDeine Daten (Beruf, Start, Ansprechpartner) sind schon hinterlegt.\n\nBis bald\n${S.me.full_name}\n${S.hotel}`)}`;
     sheetShell('Einladung angelegt', `<div class="card p-4 flex flex-col gap-3"><p class="text-[14px]">Jetzt nur noch die Einladung schicken. ${esc(firstName(out.full_name))} registriert sich mit <b>${esc(out.email)}</b> und dem Code <b translate="no">${esc(code)}</b>.</p><a class="btn" href="${mail}">Per E-Mail einladen</a><button class="btn ghost" id="eiCopy">${svg('copy', 'w-4 h-4')} Code und Link kopieren</button></div>`);
     $('#eiCopy').onclick = async () => { try { await navigator.clipboard.writeText(`${link}\nCode: ${code}`); toast('Kopiert'); } catch { toast(link); } };

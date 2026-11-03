@@ -377,7 +377,7 @@ function lfExam(p, nr) {
 }
 
 /* ---------- Eltern-Zugang (nur unter 18, vom Azubi selbst freigegeben) ---------- */
-const elternUrl = tok => `${location.origin}${location.pathname}?eltern=${tok}`;
+const elternUrl = tok => `${pubBase()}?eltern=${tok}`;
 function elternHTML() {
   if (!isAzubi() || !S.me.unter18 || isQuali()) return '';
   const list = (S.home?.eltern || []).filter(e => !e.widerrufen && e.gueltig_bis >= localDate());

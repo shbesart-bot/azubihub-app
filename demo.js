@@ -654,7 +654,7 @@
       { id: uuid(), betrieb_id: B, trainer_id: Q.trainer.id, titel: 'Ausbildereignung nach AEVO', art: 'ausbildereignung', ausgestellt: ymd(day(-2000)), gueltig_bis: null, datei: null, created_by: Q.trainer.id, created_at: iso(day(-200)) },
       { id: uuid(), betrieb_id: B, trainer_id: Q.frank.id, titel: 'Elektrofachkraft (Meister)', art: 'fachqualifikation', ausgestellt: ymd(day(-3000)), gueltig_bis: null, datei: null, created_by: Q.frank.id, created_at: iso(day(-200)) },
       { id: uuid(), betrieb_id: B, trainer_id: Q.frank.id, titel: 'Ersthelfer-Fortbildung', art: 'fortbildung', ausgestellt: ymd(day(-720)), gueltig_bis: ymd(day(-10)), datei: null, created_by: Q.frank.id, created_at: iso(day(-200)) }];
-    DB.karriere = [{ id: 'demo-q-kar', betrieb_id: B, aktiv: true, titel: 'Deine Qualifizierung bei uns', ort: 'Lernstandort (Demo)', text: 'Berufsabschluss Schritt für Schritt – neben der Arbeit oder in Vollzeit.', berufe: ['TQ Kunststoff und Kautschuk', 'TQ Betriebselektriker', 'TQ Lagerlogistik'], vorteile: ['IHK-Zertifikat nach jedem Modul', 'Praxis in der Lernwerkstatt'], kontakt: 'anmeldung@beispiel.de', datenschutz: '' }];
+    DB.karriere = [{ id: 'demo-q-kar', betrieb_id: B, aktiv: true, titel: 'Deine Qualifizierung bei uns', ort: 'Musterstadt', text: 'Berufsabschluss Schritt für Schritt – neben der Arbeit oder in Vollzeit.', berufe: ['TQ Kunststoff und Kautschuk', 'TQ Betriebselektriker', 'TQ Lagerlogistik'], vorteile: ['IHK-Zertifikat nach jedem Modul', 'Praxis in der Lernwerkstatt'], kontakt: 'anmeldung@beispiel.de', datenschutz: '' }];
     DB.bewerbungen = [{ id: uuid(), betrieb_id: B, name: 'Lukas Beispiel', email: 'lukas@example.com', telefon: '', beruf: 'TQ Lagerlogistik', start: 'Januar 2027', nachricht: 'Förderung: Bildungsgutschein beantragt\n\nIch arbeite seit 4 Jahren im Lager.', status: 'neu', notiz: '', created_at: iso(day(-2)), abgeschlossen_at: null }];
     const abl = (typ, titel, a0, a1, modul = null) => ({ typ, titel, von: ymd(day(a0)), bis: ymd(day(a1)), modul });
     DB.quali_gruppen.find(g => g.id === 'demo-q-gr-kuk').ablauf = [abl('tq', 'Modul 2: Baugruppen herstellen', -260, -140, 2), abl('pruefung', 'Prüfung Modul 2', -142, -140), abl('pause', 'TQ-Pause', -139, -126), abl('tq', 'Modul 3: Fertigung vorbereiten', -125, 0, 3), abl('praktikum', 'Praktika im Werk', -60, -47), abl('pruefung', 'Prüfung Modul 3', 1, 3), abl('urlaub', 'Weihnachtsferien', 50, 63), abl('tq', 'Modul 4: Verfahrenstechniken', 4, 150, 4), abl('pruefung', 'Prüfung Modul 4', 148, 150)];
@@ -717,7 +717,7 @@
     const me = () => DB.profiles.find(p => p.id === meId);
     const RPC = {
       bewerbung_dateien: () => [{ bewerbung_id: 'demo-bew-mia', pfad: 'demo-bew-mia/1700000000000_Lebenslauf_Mia_Hoffmann.pdf', groesse: 284000 }, { bewerbung_id: 'demo-bew-mia', pfad: 'demo-bew-mia/1700000000001_Zeugnis.docx', groesse: 51000 }],
-      my_betrieb_status: () => ({ id: B, name: QM ? 'Lernstandort (Demo)' : 'Hotel Seeblick', aktiv: true, plattform: false, status: 'aktiv', slug: 'hotel-seeblick-demo', gruppen_leitung: false }),
+      my_betrieb_status: () => ({ id: B, name: QM ? 'Lernstandort (Demo)' : 'Hotel Seeblick', aktiv: true, plattform: false, status: 'aktiv', slug: QM ? 'desk-demo' : 'hotel-seeblick-demo', gruppen_leitung: false }),
       my_chats2: () => {
         const out = [], mine = DB.messages.filter(m => !m.gruppe_id && (m.sender_id === meId || m.recipient_id === meId));
         const partners = [...new Set(mine.map(m => m.sender_id === meId ? m.recipient_id : m.sender_id))];
@@ -796,6 +796,8 @@
         { id: B, name: 'Hotel Seeblick', ich_hier: true, azubis: 3, offen: 2, berichte_30: 11, fehltage_90: 3, unentschuldigt_90: 1, noten_schnitt: 2.8, stimmung: 3.9, feedback: 4.1, schichten: 62 },
         { id: 'demo-h2', name: 'Seeblick Stadthotel', ich_hier: false, azubis: 5, offen: 7, berichte_30: 14, fehltage_90: 11, unentschuldigt_90: 4, noten_schnitt: 3.4, stimmung: 3.1, feedback: 3.3, schichten: 95 },
         { id: 'demo-h3', name: 'Seeblick Resort & Spa', ich_hier: false, azubis: 4, offen: 1, berichte_30: 16, fehltage_90: 2, unentschuldigt_90: 0, noten_schnitt: 2.4, stimmung: 4.3, feedback: 4.4, schichten: 80 }],
+      public_karriere: () => { const k = DB.karriere[0]; return k ? { ...k, name: QM ? 'Lernstandort (Demo)' : 'Hotel Seeblick', typ: QM ? 'qualifizierung' : null, branding: {} } : null; },
+      submit_bewerbung2: () => 'demo-bew-neu',
       public_siegel: () => ({ name: 'Hotel Seeblick', slug: 'hotel-seeblick-demo', azubis: 3, feedback: { anzahl: 12, anleitung: 4.3, aufgaben: 4.1, team: 4.6 }, stimmung: 4.0, abzeichnung_7_tage: 92, seit: 2024, karriere: true, branding: {} }),
       beurteilung_gelesen: a => { const b = DB.beurteilungen.find(x => x.id === a.p_id); if (b) b.gelesen_at = iso(new Date()); return null; },
       admin_users: () => DB.profiles.map(p => ({ id: p.id, email: p.full_name.split(' ')[0].toLowerCase() + '@seeblick.example', last_sign_in_at: iso(day(-1)), created_at: p.created_at })),

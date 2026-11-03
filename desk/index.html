@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="../brand/desk-192.png">
 <script>
   /* Desk läuft als Unterapp von AzubiHub: gleiche App, eigenes Erscheinungsbild */
-  try { localStorage.setItem('azubihub.app', 'desk'); } catch (e) {}
+  if (!/[?&](karriere|praktikum|siegel|schule|eltern)=/.test(location.search)) { try { localStorage.setItem('azubihub.app', 'desk'); } catch (e) {} }
   var q = location.search ? '&' + location.search.slice(1) : '';
   location.replace('../?app=desk' + q + location.hash);
 </script>

@@ -277,19 +277,19 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03r"></script>
-<script src="./ausbildung.js?v=2026-11-03r"></script>
-<script src="./ausbau2.js?v=2026-11-03r"></script>
-<script src="./quali.js?v=2026-11-03r"></script>
-<script src="./quali2.js?v=2026-11-03r"></script>
-<script src="./quali3.js?v=2026-11-03r"></script>
-<script src="./quali4.js?v=2026-11-03r"></script>
-<script src="./quali5.js?v=2026-11-03r"></script>
-<script src="./quali6.js?v=2026-11-03r"></script>
-<script src="./quali7.js?v=2026-11-03r"></script>
-<script src="./quali8.js?v=2026-11-03r"></script>
-<script src="./quali9.js?v=2026-11-03r"></script>
-<script src="./quali10.js?v=2026-11-03r"></script>
+<script src="./schule.js?v=2026-11-03s"></script>
+<script src="./ausbildung.js?v=2026-11-03s"></script>
+<script src="./ausbau2.js?v=2026-11-03s"></script>
+<script src="./quali.js?v=2026-11-03s"></script>
+<script src="./quali2.js?v=2026-11-03s"></script>
+<script src="./quali3.js?v=2026-11-03s"></script>
+<script src="./quali4.js?v=2026-11-03s"></script>
+<script src="./quali5.js?v=2026-11-03s"></script>
+<script src="./quali6.js?v=2026-11-03s"></script>
+<script src="./quali7.js?v=2026-11-03s"></script>
+<script src="./quali8.js?v=2026-11-03s"></script>
+<script src="./quali9.js?v=2026-11-03s"></script>
+<script src="./quali10.js?v=2026-11-03s"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -454,7 +454,9 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 2400); }
+/* Name der App für Dateien, Mails und Texte: Desk-Lernstandorte sehen nie „AzubiHub“ */
+const appLabel = () => { try { return (typeof deskPay === 'function' && deskPay()) ? 'Desk' : 'AzubiHub'; } catch { return 'AzubiHub'; } };
+function toast(msg) { if (typeof qTermStr === 'function') msg = qTermStr(msg); const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 2400); }
 function errText(e) {
   const m = (e && (e.message || e.error_description || String(e))) || 'Unbekannter Fehler';
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'Keine Verbindung. Bitte Internet prüfen.';
@@ -475,7 +477,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03r';
+const APP_VERSION = '2026-11-03s';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -723,9 +725,10 @@ async function startApp(user) {
     await loadBoard(); startRealtime(); refreshUnread(); setTimeout(flushOutbox, 2000);
     let v = null; try { v = sessionStorage.getItem('azubihub.view'); } catch {}
     const hv = location.hash.slice(1), hc = hv.match(/^(chat|gruppe)-([0-9a-f-]{36})$/);
-    const alias = { unterweisungen: 'uw', news: 'news', antraege: 'home', bewerbungen: 'admin' };
+    const alias = { unterweisungen: 'uw', news: 'news', antraege: 'home', bewerbungen: isQuali() ? 'qverw' : 'admin' };
+    if (typeof deskSync === 'function') deskSync();
     if (hc) { S.msg.open = hc[1] === 'chat' ? hc[2] : null; S.msg.group = hc[1] === 'gruppe' ? hc[2] : null; v = 'chat'; }
-    else if (alias[hv]) { v = alias[hv]; if (hv === 'bewerbungen') S.adm.tab = 'karriere'; }
+    else if (alias[hv]) { v = alias[hv]; if (hv === 'bewerbungen') { if (isQuali()) { S.org ||= {}; S.org.vtab = 'anm'; } else S.adm.tab = 'karriere'; } }
     else if (VIEWS[hv]) v = hv;
     if (hc || alias[hv] || VIEWS[hv]) history.replaceState(null, '', location.pathname + location.search);
     go(VIEWS[v] ? v : 'home');
@@ -994,9 +997,9 @@ function exportIcs() {
   (S.home?.uwMine || []).filter(x => x.st?.bis).forEach(x => { const d = localDate(x.st.bis); ev.push(['uw-' + x.w.id, d, next(d), 'Unterweisung fällig: ' + x.w.titel]); });
   if (!ev.length) return toast('Noch keine Termine zum Übernehmen.');
   const now = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//NovaWorks//AzubiHub//DE', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:AzubiHub',
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:-//NovaWorks//${appLabel()}//DE`, 'CALSCALE:GREGORIAN', `X-WR-CALNAME:${appLabel()}`,
     ...ev.flatMap(([id, a, b, t]) => ['BEGIN:VEVENT', `UID:${id}@azubihub`, `DTSTAMP:${now}`, `DTSTART;VALUE=DATE:${d8(a)}`, `DTEND;VALUE=DATE:${d8(b)}`, `SUMMARY:${esc2(t)}`, 'TRANSP:TRANSPARENT', 'END:VEVENT']), 'END:VCALENDAR'].join('\r\n');
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); a.download = 'AzubiHub-Termine.ics';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); a.download = `${appLabel()}-Termine.ics`;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
   toast(`${ev.length} Termine exportiert – Datei öffnen, um sie in den Kalender zu übernehmen`);
 }
@@ -1936,8 +1939,8 @@ function cfgFormHTML() {
     <p class="text-[13px] text-muted">Hier änderst du, wie die App aussieht und was sie anzeigt. Nach dem Speichern sehen alle die Änderung, sobald sie die App neu öffnen.</p>
     <section class="card p-4 flex flex-col gap-3" data-noterms>
       <h3 class="text-[17px] font-bold">Betriebsart</h3>
-      <div><label class="lbl" for="cTyp">Wofür nutzt ihr die App?</label><select id="cTyp" class="field"><option value="">Berufsausbildung (Azubis, Berufsschule, IHK)</option><option value="qualifizierung" ${APP.typ === 'qualifizierung' ? 'selected' : ''}>Qualifizierung Erwachsener (Teilqualifizierung, Intensivkurs, Externenprüfung)</option></select></div>
-      <p class="text-[12px] text-muted">Qualifizierung: Teilnehmende statt Azubis, Module mit IHK-Zertifikat, Gruppen, Anwesenheit, Tests und Praktika; Berufsschule, Eltern und Jugendarbeitsschutz sind ausgeblendet. Beim ersten Umstellen werden Berufe und Lernorte für Kunststoff/Kautschuk, Betriebselektrik, Lagerlogistik und Maschinen- und Anlagenführer vorgeschlagen, solange hier noch die Standardwerte stehen.</p>
+      ${S.betrieb?.plattform ? `      <div><label class="lbl" for="cTyp">Wofür nutzt ihr die App?</label><select id="cTyp" class="field"><option value="">Berufsausbildung (Azubis, Berufsschule, IHK)</option><option value="qualifizierung" ${APP.typ === 'qualifizierung' ? 'selected' : ''}>Qualifizierung Erwachsener (Teilqualifizierung, Intensivkurs, Externenprüfung)</option></select></div>
+      <p class="text-[12px] text-muted">Qualifizierung: Teilnehmende statt Azubis, Module mit IHK-Zertifikat, Gruppen, Anwesenheit, Tests und Praktika; Berufsschule, Eltern und Jugendarbeitsschutz sind ausgeblendet. Beim ersten Umstellen werden Berufe und Lernorte für Kunststoff/Kautschuk, Betriebselektrik, Lagerlogistik und Maschinen- und Anlagenführer vorgeschlagen, solange hier noch die Standardwerte stehen.</p>` : `<p class="text-[14px]">${APP.typ === 'qualifizierung' ? 'Desk – Qualifizierung Erwachsener (Teilqualifizierung, Intensivkurs, Externenprüfung)' : 'AzubiHub – Berufsausbildung (Azubis, Berufsschule, IHK)'}</p><p class="text-[12px] text-muted">Die Betriebsart legt euer Freischalt-Code fest. Für einen Wechsel bitte NovaWorks Bescheid geben.</p>`}
       ${save}
     </section>
     <section class="card p-4 flex flex-col gap-3">
@@ -2022,7 +2025,7 @@ function bindCfgForm() {
     const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(x => x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
     const contrastWhite = h => 1.05 / (lum(h) + .05);
     if (/^#[0-9a-f]{6}$/i.test($('#cBrand').value) && contrastWhite($('#cBrand').value) < 4.5) toast('Hinweis: Die Hauptfarbe ist sehr hell. Weiße Schrift auf Knöpfen ist damit schwer lesbar – für Barrierefreiheit lieber eine dunklere Farbe wählen.');
-    const typ = $('#cTyp')?.value || '';
+    const typ = $('#cTyp') ? $('#cTyp').value : (APP.typ || '');
     let berufe2 = berufe, abt2 = abt;
     if (typ === 'qualifizierung' && APP.typ !== 'qualifizierung' && typeof Q_KATALOG !== 'undefined') {
       if (JSON.stringify(berufe) === JSON.stringify(DEFAULT_BRANDING.berufe)) berufe2 = [...new Set(Object.values(Q_KATALOG).map(k => k.beruf))];
@@ -2385,7 +2388,7 @@ async function exportAll(btn) {
     zip.file('LIESMICH.txt', `AzubiHub – Datenexport\nBetrieb: ${S.betrieb?.name || ''}\nErstellt: ${new Date().toLocaleString('de-DE')} von ${S.me.full_name}\n\nOrdner tabellen: CSV-Dateien (Trennzeichen Semikolon, UTF-8) zum Öffnen in Excel.\nOrdner json: dieselben Daten vollständig im JSON-Format.\nOrdner unterschriften: Unterschriften der Unterweisungs-Bestätigungen.\nOrdner fotos / bewerbungen: hochgeladene Dateien (falls gewählt).\n\nEnthaltene Datensätze:\n${summary.join('\n')}\n\nHinweis: Diese Datei enthält personenbezogene Daten. Sicher aufbewahren und nach Ablauf der Aufbewahrungsfristen löschen.\n`);
     st('ZIP wird erstellt …');
     const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `AzubiHub-Export_${(S.betrieb?.name || 'Betrieb').replace(/[^\wäöüÄÖÜß-]+/g, '_')}_${stamp}.zip`;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${appLabel()}-Export_${(S.betrieb?.name || 'Betrieb').replace(/[^\wäöüÄÖÜß-]+/g, '_')}_${stamp}.zip`;
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
     st(`Fertig: ${Math.round(blob.size / 1024)} KB`); toast('Export erstellt');
   } catch (e) { st(''); toast(errText(e)); }
@@ -2408,8 +2411,8 @@ async function pdfFont(doc) {
   } catch { PDF_FONTDATA = null; PDF_UNI = false; return 'helvetica'; }
 }
 const pdfSafe = t => PDF_UNI
-  ? String(t ?? '').normalize('NFC').replace(PDF_NOGLYPH, c => c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(PDF_NOGLYPH, ''))
-  : String(t ?? '').replace(/[„“”]/g, '"').replace(/[‚‘’]/g, "'").replace(/[–—]/g, '-').replace(/…/g, '...').replace(/·/g, '-').replace(/[^\x00-\xFF€]/g, c => c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\x00-\xFF]/g, '')).replace(/ı/g, 'i');
+  ? String(typeof qTermStr === 'function' ? qTermStr(t ?? '', true) : t ?? '').normalize('NFC').replace(PDF_NOGLYPH, c => c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(PDF_NOGLYPH, ''))
+  : String(typeof qTermStr === 'function' ? qTermStr(t ?? '', true) : t ?? '').replace(/[„“”]/g, '"').replace(/[‚‘’]/g, "'").replace(/[–—]/g, '-').replace(/…/g, '...').replace(/·/g, '-').replace(/[^\x00-\xFF€]/g, c => c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\x00-\xFF]/g, '')).replace(/ı/g, 'i');
 async function printNachweis(userId, opts = {}) {
   const p = S.profiles[userId]; if (!p) return;
   const w = window.open('', '_blank'); if (!w) return toast('Bitte Pop-ups für diese Seite erlauben.');
@@ -2442,7 +2445,7 @@ async function printNachweis(userId, opts = {}) {
       <h1>${e(title)}</h1>
       <dl><dt>Ausbildungsberuf</dt><dd>${e(p.beruf || '')}</dd><dt>Ausbildungsbetrieb</dt><dd>${e(S.betrieb?.name || '')}</dd><dt>Zeitraum</dt><dd>${opts.jahr ? opts.jahr.n + '. Ausbildungsjahr' : 'Gesamte Ausbildung'} · ${reps.length} Wochen</dd></dl>
       ${weeks || '<p>Für diesen Zeitraum gibt es keine Berichte.</p>'}${rpT}
-      <p>Erstellt am ${fmtDate(localDate())} mit AzubiHub.</p></body></html>`);
+      <p>Erstellt am ${fmtDate(localDate())} mit ${appLabel()}.</p></body></html>`);
     w.document.close(); w.focus();
   } catch (err) { w.close(); toast(errText(err)); }
   finally { PDF_DE = false; }
@@ -2713,7 +2716,13 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
     setInterval(check, 30 * 60 * 1000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
   }).catch(() => {});
-  navigator.serviceWorker.addEventListener('message', e => { if (e.data?.go && VIEWS[e.data.go]) go(e.data.go); });
+  navigator.serviceWorker.addEventListener('message', e => {
+    const g = e.data?.go; if (!g || !S.me) return;
+    const hc = g.match(/^(chat|gruppe)-([0-9a-f-]{36})$/);
+    if (hc) { S.msg.open = hc[1] === 'chat' ? hc[2] : null; S.msg.group = hc[1] === 'gruppe' ? hc[2] : null; return go('chat'); }
+    if (g === 'bewerbungen') { if (isQuali()) { S.org ||= {}; S.org.vtab = 'anm'; return go('qverw'); } S.adm.tab = 'karriere'; return go('admin'); }
+    const v = { unterweisungen: 'uw', antraege: 'home' }[g] || g; if (VIEWS[v]) go(v);
+  });
 }
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); S.installEvt = e; if (S.view === 'home') render(); });
 function installCard() {
@@ -3543,7 +3552,7 @@ function showExpired(me) {
   $('#app').innerHTML = `<div class="card p-5 mt-4">
     <div class="eyebrow">${esc(b.name)}</div><h1 class="text-[24px] font-bold mt-1">Die Testphase ist abgelaufen</h1>
     <p class="text-[14px] text-muted mt-2">${boss ? `Eure Daten sind sicher gespeichert. Schalte ${esc(BR.appName || 'die App')} frei, dann geht es sofort weiter.` + (deskPay() ? ' ' + DESK_PREIS : b.preis_text ? ' ' + esc(b.preis_text) : '') : 'Eure Daten sind sicher gespeichert. Sobald die Leitung freischaltet, geht es weiter.'}</p>
-    ${boss ? `<div class="flex flex-col gap-2 mt-4">${b.zahl_link || deskPay() ? payBtns() : ''}<button class="btn ghost" data-redeem>Freischalt-Code eingeben</button><a class="btn ghost" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">NovaWorks kontaktieren</a></div>` : ''}
+    ${boss ? `<div class="flex flex-col gap-2 mt-4">${b.zahl_link || deskPay() ? payBtns() : ''}<button class="btn ghost" data-redeem>Freischalt-Code eingeben</button><a class="btn ghost" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent(appLabel() + ' freischalten: ' + b.name)}">NovaWorks kontaktieren</a></div>` : ''}
     <button class="btn danger w-full mt-4" id="expOut">Abmelden</button></div>`;
   $('#expOut').onclick = async () => { await releasePush(); sb.auth.signOut(); };
 }
@@ -4008,13 +4017,18 @@ const BEW_MAX_FILES = 5, BEW_MAX_SIZE = 10 * 1024 * 1024;
 const bewMime = n => ({ pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })[(n.split('.').pop() || '').toLowerCase()] || '';
 const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 const bewFileName = p => p.split('/').pop().replace(/^\d+_/, '');
-const careerUrl = slug => `${location.origin}${location.pathname}?karriere=${encodeURIComponent(slug)}`;
+/* Öffentliche Links: Desk-Lernstandorte bekommen immer die Desk-Adresse, Betriebe der Hauptapp nie */
+const pubBase = () => location.origin + ((S.betrieb ? isQuali() : (typeof deskOn === 'function' && deskOn())) ? '/desk/' : '/');
+const careerUrl = slug => `${pubBase()}?karriere=${encodeURIComponent(slug)}`;
 async function showCareer(slug) {
   const el = $('#careerScreen'); el.hidden = false; $('#authScreen').hidden = true; $('#appScreen').hidden = true;
   el.innerHTML = skeleton();
   const { data, error } = await sb.rpc('public_karriere', { p_slug: slug });
   if (error || !data) { el.innerHTML = `<div class="card p-5 mt-8"><h1 class="text-[22px] font-bold">Seite nicht gefunden</h1><p class="text-muted mt-1">Diese Karriereseite gibt es nicht oder sie ist gerade nicht online.</p></div>`; return; }
-  const K = data, br = mergeCfg(DEFAULT_BRANDING, K.branding || {}), D = K.typ === 'qualifizierung', L = (h, d) => D ? d : h;
+  const K = data, D = K.typ === 'qualifizierung', L = (h, d) => D ? d : h;
+  /* Desk-Lernstandorte: Desk-Farben und -Logo auch auf der öffentlichen Seite */
+  if (D && typeof qBrand === 'function') { try { qBrand(true); } catch {} }
+  const br = mergeCfg(D ? BR : DEFAULT_BRANDING, K.branding || {});
   document.documentElement.style.setProperty('--brand', br.brand); document.documentElement.style.setProperty('--brand2', br.brand2);
   document.title = `${K.titel} – ${K.name}`;
   el.innerHTML = `
@@ -4264,7 +4278,7 @@ const SCHOOL_SLUG = new URLSearchParams(location.search).get('schule');
 const ELTERN_SLUG = new URLSearchParams(location.search).get('eltern');
 const SIEGEL_SLUG = new URLSearchParams(location.search).get('siegel');
 const PRAKTIKUM_TOKEN = new URLSearchParams(location.search).get('praktikum');
-const schoolUrl = tok => `${location.origin}${location.pathname}?schule=${tok}`;
+const schoolUrl = tok => `${pubBase()}?schule=${tok}`;
 const canSchool = a => !!a && a.role === 'azubi' && (typeof qSees !== 'function' || qSees(a)) && (can('team') || (can('berichte') && inScope(a.abteilung)) || a.betreuer_id === S.me.id);
 async function loadSchool(azubiId) { await schLoad(azubiId); }
 function schoolHTML(a, manage) { return schHTML(a, manage); }
@@ -4743,7 +4757,10 @@ async function startDemo(role) {
 /* Start */
 (async () => {
   applyConfig(); loadBranding();
-  if (CAREER_SLUG) return showCareer(CAREER_SLUG);
+  if (CAREER_SLUG) {
+    if (/-demo$/.test(CAREER_SLUG)) { try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient(CAREER_SLUG === 'desk-demo' ? 'desk-koord' : 'leitung'); await sb.ready; }
+    return showCareer(CAREER_SLUG);
+  }
   if (PRAKTIKUM_TOKEN) {
     if (PRAKTIKUM_TOKEN === 'demo') { try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('desk'); await sb.ready; }
     return showPraktikum(PRAKTIKUM_TOKEN);

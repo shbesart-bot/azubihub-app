@@ -275,3 +275,34 @@ function q10AnmHTML() {
   return `<p class="text-[13px] text-muted mt-3">Eine öffentliche Seite mit euren Maßnahmen und Online-Anmeldung. Interessierte melden sich dort an, ihr seht die Anmeldungen hier, könnt den Status setzen und bei Zusage direkt eine Einladung in Desk schicken.</p>${h}`;
 }
 function q10AnmBind() { if (q9Team() && $('#krCopy')) bindKarriere(); }
+
+/* =====================================================================
+   Anmeldung → Teilnehmer/in einladen (statt der Azubi-Einladung der Hauptapp)
+   ===================================================================== */
+const q10EinladungSheet0 = einladungSheet;
+einladungSheet = async function (bew) {
+  if (!isQuali()) return q10EinladungSheet0(bew);
+  if (!bew) return;
+  const code = S.adm?.code || await q(sb.rpc('get_invite_code')).catch(() => '');
+  if (!S.qgr) await qGroupsLoad().catch(() => {});
+  const gruppen = S.qgr?.g || [], keys = Object.keys(Q_KATALOG);
+  const norm = s => String(s || '').toLowerCase().replace(/[^a-zäöüß0-9]/g, '');
+  const mk = keys.find(k => norm(Q_KATALOG[k].kurz) === norm(bew.beruf)) || keys.find(k => norm(bew.beruf) && (norm(Q_KATALOG[k].kurz).includes(norm(bew.beruf)) || norm(bew.beruf).includes(norm(Q_KATALOG[k].kurz)))) || '';
+  sheetShell('Als Teilnehmer/in einladen', `<form id="eiF" class="card p-4 flex flex-col gap-3">
+    <p class="text-[13px] text-muted">Bei der Registrierung mit dieser E-Mail-Adresse übernimmt Desk Maßnahme, Gruppe und Beginn.</p>
+    <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="eiN">Name</label><input id="eiN" class="field" maxlength="80" value="${esc(bew.name)}"></div><div><label class="lbl" for="eiM">E-Mail</label><input id="eiM" type="email" class="field" value="${esc(bew.email)}"></div></div>
+    <div><label class="lbl" for="eiK">Maßnahme</label><select id="eiK" class="field"><option value="">noch offen</option>${keys.map(k => `<option value="${k}" ${k === mk ? 'selected' : ''}>${esc(Q_KATALOG[k].kurz)}</option>`).join('')}</select></div>
+    <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="eiG">Gruppe</label><select id="eiG" class="field"><option value="">später zuordnen</option>${gruppen.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select></div><div><label class="lbl" for="eiS">Beginn</label><input id="eiS" type="date" class="field"></div></div>
+    <button class="btn">Einladung anlegen</button></form>`);
+  $('#eiF').onsubmit = async e => {
+    e.preventDefault();
+    const k = $('#eiK').value, out = { betrieb_id: orgBetrieb(), email: $('#eiM').value.trim().toLowerCase(), full_name: $('#eiN').value.trim().slice(0, 80), beruf: k ? Q_KATALOG[k].beruf : null, massnahme: k || null, gruppe_id: $('#eiG').value || null, start_datum: $('#eiS').value || null, bewerbung_id: bew.id, created_by: S.me.id };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(out.email)) return toast('Bitte eine gültige E-Mail-Adresse eingeben.');
+    const { error } = await sb.from('einladungen').insert(out);
+    if (error) return toast(/einladungen_offen|duplicate/i.test(error.message) ? 'Für diese E-Mail gibt es schon eine offene Einladung.' : errText(error));
+    const link = `${location.origin}/desk/?start=register`, ort = S.hotel || 'uns';
+    const mail = `mailto:${encodeURIComponent(out.email)}?subject=${encodeURIComponent('Dein Zugang zu Desk – ' + ort)}&body=${encodeURIComponent(`Hallo ${firstName(out.full_name)},\n\nschön, dass du bei uns startest${k ? ' (' + Q_KATALOG[k].kurz + ')' : ''}! Für Stundenplan, Anwesenheit, Lernmaterial und Tests nutzen wir Desk.\n\nSo meldest du dich an:\n1. Öffne ${link}\n2. Registriere dich mit dieser E-Mail-Adresse: ${out.email}\n3. Code des Lernstandorts: ${code}\n\nDeine Maßnahme und Gruppe sind schon hinterlegt.\n\nBis bald\n${S.me.full_name}\n${ort}`)}`;
+    sheetShell('Einladung angelegt', `<div class="card p-4 flex flex-col gap-3"><p class="text-[14px]">Jetzt nur noch die Einladung schicken. ${esc(firstName(out.full_name))} registriert sich mit <b>${esc(out.email)}</b> und dem Code <b translate="no">${esc(code)}</b>.</p><a class="btn" href="${mail}">Per E-Mail einladen</a><button class="btn ghost" id="eiCopy">${svg('copy', 'w-4 h-4')} Code und Link kopieren</button></div>`);
+    $('#eiCopy').onclick = async () => { try { await navigator.clipboard.writeText(`${link}\nCode: ${code}`); toast('Kopiert'); } catch { toast(link); } };
+  };
+};

@@ -172,17 +172,27 @@ function qApplyConfig() {
 }
 /* Begriffe im Qualifizierungsmodus: Teilnehmende statt Azubis, Trainer statt Ausbilder, Modul statt Lehrjahr */
 const Q_TERMS = [
+  [/Inhaber, Ausbildungsleitung(, Front Office Manager)?/g, 'Koordination, Trainer/in'], [/Servicekraft, Rezeptionist\/in/g, 'Elektroniker/in, Lagerist/in'], [/\bHotel Sonnenhof\b/g, 'Lernstandort Nord'],
+  [/das ganze Berichtsheft/g, 'alle Nachweise'], [/Nachweise \(Berichtsheft\)/g, 'Nachweise'], [/Krankheit und Berufsschule/g, 'Krankheit und sonstige Fehlzeiten'],
+  [/\bAzubiHub\b/g, 'Desk'],
   [/\bAzubis\b/g, 'Teilnehmende'], [/\bAzubi\b/g, 'Teilnehmer/in'],
   [/\bAusbilder\/innen\b/g, 'Trainer/innen'], [/\bAusbilder\/in\b/g, 'Trainer/in'], [/\bAusbilderin oder deines Ausbilders\b/g, 'Trainerin oder deines Trainers'], [/\bdeine Ausbilderin oder dein Trainer\b/g, 'deine Trainerin oder dein Trainer'], [/\bAusbilderin\b/g, 'Trainerin'], [/\bAktuelle Abteilung\b/g, 'Aktueller Lernort'], [/\bAusbilder\b/g, 'Trainer'],
   [/\bAusbildungsleitung\b/g, 'Koordination'], [/\bAusbildungsteam\b/g, 'Trainerteam'],
   [/(\d)\. LJ\b/g, 'Modul $1'], [/(\d)\. Ausbildungsjahr(es)?\b/g, 'Modul $1'], [/\bAusbildungsjahr(es)?\b/g, 'Modul'], [/\bLehrjahr\b/g, 'Modul'],
   [/\bim Haus\b/g, 'in der Maßnahme'], [/\bDein Berichtsheft\b/g, 'Dein Nachweis'], [/\bStand Berichtsheft\b/g, 'Stand Nachweis']
 ];
+/* Einzelner Text (Hinweise, PDFs): im Desk-Modus gleiche Begriffe wie in der Oberfläche; nameOnly nur den App-Namen */
+function qTermStr(t, nameOnly) {
+  const s = String(t ?? ''); if (!isQuali()) return s;
+  return nameOnly ? s.replace(/\bAzubiHub\b/g, 'Desk') : Q_TERMS.reduce((x, [re, r]) => x.replace(re, r), s);
+}
 function qTerms(root) {
   if (!isQuali() || !root) return;
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && (/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName) || n.parentElement.closest('[data-noterms]')) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
   const list = []; while (w.nextNode()) list.push(w.currentNode);
-  list.forEach(n => { let s = n.nodeValue, o = s; Q_TERMS.forEach(([re, r]) => { s = s.replace(re, r); }); if (s !== o) n.nodeValue = s; });
+  const tr = s => { const o = s; Q_TERMS.forEach(([re, r]) => { s = s.replace(re, r); }); return s === o ? null : s; };
+  list.forEach(n => { const s = tr(n.nodeValue); if (s !== null) n.nodeValue = s; });
+  root.querySelectorAll?.('[placeholder],[aria-label],[title]').forEach(e => { if (e.closest('[data-noterms]')) return; for (const a of ['placeholder', 'aria-label', 'title']) { const v = e.getAttribute(a); if (v) { const s = tr(v); if (s !== null) e.setAttribute(a, s); } } });
 }
 
 /* ---------- Daten ---------- */
