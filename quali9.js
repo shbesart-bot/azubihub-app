@@ -371,7 +371,7 @@ function q9AzavHTML() {
   const fb = S.org.fb9 || [], mn = S.org.mn9 || [], dec = v => v == null ? '–' : String(v).replace('.', ',');
   const col = v => v == null ? '' : v >= 4 ? 'color:var(--ok)' : v < 3 ? 'color:var(--crit)' : 'color:var(--brass)';
   return `${secTitle('Feedback der Teilnehmenden', `<span class="chip tnum">${fb.reduce((n, x) => n + (+x.anzahl || 0), 0)} Antworten</span>`)}
-    <div class="card overflow-x-auto">${fb.length ? `<table class="q9-tab"><thead><tr><th>Maßnahme / Modul</th>${FB_FRAGEN.map(([k]) => `<th class="c">${{ inhalt: 'Inhalt', praxis: 'Praxis', trainer: 'Trainer', organisation: 'Orga', gesamt: 'Gesamt' }[k]}</th>`).join('')}<th class="c">n</th></tr></thead><tbody>
+    <div class="card overflow-x-auto">${fb.length ? `<table class="q9-tab"><thead><tr><th>Maßnahme / Modul</th>${FB_FRAGEN.map(([k]) => `<th class="c">${{ inhalt: 'Inhalt', praxis: 'Praxis', trainer: 'Trainer', organisation: 'Orga', gesamt: 'Gesamt' }[k]}</th>`).join('')}<th class="c">Antworten</th></tr></thead><tbody>
       ${fb.map((x, i) => `<tr><td><b>${esc(q9KatName(x.massnahme))}</b><br><span class="text-muted">Modul ${x.modul}${x.trainer_id ? ' · ' + esc(S.profiles[x.trainer_id]?.full_name || '') : ''}</span>${(x.texte || []).length ? `<br><button class="text-accent font-semibold text-[12px]" data-fbtx="${i}">${x.texte.length} Kommentare</button>` : ''}</td>${FB_FRAGEN.map(([k]) => `<td class="c tnum" style="${col(x[k])}"><b>${dec(x[k])}</b></td>`).join('')}<td class="c tnum">${x.anzahl}</td></tr>`).join('')}</tbody></table>`
       : '<div class="p-4 text-[14px] text-muted">Noch keine Auswertung. Sie erscheint, sobald zu einem Modul mindestens 3 Rückmeldungen vorliegen.</div>'}</div>
     <p class="text-[12px] text-muted mt-2">Skala 1 (trifft nicht zu) bis 5 (trifft voll zu). Ergebnisse nur zusammengefasst ab 3 Antworten, ohne Namen. ${qAuswertungAn() ? 'Die Aufteilung je Trainer ist freigegeben.' : 'Eine Aufteilung je Trainer gibt es erst nach Freigabe der Auswertungen (Zustimmung des Betriebsrats).'} Die Teilnehmenden bekommen den Fragebogen in der App, sobald ein Modul abgeschlossen ist.</p>
@@ -410,7 +410,7 @@ async function q9AzavPdf() {
   doc.setFont(FONT, 'normal'); doc.setFontSize(9.5); doc.setTextColor(90); doc.text(pdfSafe(`${S.hotel || ''} · Stand ${fmtDate(localDate())} · Teilnehmerbefragung und Maßnahmen`), M, y); doc.setTextColor(0); y += 10;
   doc.setFont(FONT, 'bold'); doc.setFontSize(12); doc.text('Feedback der Teilnehmenden (Ø, Skala 1–5)', M, y); y += 7; doc.setFontSize(9);
   const cx = [M, M + 82, M + 100, M + 118, M + 136, M + 154, M + 172];
-  ['Maßnahme / Modul', 'Inhalt', 'Praxis', 'Trainer', 'Orga', 'Gesamt', 'n'].forEach((h, i) => doc.text(h, cx[i], y)); y += 5; doc.setFont(FONT, 'normal');
+  ['Maßnahme / Modul', 'Inhalt', 'Praxis', 'Trainer', 'Orga', 'Gesamt', 'Antw.'].forEach((h, i) => doc.text(h, cx[i], y)); y += 5; doc.setFont(FONT, 'normal');
   if (!fb.length) { doc.text('Noch keine Auswertung (mindestens 3 Antworten je Modul).', M, y); y += 6; }
   fb.forEach(x => { if (y > 270) { doc.addPage(); y = 18; } doc.text(pdfSafe(`${q9KatName(x.massnahme)} · M${x.modul}`).slice(0, 46), cx[0], y); ['inhalt', 'praxis', 'trainer', 'organisation', 'gesamt'].forEach((k, i) => doc.text(x[k] == null ? '–' : String(x[k]).replace('.', ','), cx[i + 1], y)); doc.text(String(x.anzahl), cx[6], y); y += 5.2; });
   y += 6; doc.setFont(FONT, 'bold'); doc.setFontSize(12); doc.text('Maßnahmen-Protokoll', M, y); y += 7; doc.setFontSize(9.5);
