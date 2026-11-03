@@ -30,6 +30,12 @@
   .kb-tab td.th{border-left:1px solid var(--line);border-right:1px solid var(--line);white-space:pre-line}
   .kb-tab td.m,.kb-tab td.s{text-align:center}
   .kb-tab tr.pause td{background:var(--sunk);color:var(--muted)}
+  .kb-tab td.th.ed{cursor:text}
+  .kb-tab td.th.ed:hover,.kb-tab td.th.ed:focus{background:color-mix(in srgb,var(--accent) 7%,transparent);outline:none}
+  .kb-tab .kb-ph{color:var(--muted);opacity:.5;font-size:11.5px;font-style:italic}
+  @media (max-width:700px){.kb-tab{min-width:620px}}
+  .kb-tab td.th.editing{padding:2px}
+  .kb-inl{width:100%;min-height:58px;border:2px solid var(--accent);border-radius:6px;padding:5px 6px;font:inherit;font-size:12.5px;background:var(--surface);color:var(--fg);resize:vertical}
   .kb-tab tr:last-child td{border-bottom:0}
   .kb-ed{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--surface)}
   .kb-ed.pause{background:var(--sunk)}
@@ -75,7 +81,7 @@ function qNavTabs(all) {
   const hid = new Set((N.hidden || []).filter(id => !NAV_FIX.includes(id)));
   return { shown: ord.filter(id => !hid.has(id)).map(id => by[id]), hidden: ord.filter(id => hid.has(id)).map(id => by[id]) };
 }
-const NAV_SHORT = { quali: 'Quali', qanw: 'Anwesend', qverw: 'Gruppen', qkb: 'Klassenb.', qein: 'Dienst', qpk: 'Praktika' };
+const NAV_SHORT = { quali: 'Quali', qanw: 'Anwesend', qverw: 'Verwaltung', qkb: 'Klassenb.', qein: 'Dienst', qpk: 'Praktika' };
 function qNavRender(all) {
   const { shown } = qNavTabs(all), mob = window.innerWidth < 1024, cur = S.view;
   const idx = shown.findIndex(t => t[0] === cur), inMehr = idx > 3 || (idx < 0 && !['home'].includes(cur) && !shown.slice(0, 4).some(t => t[0] === cur));
@@ -240,16 +246,16 @@ function orgKbHTML() {
   const von = S.org.kbW, kb = S.org.kb || [], today = localDate(), mem = orgMembers(gid);
   const days = []; for (let i = 0; i < 7; i++) { const d = qAddDays(von, i), wd = new Date(d + 'T12:00:00').getDay(); if ((wd !== 0 && wd !== 6) || kb.some(e => e.datum === d)) days.push(d); }
   const day = d => {
-    const e = kb.find(x => x.datum === d), slots = kbSlots(e), filled = slots.some(s => s.thema || s.methodik);
+    const e = kb.find(x => x.datum === d), slots = kbSlots(e), filled = slots.some(s => s.thema || s.methodik), edOk = !(e?.abgezeichnet_at && !isAdmin());
     const blocks = kbBlocks(slots), start = new Map(blocks.map(b => [b.i, b]));
     const rows = slots.map((s, i) => { const b = start.get(i), p = kbIsPause(s);
-      return `<tr class="${p ? 'pause' : ''}"><td class="z">${s.h}</td>${b ? `<td class="th" rowspan="${b.n}">${esc(s.thema || '')}</td>` : ''}<td class="m">${esc(p ? '' : kbMethLabel(s.methodik))}</td><td class="s">${esc(s.kapitel || '')}</td><td class="n">${esc(s.notiz || '')}</td></tr>`; }).join('');
+      return `<tr class="${p ? 'pause' : ''}"><td class="z">${s.h}</td>${b ? `<td class="th ${edOk ? 'ed' : ''}" rowspan="${b.n}" ${edOk ? `data-kbth="${d}|${i}|${b.n}" tabindex="0" role="button" aria-label="Thema ${s.h} bearbeiten"` : ''}>${s.thema ? esc(s.thema) : edOk ? '<span class="kb-ph">tippen zum Schreiben</span>' : ''}</td>` : ''}<td class="m">${esc(p ? '' : kbMethLabel(s.methodik))}</td><td class="s">${esc(s.kapitel || '')}</td><td class="n">${esc(s.notiz || '')}</td></tr>`; }).join('');
     return `<div class="kb-day" ${d === today ? 'style="border-color:var(--accent)"' : ''}><div class="kb-date"><span>${esc(kbDateLong(d))}</span></div><div class="min-w-0">
       <div class="kb-head"><div>Unterrichtsart:</div><div>${esc(e?.unterrichtsart || '–')}</div><div>Trainer/Dozent:</div><div>${esc(e?.dozent || S.profiles[e?.trainer_id]?.full_name || '–')}</div></div>
       <div class="flex items-center gap-2 px-2.5 py-2 text-[12px] text-muted border-b border-line"><span class="flex-1 min-w-0">${esc(kbAnwText(d))}</span>
         ${e?.abgezeichnet_at ? '<span class="chip ok">✓ abgezeichnet</span>' : ''}<button class="btn ${filled ? 'ghost' : ''} py-1 px-3 text-[12.5px] flex-none" data-kbday="${d}">${filled ? 'Bearbeiten' : 'Ausfüllen'}</button></div>
-      ${filled ? `<div class="overflow-x-auto"><table class="kb-tab"><colgroup><col style="width:52px"><col><col style="width:25%"><col style="width:58px"><col style="width:22%"></colgroup>
-        <thead><tr><th>Zeit</th><th>Thema / Stoff / Ausgeführte Arbeiten</th><th>Methodik</th><th class="svp">Kapitel SVP</th><th>Notiz</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="p-3 text-[13px] text-muted">Noch nicht ausgefüllt.</div>'}
+      <div class="overflow-x-auto"><table class="kb-tab"><colgroup><col style="width:52px"><col><col style="width:25%"><col style="width:58px"><col style="width:22%"></colgroup>
+        <thead><tr><th>Zeit</th><th>Thema / Stoff / Ausgeführte Arbeiten</th><th>Methodik</th><th class="svp">Kapitel SVP</th><th>Notiz</th></tr></thead><tbody>${rows}</tbody></table></div>
       ${e?.bemerkung ? `<div class="p-2.5 text-[12.5px] border-t border-line"><span class="text-muted">Bemerkung:</span> ${esc(e.bemerkung)}</div>` : ''}</div></div>`;
   };
   const open = kb.filter(e => !e.abgezeichnet_at && kbSlots(e).some(s => s.thema)).length;
@@ -273,6 +279,7 @@ function orgKbBind() {
   $('#kbWeek') && ($('#kbWeek').onchange = () => { const m = /^(\d{4})-W(\d{2})$/.exec($('#kbWeek').value); if (!m) return; const j4 = new Date(+m[1], 0, 4, 12), mon = qMonday(localDate(j4)); S.org.kbW = qAddDays(mon, (+m[2] - 1) * 7); go(S.view); });
   $('#kbMeth') && ($('#kbMeth').onclick = () => kbMethSheet());
   $$('[data-kbday]').forEach(b => b.onclick = () => kbDaySheet(b.dataset.kbday));
+  $$('[data-kbth]').forEach(td => { const open = () => kbInlineEdit(td); td.onclick = open; td.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); open(); } }; });
   $('#kbSign') && ($('#kbSign').onclick = e => qConfirm(e.currentTarget, async () => {
     const ids = (S.org.kb || []).filter(x => !x.abgezeichnet_at && kbSlots(x).some(s => s.thema)).map(x => x.id);
     try { await q(sb.from('klassenbuch').update({ abgezeichnet_von: S.me.id, abgezeichnet_at: new Date().toISOString() }).in('id', ids)); toast('Abgezeichnet'); go(S.view); } catch (er) { toast(errText(er)); }
@@ -431,3 +438,45 @@ function deskLogin() {
   const demo = $('#demoBtn'); if (demo) demo.onclick = () => { location.href = './?app=desk&demo=c1tt-trainer'; };
 }
 document.addEventListener('DOMContentLoaded', deskLogin);
+
+/* Klassenbuch: Thema direkt in der Tabelle eintippen (Enter speichert, Umschalt+Enter neue Zeile, Tab zur nächsten Stunde, Esc bricht ab) */
+function kbInlineEdit(td) {
+  if (td.classList.contains('editing')) return;
+  const [d, i0, n0] = td.dataset.kbth.split('|'), i = +i0, n = +n0, e0 = (S.org.kb || []).find(x => x.datum === d), old = kbSlots(e0)[i].thema || '';
+  td.classList.add('editing');
+  td.innerHTML = `<textarea class="kb-inl" maxlength="600" aria-label="Thema / Stoff">${esc(old)}</textarea>`;
+  const ta = td.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  let done = false;
+  const finish = async (save, next) => {
+    if (done) return; done = true;
+    const val = ta.value.trim();
+    if (!save || val === old) { if (next) { render(); kbFocusNext(d, i, next); } else render(); return; }
+    try { await kbSaveThema(d, i, n, val); toast('Gespeichert'); } catch (er) { toast(errText(er)); }
+    const y = window.scrollY; render(); window.scrollTo(0, y); if (next) kbFocusNext(d, i, next);
+  };
+  ta.onkeydown = ev => {
+    if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+    else if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); finish(true); }
+    else if (ev.key === 'Tab') { ev.preventDefault(); finish(true, ev.shiftKey ? -1 : 1); }
+  };
+  ta.onblur = () => setTimeout(() => finish(true), 0);
+}
+function kbFocusNext(d, i, dir) {
+  const cells = $$(`[data-kbth^="${d}|"]`).sort((a, b) => +a.dataset.kbth.split('|')[1] - +b.dataset.kbth.split('|')[1]);
+  const idx = cells.findIndex(c => +c.dataset.kbth.split('|')[1] === i), nx = cells[idx + dir] || cells.find(c => +c.dataset.kbth.split('|')[1] > i);
+  if (nx) { nx.scrollIntoView({ block: 'nearest' }); kbInlineEdit(nx); }
+}
+async function kbSaveThema(d, i, n, val) {
+  const e0 = (S.org.kb || []).find(x => x.datum === d), slots = kbSlots(e0).map(s => ({ ...s }));
+  for (let j = i; j < i + n && j < slots.length; j++) slots[j].thema = val;
+  const stunden = slots.filter(s => s.thema || s.methodik || s.kapitel || s.notiz).map(s => s.notiz ? s : { h: s.h, thema: s.thema, methodik: s.methodik, kapitel: s.kapitel });
+  const first = stunden.find(s => s.thema && !kbIsPause(s));
+  const row = { stunden, thema: first ? first.thema.slice(0, 200) : null, von: stunden[0]?.h || null, bis: stunden.length ? qAddHour(stunden[stunden.length - 1].h) : null, updated_at: new Date().toISOString() };
+  let saved;
+  if (e0) saved = await q(sb.from('klassenbuch').update(row).eq('id', e0.id).select().single());
+  else {
+    const prev = (S.org.kb || []).filter(x => x.datum < d).sort((a, b) => b.datum.localeCompare(a.datum))[0];
+    saved = await q(sb.from('klassenbuch').insert({ ...row, datum: d, gruppe_id: S.org.kbG, betrieb_id: S.betrieb?.id || S.me.betrieb_id, trainer_id: S.me.id, unterrichtsart: prev?.unterrichtsart || KB_ARTEN[0], dozent: prev?.dozent || S.me.full_name }).select().single());
+  }
+  S.org.kb = (S.org.kb || []).filter(x => x.id !== saved.id).concat(saved);
+}

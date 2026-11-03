@@ -263,17 +263,17 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03d"></script>
-<script src="./ausbildung.js?v=2026-11-03d"></script>
-<script src="./ausbau2.js?v=2026-11-03d"></script>
-<script src="./quali.js?v=2026-11-03d"></script>
-<script src="./quali2.js?v=2026-11-03d"></script>
-<script src="./quali3.js?v=2026-11-03d"></script>
-<script src="./quali4.js?v=2026-11-03d"></script>
-<script src="./quali5.js?v=2026-11-03d"></script>
-<script src="./quali6.js?v=2026-11-03d"></script>
-<script src="./quali7.js?v=2026-11-03d"></script>
-<script src="./quali8.js?v=2026-11-03d"></script>
+<script src="./schule.js?v=2026-11-03h"></script>
+<script src="./ausbildung.js?v=2026-11-03h"></script>
+<script src="./ausbau2.js?v=2026-11-03h"></script>
+<script src="./quali.js?v=2026-11-03h"></script>
+<script src="./quali2.js?v=2026-11-03h"></script>
+<script src="./quali3.js?v=2026-11-03h"></script>
+<script src="./quali4.js?v=2026-11-03h"></script>
+<script src="./quali5.js?v=2026-11-03h"></script>
+<script src="./quali6.js?v=2026-11-03h"></script>
+<script src="./quali7.js?v=2026-11-03h"></script>
+<script src="./quali8.js?v=2026-11-03h"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -441,7 +441,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03d';
+const APP_VERSION = '2026-11-03h';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -686,7 +686,7 @@ async function startApp(user) {
 /* =====================================================================
    Navigation
    ===================================================================== */
-const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock'], ['qverw', 'Teilnehmer/Gruppen', 'gruppe'], ['qpk', 'Praktika', 'koffer'], ['qgk', 'GK', 'stufe'], ['qkb', 'Klassenbuch', 'kbuch'], ['qein', 'Dienstplan', 'orga']];
+const TABS = [['home', 'Start', 'home'], ['bericht', null, 'book'], ['wiki', null, 'wiki'], ['buddy', null, 'buddy'], ['schule', 'Schule', 'school'], ['ihk', 'IHK', 'ihk'], ['quali', 'Qualifizierung', 'school'], ['qanw', 'Anwesenheit', 'checklist'], ['qtests', 'Tests', 'clock'], ['qverw', 'Verwaltung', 'gruppe'], ['qpk', 'Praktika', 'koffer'], ['qgk', 'GK', 'stufe'], ['qkb', 'Klassenbuch', 'kbuch'], ['qein', 'Dienstplan', 'orga']];
 const EXTRA_VIEWS = ['home', 'admin', 'chat', 'uw', 'news', 'dienst'];
 // Übergabebuch ist seit 27.10.2026 ausgeblendet (Daten bleiben erhalten); Schule und IHK gibt es nicht für Mitarbeiter/innen
 const visible = v => v === 'uebergabe' ? false : ['qorg', 'qverw', 'qpk', 'qgk', 'qkb', 'qein'].includes(v) ? typeof qOrgVisible === 'function' && qOrgVisible() : (v === 'qanw' || v === 'qtests') ? (typeof qViewVisible === 'function' && qViewVisible(v)) : v === 'quali' ? isQuali() && !!S.me && !isMA() : (v === 'schule' || v === 'ihk') ? !isQuali() && !!S.me && !isMA() : EXTRA_VIEWS.includes(v) || (mod(v).on !== false && !(v === 'bericht' && isMA()));
