@@ -45,7 +45,8 @@ const q9KatName = k => Q_KATALOG[k]?.kurz || k || '–';
   const i = ORG_VERW_TABS0.findIndex(t => t[0] === 'rechte');
   ORG_VERW_TABS0.splice(i < 0 ? ORG_VERW_TABS0.length : i, 0, ['raeume', 'Räume'], ['material', 'Lernmaterial'], ['azav', 'Qualität'], ['import', 'Import']);
 })();
-const q9VerwTabs = () => orgVerwTabs().filter(([k]) => !['azav', 'import'].includes(k) || q9Team());
+const Q9_TEAM = new Set(['azav', 'import']);
+const q9VerwTabs = () => orgVerwTabs().filter(([k]) => !Q9_TEAM.has(k) || q9Team());
 const Q9_TABS = {
   raeume: { html: () => q9RaeumeHTML(), bind: () => q9RaeumeBind(), load: () => q9RaeumeLoad() },
   material: { html: () => q9MatAdminHTML(), bind: () => q9MatAdminBind(), load: () => q9MatLoad() },

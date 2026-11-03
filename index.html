@@ -277,18 +277,19 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03q"></script>
-<script src="./ausbildung.js?v=2026-11-03q"></script>
-<script src="./ausbau2.js?v=2026-11-03q"></script>
-<script src="./quali.js?v=2026-11-03q"></script>
-<script src="./quali2.js?v=2026-11-03q"></script>
-<script src="./quali3.js?v=2026-11-03q"></script>
-<script src="./quali4.js?v=2026-11-03q"></script>
-<script src="./quali5.js?v=2026-11-03q"></script>
-<script src="./quali6.js?v=2026-11-03q"></script>
-<script src="./quali7.js?v=2026-11-03q"></script>
-<script src="./quali8.js?v=2026-11-03q"></script>
-<script src="./quali9.js?v=2026-11-03q"></script>
+<script src="./schule.js?v=2026-11-03r"></script>
+<script src="./ausbildung.js?v=2026-11-03r"></script>
+<script src="./ausbau2.js?v=2026-11-03r"></script>
+<script src="./quali.js?v=2026-11-03r"></script>
+<script src="./quali2.js?v=2026-11-03r"></script>
+<script src="./quali3.js?v=2026-11-03r"></script>
+<script src="./quali4.js?v=2026-11-03r"></script>
+<script src="./quali5.js?v=2026-11-03r"></script>
+<script src="./quali6.js?v=2026-11-03r"></script>
+<script src="./quali7.js?v=2026-11-03r"></script>
+<script src="./quali8.js?v=2026-11-03r"></script>
+<script src="./quali9.js?v=2026-11-03r"></script>
+<script src="./quali10.js?v=2026-11-03r"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -474,7 +475,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03q';
+const APP_VERSION = '2026-11-03r';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -4013,7 +4014,7 @@ async function showCareer(slug) {
   el.innerHTML = skeleton();
   const { data, error } = await sb.rpc('public_karriere', { p_slug: slug });
   if (error || !data) { el.innerHTML = `<div class="card p-5 mt-8"><h1 class="text-[22px] font-bold">Seite nicht gefunden</h1><p class="text-muted mt-1">Diese Karriereseite gibt es nicht oder sie ist gerade nicht online.</p></div>`; return; }
-  const K = data, br = mergeCfg(DEFAULT_BRANDING, K.branding || {});
+  const K = data, br = mergeCfg(DEFAULT_BRANDING, K.branding || {}), D = K.typ === 'qualifizierung', L = (h, d) => D ? d : h;
   document.documentElement.style.setProperty('--brand', br.brand); document.documentElement.style.setProperty('--brand2', br.brand2);
   document.title = `${K.titel} – ${K.name}`;
   el.innerHTML = `
@@ -4021,33 +4022,34 @@ async function showCareer(slug) {
       ${K.berufe?.length ? `<div class="mt-4 flex flex-wrap gap-2 text-[13px] font-semibold">${K.berufe.map(b => `<span class="pill px-3 py-1.5 rounded-full">${esc(b)}</span>`).join('')}</div>` : ''}</section>
     ${K.text ? `<div class="card p-5 mt-4 text-[15px] whitespace-pre-line">${esc(K.text)}</div>` : ''}
     ${K.vorteile?.length ? `<h2 class="text-[19px] font-bold mt-6 mb-2">Was dich erwartet</h2><div class="card">${K.vorteile.map((v, i) => `<div class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}"><span class="ico" style="width:30px;height:30px">${svg('check', 'w-4 h-4')}</span><span class="text-[15px]">${esc(v)}</span></div>`).join('')}</div>` : ''}
-    <h2 class="text-[19px] font-bold mt-6 mb-2">Jetzt bewerben</h2>
+    <h2 class="text-[19px] font-bold mt-6 mb-2">${L('Jetzt bewerben', 'Jetzt anmelden')}</h2>
     <form id="crForm" class="card p-4 flex flex-col gap-3" novalidate>
       <div><label class="lbl" for="crName">Vor- und Nachname</label><input id="crName" class="field" autocomplete="name" maxlength="100"></div>
       <div><label class="lbl" for="crMail">E-Mail</label><input id="crMail" type="email" class="field" autocomplete="email" maxlength="120"></div>
       <div><label class="lbl" for="crTel">Telefon <span class="font-normal text-muted">(optional)</span></label><input id="crTel" type="tel" class="field" autocomplete="tel" maxlength="40"></div>
-      ${K.berufe?.length ? `<div><label class="lbl" for="crBeruf">Ausbildung</label><select id="crBeruf" class="field">${K.berufe.map(b => `<option>${esc(b)}</option>`).join('')}</select></div>` : ''}
-      <div><label class="lbl" for="crStart">Gewünschter Start</label><input id="crStart" class="field" maxlength="60" placeholder="z. B. August 2027"></div>
-      <div><label class="lbl" for="crMsg">Ein paar Sätze über dich</label><textarea id="crMsg" class="field" rows="5" maxlength="3000"></textarea></div>
+      ${K.berufe?.length ? `<div><label class="lbl" for="crBeruf">${L('Ausbildung', 'Maßnahme')}</label><select id="crBeruf" class="field">${K.berufe.map(b => `<option>${esc(b)}</option>`).join('')}</select></div>` : ''}
+      <div><label class="lbl" for="crStart">Gewünschter Start</label><input id="crStart" class="field" maxlength="60" placeholder="${L('z. B. August 2027', 'z. B. so bald wie möglich, Januar 2027')}"></div>
+      ${D ? `<div><label class="lbl" for="crFoe">Förderung</label><select id="crFoe" class="field"><option value="">weiß ich noch nicht</option><option>Bildungsgutschein liegt vor</option><option>Bildungsgutschein beantragt</option><option>über meinen Arbeitgeber</option><option>Selbstzahler</option></select></div>` : ''}
+      <div><label class="lbl" for="crMsg">${L('Ein paar Sätze über dich', 'Ein paar Sätze zu dir <span class="font-normal text-muted">(z. B. Berufserfahrung, Fragen)</span>')}</label><textarea id="crMsg" class="field" rows="5" maxlength="3000"></textarea></div>
       <div><label class="lbl" for="crFiles">Unterlagen <span class="font-normal text-muted">(optional)</span></label>
-        <label for="crFiles" class="btn ghost w-full py-2.5 text-[14px] cursor-pointer">${svg('file', 'w-4 h-4')} Lebenslauf, Zeugnisse hinzufügen</label>
+        <label for="crFiles" class="btn ghost w-full py-2.5 text-[14px] cursor-pointer">${svg('file', 'w-4 h-4')} ${L('Lebenslauf, Zeugnisse hinzufügen', 'Lebenslauf, Zeugnisse, Bildungsgutschein hinzufügen')}</label>
         <input id="crFiles" type="file" multiple accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="sr-only">
         <p class="text-[12px] text-muted mt-1.5">PDF oder Word, bis zu ${BEW_MAX_FILES} Dateien, je max. 10 MB.</p>
         <div id="crFileList" class="flex flex-col gap-1.5 mt-2"></div></div>
       <input id="crHp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-5000px;width:1px;height:1px" name="website">
-      <label class="flex items-start gap-2.5 text-[13px]"><input type="checkbox" id="crOk" class="cbx mt-0.5"><span>Ich bin einverstanden, dass ${esc(K.name)} meine Angaben zur Bearbeitung der Bewerbung speichert. <button type="button" class="font-semibold text-accent" id="crPriv">Datenschutz</button></span></label>
+      <label class="flex items-start gap-2.5 text-[13px]"><input type="checkbox" id="crOk" class="cbx mt-0.5"><span>Ich bin einverstanden, dass ${esc(K.name)} meine Angaben zur Bearbeitung der ${L('Bewerbung', 'Anmeldung')} speichert. <button type="button" class="font-semibold text-accent" id="crPriv">Datenschutz</button></span></label>
       <p id="crMsgOut" class="text-[13px]" hidden role="alert"></p>
-      <button class="btn" id="crSend">Bewerbung senden</button>
+      <button class="btn" id="crSend">${L('Bewerbung senden', 'Anmeldung senden')}</button>
       ${K.kontakt ? `<p class="text-[13px] text-muted">Fragen? Schreib uns an: ${esc(K.kontakt)}</p>` : ''}
     </form>
-    <p class="text-[12px] text-muted text-center mt-6">Erstellt mit AzubiHub · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
+    <p class="text-[12px] text-muted text-center mt-6">Erstellt mit ${L('AzubiHub', 'Desk')} · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
   $('#crPriv').onclick = () => { sheetShell('Datenschutz', `<div class="card p-4 text-[14px] whitespace-pre-line">${esc(K.datenschutz || `Verantwortlich: ${K.name}${K.ort ? ', ' + K.ort : ''}.
 
-Wir verwenden deine Angaben und die hochgeladenen Unterlagen nur, um deine Bewerbung zu bearbeiten (Art. 6 Abs. 1 lit. b DSGVO).
+Wir verwenden deine Angaben und die hochgeladenen Unterlagen nur, um deine ${L('Bewerbung', 'Anmeldung')} zu bearbeiten (Art. 6 Abs. 1 lit. b DSGVO).
 
-Zugriff haben nur die Personen in unserem Betrieb, die für Bewerbungen zuständig sind. Gespeichert wird bei unserem Dienstleister NovaWorks (Warburg) im Auftrag nach Art. 28 DSGVO, auf Servern von Supabase in Frankfurt am Main.
+Zugriff haben nur die Personen bei uns, die für ${L('Bewerbungen', 'Anmeldungen')} zuständig sind. Gespeichert wird bei unserem Dienstleister NovaWorks (Warburg) im Auftrag nach Art. 28 DSGVO, auf Servern von Supabase in Frankfurt am Main.
 
-Wir löschen deine Bewerbung spätestens 6 Monate nach Abschluss des Verfahrens. Wenn wir dich einstellen, kommen die Unterlagen in deine Personalakte.
+Wir löschen deine ${L('Bewerbung', 'Anmeldung')} spätestens 6 Monate nach Abschluss des Verfahrens. ${L('Wenn wir dich einstellen, kommen die Unterlagen in deine Personalakte.', 'Wenn du an der Maßnahme teilnimmst, kommen die Unterlagen in deine Teilnehmerakte.')}
 
 Du kannst Auskunft, Berichtigung, Löschung und Einschränkung verlangen, der Verarbeitung widersprechen und dich bei einer Datenschutz-Aufsichtsbehörde beschweren.${K.kontakt ? ' Kontakt: ' + K.kontakt : ''}`)}</div>`); };
   let files = [];
@@ -4075,8 +4077,8 @@ Du kannst Auskunft, Berichtigung, Löschung und Einschränkung verlangen, der Ve
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) return out('Bitte eine gültige E-Mail-Adresse eingeben.');
     if (!$('#crOk').checked) return out('Bitte der Datenspeicherung zustimmen.');
     $('#crSend').disabled = true;
-    $('#crSend').textContent = files.length ? 'Wird gesendet …' : 'Bewerbung senden';
-    const { data: bid, error } = await sb.rpc('submit_bewerbung2', { p_slug: slug, p_name: name, p_email: mail, p_telefon: $('#crTel').value.trim(), p_beruf: $('#crBeruf')?.value || '', p_start: $('#crStart').value.trim(), p_nachricht: $('#crMsg').value.trim(), p_ok: true });
+    $('#crSend').textContent = files.length ? 'Wird gesendet …' : L('Bewerbung senden', 'Anmeldung senden');
+    const { data: bid, error } = await sb.rpc('submit_bewerbung2', { p_slug: slug, p_name: name, p_email: mail, p_telefon: $('#crTel').value.trim(), p_beruf: $('#crBeruf')?.value || '', p_start: $('#crStart').value.trim(), p_nachricht: [$('#crFoe')?.value ? 'Förderung: ' + $('#crFoe').value : '', $('#crMsg').value.trim()].filter(Boolean).join('\n\n'), p_ok: true });
     let failed = [];
     if (!error && bid && files.length) {
       for (let i = 0; i < files.length; i++) {
@@ -4086,9 +4088,9 @@ Du kannst Auskunft, Berichtigung, Löschung und Einschränkung verlangen, der Ve
         if (r?.error) failed.push(f.name);
       }
     }
-    $('#crSend').disabled = false; $('#crSend').textContent = 'Bewerbung senden';
-    if (error) return out(/DOPPELT/.test(error.message) ? 'Deine Bewerbung ist schon bei uns angekommen.' : /LIMIT/.test(error.message) ? 'Gerade kommen sehr viele Bewerbungen an. Bitte später erneut versuchen.' : 'Das hat nicht geklappt. Bitte später erneut versuchen.');
-    $('#crForm').innerHTML = `<div class="text-center py-6"><div class="ico mx-auto" style="width:52px;height:52px">${svg('check', 'w-6 h-6')}</div><h3 class="text-[20px] font-bold mt-3">Danke, ${esc(firstName(name))}!</h3><p class="text-muted mt-1">Deine Bewerbung ist angekommen. Wir melden uns bei dir.</p>${failed.length ? `<div class="text-[13px] mt-3" style="color:var(--warn)"><p>Diese Dateien konnten nicht hochgeladen werden:</p><p class="font-semibold" translate="no">${esc(failed.join(', '))}</p>${K.kontakt ? `<p>Bitte schick sie per E-Mail an: ${esc(K.kontakt)}</p>` : ''}</div>` : ''}</div>`;
+    $('#crSend').disabled = false; $('#crSend').textContent = L('Bewerbung senden', 'Anmeldung senden');
+    if (error) return out(/DOPPELT/.test(error.message) ? `Deine ${L('Bewerbung', 'Anmeldung')} ist schon bei uns angekommen.` : /LIMIT/.test(error.message) ? 'Gerade kommen sehr viele Anfragen an. Bitte später erneut versuchen.' : 'Das hat nicht geklappt. Bitte später erneut versuchen.');
+    $('#crForm').innerHTML = `<div class="text-center py-6"><div class="ico mx-auto" style="width:52px;height:52px">${svg('check', 'w-6 h-6')}</div><h3 class="text-[20px] font-bold mt-3">Danke, ${esc(firstName(name))}!</h3><p class="text-muted mt-1">Deine ${L('Bewerbung', 'Anmeldung')} ist angekommen. Wir melden uns bei dir.</p>${failed.length ? `<div class="text-[13px] mt-3" style="color:var(--warn)"><p>Diese Dateien konnten nicht hochgeladen werden:</p><p class="font-semibold" translate="no">${esc(failed.join(', '))}</p>${K.kontakt ? `<p>Bitte schick sie per E-Mail an: ${esc(K.kontakt)}</p>` : ''}</div>` : ''}</div>`;
   };
 }
 

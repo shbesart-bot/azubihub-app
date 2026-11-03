@@ -51,8 +51,11 @@ Gesundheitsdaten speichern wir nicht: Bei Krankheit wird nur „entschuldigt“ 
 
 ## Wer hat Zugriff?
 Du siehst deine eigenen Daten. Deine Trainerinnen und Trainer sehen die Daten ihrer Gruppe, eine Vertretung nur für die Dauer der Vertretung. Die Koordination sieht alle Teilnehmenden des Standorts. Ein Qualifizierungs-Guide sieht nur die Personen, die er begleitet. Für ein Praktikum bekommt die Abteilungsleitung einen befristeten Link, über den sie nur dieses Praktikum sieht und eine Rückmeldung gibt. Nachrichten sehen nur Absender und Empfänger bzw. die Mitglieder der Gruppe.
-[Falls zutreffend: An den Kostenträger bzw. die IHK geben wir nur die Daten weiter, die für Förderung bzw. Prüfungszulassung nötig sind, z. B. Anwesenheitslisten oder Tätigkeitsnachweise.]
+[Falls zutreffend:] An den Kostenträger deiner Maßnahme (z. B. Agentur für Arbeit oder Jobcenter) geben wir monatlich deine Anwesenheit und Fehltage weiter, ohne Gründe oder Diagnosen; an die IHK nur, was für die Prüfungszulassung nötig ist (Art. 6 Abs. 1 lit. b und c DSGVO). Bei einem Audit der Zertifizierung (AZAV) können Auditoren Anwesenheitslisten und Klassenbuch einsehen.
 Den Fragebogen am Modulende werten wir nur zusammengefasst und erst ab 3 Antworten aus, ohne Namen. Auswertungen je Trainer sowie Stimmungs-Check, Frühwarnung oder Stationsfeedback sind ausgeschaltet, solange [der Betriebsrat] nicht zugestimmt hat.
+
+## Anmeldung über unsere Anmeldeseite
+Wenn du dich über unsere Anmeldeseite meldest, speichern wir deine Angaben und Unterlagen, um die Anmeldung zu bearbeiten. Sie werden spätestens 6 Monate nach Abschluss gelöscht, außer du nimmst an der Maßnahme teil.
 
 ## Dienstleister
 Die App wird in unserem Auftrag von NovaWorks (Inhaber Besart Shehu, Am Hang 2, 34414 Warburg) betrieben. Mit NovaWorks besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO).
