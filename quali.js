@@ -180,7 +180,7 @@ const Q_TERMS = [
 ];
 function qTerms(root) {
   if (!isQuali() || !root) return;
-  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && (/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName) || n.parentElement.closest('[data-noterms]')) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
   const list = []; while (w.nextNode()) list.push(w.currentNode);
   list.forEach(n => { let s = n.nodeValue, o = s; Q_TERMS.forEach(([re, r]) => { s = s.replace(re, r); }); if (s !== o) n.nodeValue = s; });
 }

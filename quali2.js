@@ -33,6 +33,39 @@
    Eigenes Erscheinungsbild im Qualifizierungsmodus: Name „Desk“, neutrales Logo, Farben
    Gilt nur, solange der Betrieb Name und Farben nicht selbst geändert hat.
    ===================================================================== */
+const Q_DS = `VORLAGE – bitte vor dem Einsatz prüfen und die Angaben in [eckigen Klammern] ergänzen. Keine Rechtsberatung.
+
+## Wer ist verantwortlich?
+[Name des Bildungsträgers bzw. Betriebs, Anschrift, Telefon, E-Mail]
+Datenschutzbeauftragte/r: [Name, E-Mail]
+
+## Wofür nutzen wir deine Daten?
+Die App begleitet deine Qualifizierung (z. B. Teilqualifizierung, Intensivkurs, Grundkompetenz) bis zur Externenprüfung: Lern- und Tätigkeitsnachweis, Module und Zertifikate, Anwesenheit, Tests, Praktika, Lernzeiten, Unterweisungen, Team-Chat und Pinnwand. Für Trainerinnen und Trainer außerdem Dienstplan, Klassenbuch und Gruppenverwaltung.
+Rechtsgrundlagen: die Durchführung deines Arbeits- bzw. Qualifizierungsverhältnisses (Art. 6 Abs. 1 lit. b DSGVO, § 26 BDSG) und gesetzliche Pflichten (Art. 6 Abs. 1 lit. c DSGVO), z. B. Nachweise für die Zulassung zur Externenprüfung (§ 45 Abs. 2 BBiG) und Unterweisungen nach dem Arbeitsschutzgesetz. [Falls die Maßnahme gefördert wird: Nachweispflichten gegenüber dem Kostenträger, z. B. Agentur für Arbeit oder Jobcenter.]
+Profilfoto und Push-Benachrichtigungen nur mit deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit in der App zurücknehmen.
+
+## Welche Daten werden gespeichert?
+Name, E-Mail-Adresse, Beruf bzw. Maßnahme, Gruppe, Kurs, Einsatzort, Beginn, Prüfungstermine, gewählte Sprache, freiwillig ein Profilfoto; deine Wochennachweise mit Rückmeldungen und Abzeichnung; Modulstand und Zertifikate; Testergebnisse; Anwesenheit mit Status (z. B. anwesend, verspätet, entschuldigt, frei, Urlaub) und ggf. einer kurzen Begründung; Praktika mit der Rückmeldung der Abteilung; Lernzeiten; Unterweisungsbestätigungen mit Unterschrift; Nachrichten und Dateianhänge im Chat; Lesebestätigungen; falls aktiviert: technische Daten für Benachrichtigungen.
+Bei Trainerinnen und Trainern zusätzlich: Einträge im Dienstplan (z. B. Werkstatt, Urlaub, Audit) und im Klassenbuch.
+Gesundheitsdaten speichern wir nicht: Bei Krankheit wird nur „entschuldigt“ eingetragen, ohne Diagnose. Bitte schreib auch in Begründungen und Nachrichten keine Diagnosen.
+
+## Wer hat Zugriff?
+Du siehst deine eigenen Daten. Deine Trainerinnen und Trainer sehen die Daten ihrer Gruppe, eine Vertretung nur für die Dauer der Vertretung. Die Koordination sieht alle Teilnehmenden des Standorts. Ein Qualifizierungs-Guide sieht nur die Personen, die er begleitet. Für ein Praktikum bekommt die Abteilungsleitung einen befristeten Link, über den sie nur dieses Praktikum sieht und eine Rückmeldung gibt. Nachrichten sehen nur Absender und Empfänger bzw. die Mitglieder der Gruppe.
+[Falls zutreffend: An den Kostenträger bzw. die IHK geben wir nur die Daten weiter, die für Förderung bzw. Prüfungszulassung nötig sind, z. B. Anwesenheitslisten oder Tätigkeitsnachweise.]
+Auswertungen wie Stimmungs-Check, Frühwarnung oder Stationsfeedback sind ausgeschaltet, solange [der Betriebsrat] nicht zugestimmt hat.
+
+## Dienstleister
+Die App wird in unserem Auftrag von NovaWorks (Inhaber Besart Shehu, Am Hang 2, 34414 Warburg) betrieben. Mit NovaWorks besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO).
+NovaWorks setzt dafür ein: Supabase (Datenbank, Dateien und nächtliche Datensicherung, Server in Frankfurt am Main), GitHub Pages (Auslieferung der App) und Brevo (Sendinblue SAS, Frankreich) für E-Mail-Erinnerungen, die du unter Profil › Benachrichtigungen abschalten kannst. Supabase und GitHub haben ihren Sitz in den USA; mögliche Übermittlungen sind über die EU-Standardvertragsklauseln abgesichert.
+Push-Benachrichtigungen laufen über den Push-Dienst deines Browsers oder Handys (z. B. Google, Apple, Mozilla) – nur wenn du sie einschaltest.
+Schriften und Programmteile lädt die App nicht von fremden Servern. Es gibt keine Werbung und kein Tracking.
+
+## Wie lange?
+[z. B.: Nachweise und Zertifikate bis [Zeitraum] nach Ende der Maßnahme bzw. so lange, wie es Förderrichtlinien vorschreiben; alle übrigen Daten spätestens [Zeitraum] nach deinem Ausscheiden.]
+Technisch: Datensicherungen werden nach 30 Tagen automatisch gelöscht, das Fehlerprotokoll der App ebenfalls nach 30 Tagen. Gelöschte Daten können bis dahin noch in einer Sicherung enthalten sein.
+
+## Deine Rechte
+Du kannst Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) und Datenübertragbarkeit (Art. 20 DSGVO) verlangen und der Verarbeitung widersprechen (Art. 21 DSGVO). Eine Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Wende dich dafür an die oben genannte Stelle. Außerdem kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren.`;
 const Q_BRAND = { name: 'Desk', brand: '#2f3539', brand2: '#e08a00', old: ['Stufenwerk', '#1d3c6e', '#b8643a'], oldNames: ['Stufenwerk'], text: 'Lern- und Tätigkeitsnachweis, Module, Anwesenheit und Tests für die Qualifizierung.' };
 function qLogoSVG(bg = Q_BRAND.brand, ring = '#ffffff', last = '#e08a00') {
   const cx = 256, cy = 256, r1 = 150, r2 = 112, n = 5, gap = 7 * Math.PI / 180, pt = (r, a) => `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
@@ -71,6 +104,8 @@ function qBrand(on) {
   if (BR.appName === DEFAULT_BRANDING.appName || Q_BRAND.oldNames.includes(BR.appName) || / Desk$/.test(BR.appName || '')) BR.appName = Q_BRAND.name;
   if ((BR.brand === DEFAULT_BRANDING.brand && BR.brand2 === DEFAULT_BRANDING.brand2) || (BR.brand === Q_BRAND.old[1] && BR.brand2 === Q_BRAND.old[2])) { BR.brand = Q_BRAND.brand; BR.brand2 = Q_BRAND.brand2; }
   if (!BR.loginText || BR.loginText === DEFAULT_BRANDING.loginText) BR.loginText = Q_BRAND.text;
+  /* Datenschutzhinweis: Hotel-Vorlage (noch nicht ausgefüllt) durch die Desk-Vorlage ersetzen */
+  if (!BR.datenschutz || (BR.datenschutz.startsWith('VORLAGE') && BR.datenschutz.includes('[Name des Hotels'))) BR.datenschutz = Q_DS;
   root.style.setProperty('--brand', BR.brand); root.style.setProperty('--brand2', BR.brand2);
   document.title = BR.appName;
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', BR.brand);
@@ -176,7 +211,7 @@ function qAnwHTML() {
     ${shown.length ? `<div class="card mt-3">${shown.map((p, i) => { const a = by[p.id]; return `<div class="p-3.5 anw-row ${i ? 'border-t border-line' : ''}">
       <div class="flex items-center gap-3">${avatar(p, 34)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(p.full_name)}</div><div class="text-[12px] text-muted truncate">${esc(Q_KATALOG[qMassOf(p.id)]?.kurz || p.beruf || '')}</div></div>${a ? '' : '<span class="chip">offen</span>'}</div>
       <div class="anw-line"><div class="anw-st" role="group" aria-label="Anwesenheit ${esc(p.full_name)}">${Object.entries(ANW).map(([k, [, l, , sh]]) => `<button data-anw="${p.id}" data-st="${k}" aria-pressed="${a?.status === k}" aria-label="${l}" title="${l}">${sh}</button>`).join('')}</div>
-      ${a ? `<div class="flex gap-2">${a.status === 'verspaetet' ? `<input class="field" style="width:96px;flex:none" type="number" min="0" max="600" inputmode="numeric" placeholder="Min." value="${a.minuten ?? ''}" data-anwmin="${p.id}" aria-label="Minuten verspätet">` : ''}<input class="field flex-1 min-w-0" maxlength="300" placeholder="${{ anwesend: 'Bemerkung (optional)', verspaetet: 'Begründung, z. B. Bus ausgefallen', entschuldigt: 'Begründung, z. B. Krankmeldung liegt vor', unentschuldigt: 'Begründung, z. B. nicht erreicht', frei: 'Begründung, z. B. Brückentag, Betriebsruhe', urlaub: 'Begründung, z. B. Jahresurlaub genehmigt' }[a.status]}" value="${esc(a.notiz || '')}" data-anwnote="${p.id}" aria-label="Begründung"></div>` : ''}</div>
+      ${a ? `<div class="flex gap-2">${a.status === 'verspaetet' ? `<input class="field" style="width:96px;flex:none" type="number" min="0" max="600" inputmode="numeric" placeholder="Min." value="${a.minuten ?? ''}" data-anwmin="${p.id}" aria-label="Minuten verspätet">` : ''}<input class="field flex-1 min-w-0" maxlength="300" placeholder="${{ anwesend: 'Bemerkung (optional)', verspaetet: 'Begründung, z. B. Bus ausgefallen', entschuldigt: 'z. B. Krankmeldung liegt vor (keine Diagnose)', unentschuldigt: 'Begründung, z. B. nicht erreicht', frei: 'Begründung, z. B. Brückentag, Betriebsruhe', urlaub: 'Begründung, z. B. Jahresurlaub genehmigt' }[a.status]}" value="${esc(a.notiz || '')}" data-anwnote="${p.id}" aria-label="Begründung"></div>` : ''}</div>
     </div>`; }).join('')}</div>` : empty('Keine Teilnehmenden in dieser Auswahl.')}
     ${secTitle('Export')}
     <div class="card p-4 flex flex-col gap-3">

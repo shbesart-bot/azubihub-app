@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<script>/* Neue Besucher ohne Konto sehen zuerst die Verkaufsseite */(function(){try{if(location.search||location.hash)return;if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone)return;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k==='azubihub.seenApp'||/^sb-.*-auth-token$/.test(k))return;}location.replace('./start/');}catch(e){}})();</script>
+<script>/* Neue Besucher ohne Konto sehen zuerst die Verkaufsseite */(function(){try{if(location.search||location.hash)return;if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone)return;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k==='azubihub.seenApp'||k==='azubihub.remember'||/^sb-.*-auth-token$/.test(k))return;}for(var j=0;j<sessionStorage.length;j++){if(/^sb-.*-auth-token$/.test(sessionStorage.key(j)))return;}location.replace('./start/');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f5c5f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -191,6 +191,11 @@
   .composer { position: sticky; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); background: var(--bg); padding-top: 8px; }
   .cbx { accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  .pw-wrap{position:relative}
+  .pw-wrap > input{padding-right:46px}
+  .pw-eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--muted)}
+  .pw-eye:hover{color:var(--fg)}
+  .pw-eye:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 </style>
 </head>
 <body>
@@ -216,6 +221,7 @@
     <div data-biz hidden><label class="lbl" for="bPos">Deine Funktion</label><input id="bPos" class="field" maxlength="60" placeholder="z. B. Inhaber, Ausbildungsleitung"></div>
     <div><label class="lbl" for="aMail">E-Mail</label><input id="aMail" type="email" class="field" autocomplete="email" inputmode="email"></div>
     <div><label class="lbl" for="aPass">Passwort</label><input id="aPass" type="password" class="field" autocomplete="current-password" minlength="8"></div>
+    <label class="flex items-center gap-2.5 text-[14px]" data-remember><input type="checkbox" id="aRemember" class="cbx" checked><span>Angemeldet bleiben <span class="text-muted text-[12px]">(nicht an fremden oder geteilten Geräten)</span></span></label>
     <div data-reg hidden><label class="lbl" for="aRolle">Ich bin</label><select id="aRolle" class="field"><option value="azubi">Auszubildende/r</option><option value="mitarbeiter">Mitarbeiter/in</option></select></div>
     <div data-reg data-azfield hidden class="grid grid-cols-2 gap-2">
       <div><label class="lbl" for="aJahr">Lehrjahr</label><select id="aJahr" class="field"><option value="1">1. Jahr</option><option value="2">2. Jahr</option><option value="3">3. Jahr</option></select></div>
@@ -271,17 +277,17 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03m"></script>
-<script src="./ausbildung.js?v=2026-11-03m"></script>
-<script src="./ausbau2.js?v=2026-11-03m"></script>
-<script src="./quali.js?v=2026-11-03m"></script>
-<script src="./quali2.js?v=2026-11-03m"></script>
-<script src="./quali3.js?v=2026-11-03m"></script>
-<script src="./quali4.js?v=2026-11-03m"></script>
-<script src="./quali5.js?v=2026-11-03m"></script>
-<script src="./quali6.js?v=2026-11-03m"></script>
-<script src="./quali7.js?v=2026-11-03m"></script>
-<script src="./quali8.js?v=2026-11-03m"></script>
+<script src="./schule.js?v=2026-11-03o"></script>
+<script src="./ausbildung.js?v=2026-11-03o"></script>
+<script src="./ausbau2.js?v=2026-11-03o"></script>
+<script src="./quali.js?v=2026-11-03o"></script>
+<script src="./quali2.js?v=2026-11-03o"></script>
+<script src="./quali3.js?v=2026-11-03o"></script>
+<script src="./quali4.js?v=2026-11-03o"></script>
+<script src="./quali5.js?v=2026-11-03o"></script>
+<script src="./quali6.js?v=2026-11-03o"></script>
+<script src="./quali7.js?v=2026-11-03o"></script>
+<script src="./quali8.js?v=2026-11-03o"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -289,7 +295,14 @@
 const SB_URL = 'https://brtdtjqinyhsesiqhkkk.supabase.co';
 const SB_KEY = 'sb_publishable_i5Lf1DJYMBVX0yQOW2_nKQ_bRBbDUD2';
 const CAREER_SLUG = new URLSearchParams(location.search).get('karriere');
-let sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+const REM_KEY = 'azubihub.remember';
+const remOn = () => { try { return localStorage.getItem(REM_KEY) !== '0'; } catch { return true; } };
+const authStore = {
+  getItem(k) { try { return remOn() ? localStorage.getItem(k) : sessionStorage.getItem(k); } catch { return null; } },
+  setItem(k, v) { try { if (remOn()) { localStorage.setItem(k, v); sessionStorage.removeItem(k); } else { sessionStorage.setItem(k, v); localStorage.removeItem(k); } } catch {} },
+  removeItem(k) { try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch {} }
+};
+let sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storage: authStore } });
 
 /* Alles, was der Admin unter „Aufbau & Texte“ ändern kann. Gespeichert in app_config. */
 const DEFAULT_BRANDING = {
@@ -309,7 +322,7 @@ Rechtsgrundlagen: die Durchführung des Ausbildungs- bzw. Arbeitsverhältnisses 
 Profilfoto und Push-Benachrichtigungen nur mit deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit in der App zurücknehmen.
 
 ## Welche Daten werden gespeichert?
-Name, E-Mail-Adresse, Ausbildungsberuf, Lehrjahr, Abteilung, erster Arbeitstag, Prüfungstermine, gewählte Sprache, freiwillig ein Profilfoto; deine Wochenberichte mit Rückmeldungen und Abzeichnung; Lernziel-Fortschritt; Quiz-Antworten; abgehakte Checklisten und Einarbeitungsaufgaben; Abwesenheiten und Urlaubsanträge (Berufsschule, Urlaub, Krankheit ohne Diagnose); Gesprächsnotizen der Ausbildungsleitung; Einträge und Fotos im Übergabebuch; Nachrichten im Team- und Gruppen-Chat; Lesebestätigungen von Ankündigungen; falls aktiviert: technische Daten für Benachrichtigungen.
+Name, E-Mail-Adresse, Ausbildungsberuf, Lehrjahr, Abteilung, erster Arbeitstag, Prüfungstermine, gewählte Sprache, freiwillig ein Profilfoto; deine Wochenberichte mit Rückmeldungen und Abzeichnung; Lernziel-Fortschritt; Quiz-Antworten; abgehakte Checklisten und Einarbeitungsaufgaben; Abwesenheiten und Urlaubsanträge (Berufsschule, Urlaub, Krankheit ohne Diagnose); Gesprächsnotizen der Ausbildungsleitung; Einträge und Fotos im Übergabebuch; Nachrichten im Team- und Gruppen-Chat; Lesebestätigungen von Ankündigungen; Dateianhänge im Chat (z. B. Bilder, PDF); falls aktiviert: technische Daten für Benachrichtigungen.
 Außerdem der Verlauf deiner Wochenberichte (wer einen Bericht wann angelegt, eingereicht, zurückgegeben oder abgezeichnet hat), dein persönlicher Ausbildungsplan und die Ergebnisse der Prüfungssimulation.
 
 ## Unterschriften bei Unterweisungen
@@ -330,17 +343,22 @@ Bewerbungen über unsere Karriereseite, einschließlich hochgeladener Unterlagen
 ## Dienstleister
 Die App wird in unserem Auftrag von NovaWorks (Inhaber Besart Shehu, Am Hang 2, 34414 Warburg) betrieben. Mit NovaWorks besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO).
 NovaWorks setzt dafür ein: Supabase (Datenbank und Dateien, Server in Frankfurt am Main) und GitHub Pages (Auslieferung der App). Beide Anbieter haben ihren Sitz in den USA; mögliche Übermittlungen sind über die EU-Standardvertragsklauseln abgesichert.
-Push-Benachrichtigungen laufen über den Push-Dienst deines Browsers oder Handys (z. B. Google, Apple, Mozilla) – nur wenn du sie einschaltest. [Falls genutzt: E-Mails versenden wir über Brevo (Sendinblue SAS, Frankreich).]
-Schriften und Programmteile lädt die App nicht von fremden Servern. Beim Festlegen eines Passworts prüft die App anonym, ob es aus Datenlecks bekannt ist. Dabei gehen nur die ersten 5 Zeichen eines Prüfwerts an den Dienst „Have I Been Pwned“, nie das Passwort selbst.
+Supabase speichert auch die nächtliche Datensicherung. E-Mail-Erinnerungen (abschaltbar unter Profil › Benachrichtigungen) versendet NovaWorks über Brevo (Sendinblue SAS, Frankreich).
+Push-Benachrichtigungen laufen über den Push-Dienst deines Browsers oder Handys (z. B. Google, Apple, Mozilla) – nur wenn du sie einschaltest.
+Schriften und Programmteile lädt die App nicht von fremden Servern. Es gibt keine Werbung und kein Tracking. Beim Festlegen eines Passworts prüft die App anonym, ob es aus Datenlecks bekannt ist. Dabei gehen nur die ersten 5 Zeichen eines Prüfwerts an den Dienst „Have I Been Pwned“, nie das Passwort selbst.
 
 ## Wie lange?
 [z. B.: Ausbildungsnachweise bis [Zeitraum] nach Ende der Ausbildung, alle übrigen Daten werden spätestens [Zeitraum] nach deinem Ausscheiden gelöscht.]
+Technisch: Datensicherungen werden nach 30 Tagen automatisch gelöscht, das Fehlerprotokoll der App ebenfalls nach 30 Tagen. Gelöschte Daten können bis dahin noch in einer Sicherung enthalten sein.
 
 ## Deine Rechte
-Du kannst Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung verlangen und der Verarbeitung widersprechen. Wende dich dafür an die oben genannte Ansprechperson. Außerdem kannst du dich bei der zuständigen Datenschutz-Aufsichtsbehörde beschweren.`
+Du kannst Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) und Datenübertragbarkeit (Art. 20 DSGVO) verlangen und der Verarbeitung widersprechen (Art. 21 DSGVO). Eine Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Wende dich dafür an die oben genannte Ansprechperson. Außerdem kannst du dich bei der zuständigen Datenschutz-Aufsichtsbehörde beschweren.`
 };
 /* Alte, unveränderte Datenschutz-Vorlage automatisch durch die neue ersetzen */
-const fixDs = br => { if (br.datenschutz && br.datenschutz.startsWith('VORLAGE – bitte vor dem Einsatz prüfen') && br.datenschutz.includes('Mit beiden besteht ein Vertrag zur Auftragsverarbeitung.') && !br.datenschutz.includes('NovaWorks')) br.datenschutz = DEFAULT_BRANDING.datenschutz; return br; };
+const dsHash = t => { let x = 5381; for (let i = 0; i < t.length; i++) x = (Math.imul(x, 33) ^ t.charCodeAt(i)) >>> 0; return x; };
+const DS_PREV = [2691244258];
+const fixDs0 = br => { if (br.datenschutz && DS_PREV.includes(dsHash(br.datenschutz))) br.datenschutz = DEFAULT_BRANDING.datenschutz; return fixDs1(br); };
+const fixDs1 = br => { if (br.datenschutz && br.datenschutz.startsWith('VORLAGE – bitte vor dem Einsatz prüfen') && br.datenschutz.includes('Mit beiden besteht ein Vertrag zur Auftragsverarbeitung.') && !br.datenschutz.includes('NovaWorks')) br.datenschutz = DEFAULT_BRANDING.datenschutz; return br; };
 const DEFAULT_APP = {
   modules: {
     bericht: { on: true, tab: 'Berichtsheft', title: 'Berichtsheft & Lernziele', sub: 'Wochenbericht schreiben, einreichen und deinen Ausbildungsstand sehen.' },
@@ -417,13 +435,13 @@ function applyConfig() {
   qApplyConfig();
 }
 async function loadBranding() {
-  try { const { data } = await sb.from('app_config').select('value').eq('key', 'branding').maybeSingle(); BR = fixDs(mergeCfg(DEFAULT_BRANDING, data?.value)); } catch {}
+  try { const { data } = await sb.from('app_config').select('value').eq('key', 'branding').maybeSingle(); BR = fixDs0(mergeCfg(DEFAULT_BRANDING, data?.value)); } catch {}
   applyConfig();
 }
 async function loadAppConfig() {
   const rows = await q(sb.from('app_config').select('key,value'));
   const by = Object.fromEntries(rows.map(r => [r.key, r.value]));
-  BR = fixDs(mergeCfg(DEFAULT_BRANDING, by.branding)); APP = mergeCfg(DEFAULT_APP, by.app);
+  BR = fixDs0(mergeCfg(DEFAULT_BRANDING, by.branding)); APP = mergeCfg(DEFAULT_APP, by.app);
   applyConfig();
 }
 
@@ -455,7 +473,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03m';
+const APP_VERSION = '2026-11-03o';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -597,11 +615,29 @@ $$('[data-auth]').forEach(b => b.onclick = () => {
 });
 $('#aRolle').onchange = () => { $('[data-azfield]').hidden = $('#aRolle').value !== 'azubi' || (typeof deskOn === 'function' && deskOn()); };
 { const st = new URLSearchParams(location.search).get('start'); if (st === 'betrieb' || st === 'register') $(`[data-auth="${st}"]`)?.click(); }
+/* Passwort anzeigen/verbergen: Auge an jedem Passwortfeld, auch in Fenstern, die später geöffnet werden */
+const EYE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a10.6 10.6 0 0 0 5.4-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+function pwEyes(root = document) {
+  root.querySelectorAll('input[type="password"]:not([data-eye])').forEach(inp => {
+    inp.dataset.eye = '1';
+    const wrap = document.createElement('div'); wrap.className = 'pw-wrap';
+    inp.parentNode.insertBefore(wrap, inp); wrap.appendChild(inp);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pw-eye'; b.innerHTML = EYE;
+    b.setAttribute('aria-label', 'Passwort anzeigen'); b.setAttribute('aria-pressed', 'false');
+    b.onclick = () => { const show = inp.type === 'password'; inp.type = show ? 'text' : 'password'; b.innerHTML = show ? EYE_OFF : EYE;
+      b.setAttribute('aria-label', show ? 'Passwort verbergen' : 'Passwort anzeigen'); b.setAttribute('aria-pressed', String(show)); inp.focus(); };
+    wrap.appendChild(b);
+  });
+}
+pwEyes();
+new MutationObserver(ms => { if (ms.some(m => m.addedNodes.length)) pwEyes(); }).observe(document.body, { childList: true, subtree: true });
 function authMsg(t, kind = 'crit') { const m = $('#authMsg'); m.hidden = !t; m.textContent = t; m.style.color = `var(--${kind})`; }
 $('#authForm').onsubmit = async e => {
   e.preventDefault();
   const email = $('#aMail').value.trim(), password = $('#aPass').value;
   if (!email || !password) return authMsg('Bitte E-Mail und Passwort eingeben.');
+  try { localStorage.setItem(REM_KEY, $('#aRemember')?.checked === false ? '0' : '1'); } catch {}
   const btn = $('#authBtn'); btn.disabled = true;
   try {
     if (authMode === 'login') {
@@ -718,14 +754,16 @@ async function go(v) {
   if (!visible(v)) v = 'home';
   S.view = v; renderTabs(); window.scrollTo({ top: 0 });
   try { sessionStorage.setItem('azubihub.view', v); } catch {}
-  const tok = ++navToken;
+  const tok = ++navToken; S.loadedView = null;
   $('#app').innerHTML = skeleton();
   try { await VIEWS[v].load?.(); } catch (e) { if (tok === navToken) $('#app').innerHTML = `<div class="card p-4 mt-2 text-[14px]">Laden fehlgeschlagen: ${esc(errText(e))} <button class="btn ghost mt-3 w-full" data-go="${v}">Erneut versuchen</button></div>`; return; }
-  if (tok === navToken) { render(); if (S.navByUser) { S.navByUser = false; $('#app').focus({ preventScroll: true }); } }
+  if (tok === navToken) { S.loadedView = v; render(); if (S.navByUser) { S.navByUser = false; $('#app').focus({ preventScroll: true }); } }
 }
 const VIEW_TITLES = { chat: 'Team', uw: 'Unterweisungen', news: 'Pinnwand', admin: 'Verwaltung', schule: 'Schule', ihk: 'IHK', dienst: 'Dienstplan', quali: 'Qualifizierung', qorg: 'Verwaltung', qverw: 'Verwaltung', qpk: 'Praktika', qgk: 'GK', qkb: 'Klassenbuch', qein: 'Dienstplan' };
 function render() {
   const V = VIEWS[S.view];
+  /* Noch nicht geladen (z. B. Push-Abgleich oder Installationshinweis kommt vor den Daten): nicht zeichnen, go() holt das nach */
+  if (!V || S.loadedView !== S.view) return;
   try { const t = VIEW_TITLES[S.view] || (S.view === 'home' ? 'Start' : mod(S.view)?.tab) || ''; document.title = (t ? t + ' – ' : '') + (BR.appName || 'AzubiHub'); } catch {}
   $('#app').innerHTML = `<div class="view">${V.html()}</div>`;
   V.bind?.();
@@ -1894,7 +1932,7 @@ function cfgFormHTML() {
   return `
   <form id="cfgForm" class="flex flex-col gap-4 mt-4" novalidate>
     <p class="text-[13px] text-muted">Hier änderst du, wie die App aussieht und was sie anzeigt. Nach dem Speichern sehen alle die Änderung, sobald sie die App neu öffnen.</p>
-    <section class="card p-4 flex flex-col gap-3">
+    <section class="card p-4 flex flex-col gap-3" data-noterms>
       <h3 class="text-[17px] font-bold">Betriebsart</h3>
       <div><label class="lbl" for="cTyp">Wofür nutzt ihr die App?</label><select id="cTyp" class="field"><option value="">Berufsausbildung (Azubis, Berufsschule, IHK)</option><option value="qualifizierung" ${APP.typ === 'qualifizierung' ? 'selected' : ''}>Qualifizierung Erwachsener (Teilqualifizierung, Intensivkurs, Externenprüfung)</option></select></div>
       <p class="text-[12px] text-muted">Qualifizierung: Teilnehmende statt Azubis, Module mit IHK-Zertifikat, Gruppen, Anwesenheit, Tests und Praktika; Berufsschule, Eltern und Jugendarbeitsschutz sind ausgeblendet. Beim ersten Umstellen werden Berufe und Lernorte für Kunststoff/Kautschuk, Betriebselektrik, Lagerlogistik und Maschinen- und Anlagenführer vorgeschlagen, solange hier noch die Standardwerte stehen.</p>
@@ -1944,6 +1982,8 @@ function cfgFormHTML() {
       <h3 class="text-[17px] font-bold">Datenschutzhinweis</h3>
       ${f('cPrivacy', 'Text', BR.datenschutz, '„## “ am Zeilenanfang = Zwischenüberschrift', 'area', 14)}
       <p class="text-[12px] text-muted">Wird auf der Anmeldeseite und im Profil unter „Datenschutz“ angezeigt.</p>
+      <div><label class="lbl" for="cLoesch">Ehemalige automatisch löschen</label><select id="cLoesch" class="field">${[[0, 'Aus (nur von Hand)'], [1, 'nach 1 Jahr'], [2, 'nach 2 Jahren'], [3, 'nach 3 Jahren'], [5, 'nach 5 Jahren'], [10, 'nach 10 Jahren']].map(([v, l]) => `<option value="${v}" ${(+APP.loeschfrist_jahre || 0) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        <p class="text-[12px] text-muted mt-1">Gilt für Konten, die abgeschlossen oder deaktiviert sind: Nach Ablauf der Frist löscht die App das Konto mit allen Daten (Nachweise, Nachrichten, Dateien) endgültig – nachts automatisch. Trag die gleiche Frist im Datenschutzhinweis unter „Wie lange?“ ein. Achtung bei Aufbewahrungspflichten: Ausbildungs- und Tätigkeitsnachweise ggf. vorher als PDF sichern (Verwaltung › Export).${(+APP.loeschfrist_jahre || 0) ? ` Derzeit betroffen: ${Object.values(S.profiles || {}).filter(p => p.aktiv === false && p.deaktiviert_am && new Date(p.deaktiviert_am) < new Date(Date.now() - APP.loeschfrist_jahre * 365.25 * 864e5)).length} Konten.` : ''}</p></div>
       ${save}
     </section>
     <section class="card p-4 flex flex-col gap-3">
@@ -1987,7 +2027,10 @@ function bindCfgForm() {
       if (JSON.stringify(abt.map(a => a.name)) === JSON.stringify(DEFAULT_APP.abteilungen.map(a => a.name))) abt2 = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'Lernwerkstatt', 'Arbeitsplatz im Werk'].map(name => ({ name, wochen: 0 }));
     }
     const newBR = { appName, loginText: $('#cLoginText').value.trim(), brand: $('#cBrand').value, brand2: $('#cBrand2').value, berufe: berufe2, datenschutz: $('#cPrivacy').value.trim() || DEFAULT_BRANDING.datenschutz };
-    const newAPP = { ...(typ ? { typ } : {}), ...(APP.quali_seed ? { quali_seed: true } : {}), modules, abteilungen: abt2,
+    /* Alle übrigen Einstellungen (z. B. Freigabe der Auswertungen, Siegel, IHK) beim Speichern erhalten */
+    const base = clone(APP); delete base.typ;
+    const newAPP = { ...base, ...(typ ? { typ } : {}), ...(APP.quali_seed ? { quali_seed: true } : {}), modules, abteilungen: abt2,
+      loeschfrist_jahre: Math.max(0, parseInt($('#cLoesch')?.value, 10) || 0),
       plan: { 1: pipes('cPlan1').map(p => [p[0], p[1] || '']), 2: pipes('cPlan2').map(p => [p[0], p[1] || '']), 3: pipes('cPlan3').map(p => [p[0], p[1] || '']) },
       wikiChips: lines('cWikiChips'), botHello: $('#cBotHello').value.trim() || DEFAULT_APP.botHello, botAsks: lines('cBotAsks'),
       botFallback: $('#cBotFallback').value.trim() || DEFAULT_APP.botFallback,
@@ -2001,8 +2044,10 @@ function bindCfgForm() {
     const y = scrollY; render(); scrollTo(0, y);
   };
   $('#cReset').onclick = () => confirmInline($('#cReset'), async () => {
-    await q(sb.from('app_config').upsert([{ key: 'branding', value: {} }, { key: 'app', value: {} }], { onConflict: 'betrieb_id,key' }));
-    BR = clone(DEFAULT_BRANDING); APP = clone(DEFAULT_APP); applyConfig(); renderTabs(); render(); toast('Auf Standard zurückgesetzt');
+    /* Texte und Aussehen zurücksetzen – Betriebsart, Freigaben und Fristen bleiben */
+    const keep = Object.fromEntries(['typ', 'quali', 'quali_seed', 'siegel', 'ihk', 'loeschfrist_jahre'].filter(k => APP[k] !== undefined).map(k => [k, APP[k]]));
+    await q(sb.from('app_config').upsert([{ key: 'branding', value: {} }, { key: 'app', value: keep }], { onConflict: 'betrieb_id,key' }));
+    BR = clone(DEFAULT_BRANDING); APP = mergeCfg(DEFAULT_APP, keep); applyConfig(); if (typeof qBrand === 'function') qBrand(isQuali()); renderTabs(); render(); toast('Auf Standard zurückgesetzt');
   });
 }
 
@@ -2565,7 +2610,7 @@ $('#forgotBtn').onclick = () => {
     e.preventDefault();
     const email = $('#fgMail').value.trim(); if (!email) return;
     $('#fgBtn').disabled = true;
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname + ((typeof deskOn === 'function' && deskOn()) ? '?app=desk' : '') });
     const m = $('#fgMsg'); m.hidden = false;
     if (error && /rate limit/i.test(error.message)) { m.style.color = 'var(--crit)'; m.textContent = 'Zu viele Versuche. Bitte in ein paar Minuten erneut probieren.'; $('#fgBtn').disabled = false; return; }
     m.style.color = 'var(--ok)';
@@ -2575,12 +2620,14 @@ $('#forgotBtn').onclick = () => {
 function openNewPassword() {
   sheetShell('Neues Passwort festlegen', `
     <form id="npForm" class="card p-4 flex flex-col gap-3">
-      <div><label class="lbl" for="npPass">Neues Passwort</label><input id="npPass" type="password" class="field" autocomplete="new-password" minlength="8"></div>
+      <div><label class="lbl" for="npPass">Neues Passwort <span class="font-normal text-muted">(mind. 8 Zeichen)</span></label><input id="npPass" type="password" class="field" autocomplete="new-password" minlength="8"></div>
+      <div><label class="lbl" for="npPass2">Passwort wiederholen</label><input id="npPass2" type="password" class="field" autocomplete="new-password" minlength="8"></div>
       <button class="btn">Speichern</button>
     </form>`);
   $('#npForm').onsubmit = async e => {
     e.preventDefault();
     const pw = $('#npPass').value; if (pw.length < 8) return toast('Das Passwort braucht mindestens 8 Zeichen.');
+    if ($('#npPass2') && $('#npPass2').value !== pw) return toast('Die beiden Passwörter stimmen nicht überein.');
     if (await pwLeaked(pw)) return toast(PW_LEAK_MSG);
     const { error } = await sb.auth.updateUser({ password: pw });
     if (error) return toast(errText(error));
@@ -2588,7 +2635,17 @@ function openNewPassword() {
   };
 }
 function openPrivacy() {
-  const html = esc(BR.datenschutz).split(/\n\s*\n/).map(b => b.startsWith('## ') ? `<h3 class="text-[16px] font-bold mt-4 mb-1">${b.slice(3).split('\n')[0]}</h3>${b.split('\n').slice(1).map(l => `<p class="text-[14px]">${l}</p>`).join('')}` : `<p class="text-[14px] mt-2">${b.replace(/\n/g, '<br>')}</p>`).join('');
+  /* Vor der Anmeldung (noch kein Betrieb bekannt) keine leere Vorlage zeigen, sondern die Hinweise zur Anmeldung */
+  const pre = !S.me && /^VORLAGE/.test(BR.datenschutz || '');
+  const txt = pre ? `## Anmeldung
+Für die Anmeldung verarbeitet die App deine E-Mail-Adresse und dein Passwort (nur verschlüsselt gespeichert), außerdem technisch notwendige Daten wie IP-Adresse und Zeitpunkt. Betrieben wird die App von NovaWorks (Besart Shehu, Am Hang 2, 34414 Warburg) im Auftrag deines Betriebs, mit Servern in Frankfurt am Main. Es gibt keine Werbung und kein Tracking.
+
+## Nach der Anmeldung
+Verantwortlich für deine Daten in der App ist dein Betrieb bzw. Bildungsträger. Dessen vollständige Datenschutzhinweise findest du nach der Anmeldung im Profil unter „Datenschutz“.
+
+## Fragen
+Wende dich an deinen Betrieb oder an info@novaworks-it.de.` : BR.datenschutz;
+  const html = esc(txt).split(/\n\s*\n/).map(b => b.startsWith('## ') ? `<h3 class="text-[16px] font-bold mt-4 mb-1">${b.slice(3).split('\n')[0]}</h3>${b.split('\n').slice(1).map(l => `<p class="text-[14px]">${l}</p>`).join('')}` : `<p class="text-[14px] mt-2">${b.replace(/\n/g, '<br>')}</p>`).join('');
   sheetShell('Datenschutz', `<div class="card p-4">${html}</div><a class="btn ghost w-full mt-3" href="./start/sicherheit.html" target="_blank" rel="noopener">Datenschutz &amp; Sicherheit auf einen Blick</a>`);
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-goto-groups]')) { S.msg.open = null; S.msg.group = null; go('chat'); setTimeout(() => openGroupSheet(null), 50); return; } if (e.target.closest('[data-privacy]')) openPrivacy(); if (e.target.closest('[data-impressum]')) openImpressum(); if (e.target.closest('[data-a11y]')) openA11y(); });
@@ -3596,7 +3653,7 @@ function bindHomeExtras() {
   $$('[data-mood]').forEach(b => b.onclick = async () => {
     const { error } = await sb.from('stimmung').insert({ wert: +b.dataset.mood, monat: localDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), user_id: S.me.id });
     if (error && !/duplicate|unique/i.test(error.message)) return toast(errText(error));
-    S.home.moodOpen = false; toast('Danke! Deine Antwort ist anonym.'); render();
+    S.home.moodOpen = false; toast('Danke! Niemand im Betrieb sieht deine Einzelantwort.'); render();
   });
   $$('[data-fbst]').forEach(b => b.onclick = () => fbSheet(fbOpen().find(x => x.id === b.dataset.fbst)));
   if ($('#fbAll')) $('#fbAll').onclick = fbStaffSheet;
@@ -4379,7 +4436,7 @@ async function showClass() {
     ${schClassAttendanceHTML(good)}
     <h2 class="text-[18px] font-bold mt-6 mb-2">Weiteren Zugang hinzufügen</h2>
     <form id="klAdd" class="card p-4 flex gap-2"><label for="klLink" class="sr-only">Link vom Ausbildungsbetrieb</label><input id="klLink" class="field flex-1" placeholder="Link vom Ausbildungsbetrieb einfügen" autocomplete="off"><button class="btn flex-none">Hinzufügen</button></form>
-    <p class="text-[12px] text-muted text-center mt-6 mb-10">AzubiHub · <button type="button" class="font-semibold" data-privacy>Datenschutz</button> · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
+    <p class="text-[12px] text-muted text-center mt-6 mb-10">${esc(BR.appName || 'AzubiHub')} · <button type="button" class="font-semibold" data-privacy>Datenschutz</button> · <button type="button" class="font-semibold" data-impressum>Impressum</button> · <button type="button" class="font-semibold" data-a11y>Barrierefreiheit</button></p>`;
   $$('[data-klopen]').forEach(b => b.onclick = () => showSchool(b.dataset.klopen));
   schClassAttendanceBind(() => showClass());
   $$('[data-kldel]').forEach(b => b.onclick = () => { klSave(klList().filter(x => x.token !== b.dataset.kldel)); showClass(); });
@@ -4415,6 +4472,35 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet()
 $('#meBtn').onclick = openProfile;
 $('#admBtn').onclick = () => go('admin');
 $('#msgBtn').onclick = () => { S.msg.open = null; S.msg.group = null; go('chat'); };
+/* Auskunft / Datenübertragbarkeit (Art. 15, 20 DSGVO): eigene Daten als JSON-Datei – nur was die Zugriffsregeln der Datenbank ohnehin erlauben */
+const MY_DATA = [['profiles', 'id'], ['reports', 'user_id'], ['report_log', 'azubi_id'], ['absences', 'user_id'], ['anwesenheit', 'azubi_id'], ['ausbildungsvertraege', 'azubi_id'],
+  ['beurteilungen', 'azubi_id'], ['plan_stationen', 'azubi_id'], ['talks', 'user_id'], ['checklist_checks', 'user_id'], ['goal_progress', 'user_id'], ['onboarding_done', 'user_id'],
+  ['quiz_answers', 'user_id'], ['exam_results', 'user_id'], ['lernkarten', 'user_id'], ['praxis_stand', 'azubi_id'], ['rp_vermittelt', 'azubi_id'],
+  ['unterweisung_bestaetigungen', 'user_id'], ['ankuendigung_gelesen', 'user_id'], ['messages', 'sender_id'], ['messages', 'recipient_id'], ['dienstplan', 'user_id'],
+  ['schul_eintraege', 'azubi_id'], ['schul_noten', 'azubi_id'], ['schul_lf_stand', 'azubi_id'], ['schul_zeugnisse', 'azubi_id'],
+  ['quali_teilnahmen', 'azubi_id'], ['quali_gk', 'azubi_id'], ['quali_praktika', 'azubi_id'], ['quali_dokumente', 'azubi_id'], ['test_abgaben', 'azubi_id'],
+  ['quali_einsatz', 'trainer_id'], ['klassenbuch', 'trainer_id'], ['user_ansicht', 'user_id']];
+async function exportMyData() {
+  const id = S.me?.id; if (!id) return;
+  toast('Daten werden zusammengestellt …');
+  const out = { erstellt: new Date().toISOString(), app: BR.appName || 'AzubiHub', person: { id, name: S.me.full_name }, hinweis: 'Auskunft nach Art. 15 DSGVO bzw. Datenübertragbarkeit nach Art. 20 DSGVO. Dateien (Fotos, Anhänge) sind als Verweis enthalten.', daten: {} };
+  for (const [t, col] of MY_DATA) {
+    try {
+      const rows = [];
+      for (let from = 0; from < 20000; from += 1000) {
+        const { data, error } = await sb.from(t).select('*').eq(col, id).range(from, from + 999);
+        if (error) throw error;
+        rows.push(...(data || [])); if (!data || data.length < 1000) break;
+      }
+      if (rows.length) (out.daten[t] ||= []).push(...rows);
+    } catch {}
+  }
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `Meine-Daten-${String(S.me.full_name || 'Konto').normalize('NFKD').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${localDate()}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  toast(`${Object.values(out.daten).reduce((n, r) => n + r.length, 0)} Einträge heruntergeladen`);
+}
 async function openProfile() {
   const me = S.me, staff = isAusbilder();
   const [pushHTML, req] = await Promise.all([pushSectionHTML().catch(() => ''), sb.from('photo_requests').select('*').eq('user_id', me.id).maybeSingle().then(r => r.data).catch(() => null)]);
@@ -4451,8 +4537,10 @@ async function openProfile() {
     </form>
     ${pushHTML}
     ${canManage() ? `<button id="toAdmin" class="btn ghost w-full mt-4">Verwaltung öffnen</button>` : ''}
-    <div class="grid grid-cols-2 gap-2 mt-4"><button class="btn ghost" data-privacy>Datenschutz</button><button class="btn ghost" data-impressum>Impressum</button><button class="btn ghost col-span-2" data-a11y>Barrierefreiheit</button></div>
+    <div class="grid grid-cols-2 gap-2 mt-4"><button class="btn ghost" data-privacy>Datenschutz</button><button class="btn ghost" data-impressum>Impressum</button><button class="btn ghost" data-a11y>Barrierefreiheit</button><button class="btn ghost" id="myData">Meine Daten</button></div>
+    <p class="text-[12px] text-muted mt-2">„Meine Daten“ lädt alles, was die App über dich gespeichert hat und du sehen darfst, als Datei herunter (Auskunft und Datenübertragbarkeit, Art. 15 und 20 DSGVO).</p>
     <button id="logout" class="btn danger w-full mt-4">Abmelden</button>`);
+  if ($('#myData')) $('#myData').onclick = exportMyData;
   hydrateImgs($('#sheet'));
   $('#logout').onclick = async () => { closeSheet(); await releasePush(); await sb.auth.signOut(); };
   if ($('#toAdmin')) $('#toAdmin').onclick = () => { closeSheet(); go('admin'); };

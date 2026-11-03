@@ -310,7 +310,7 @@ const MOODS = [[1, '😣', 'schlecht'], [2, '🙁', 'eher schlecht'], [3, '😐'
 const moodOf = v => MOODS[Math.max(0, Math.min(4, Math.round(v) - 1))];
 function moodAskHTML() {
   if (!isAzubi() || !S.home?.moodOpen || !qAuswertungAn()) return '';
-  return `<section class="card p-4 mt-4" aria-labelledby="moodH"><h2 id="moodH" class="font-semibold text-[15px]">Wie geht es dir gerade in der Ausbildung?</h2><p class="text-[12px] text-muted">Einmal im Monat, völlig anonym. Der Betrieb sieht nur den Durchschnitt aller Azubis – und erst ab 3 Antworten.</p>
+  return `<section class="card p-4 mt-4" aria-labelledby="moodH"><h2 id="moodH" class="font-semibold text-[15px]">Wie geht es dir gerade in der Ausbildung?</h2><p class="text-[12px] text-muted">Einmal im Monat. Niemand im Betrieb sieht deine Einzelantwort – nur den Durchschnitt aller Azubis, und erst ab 3 Antworten.</p>
     <div class="grid grid-cols-5 gap-2 mt-3">${MOODS.map(([v, e, l]) => `<button class="card py-2 flex flex-col items-center gap-0.5" data-mood="${v}" aria-label="${l}"><span style="font-size:26px;line-height:1">${e}</span><span class="text-[10px] text-muted">${l}</span></button>`).join('')}</div></section>`;
 }
 function moodStaffHTML() {
