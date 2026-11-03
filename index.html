@@ -180,6 +180,14 @@
   .msgrow.me { align-items:flex-end; }
   .msgtime { font-size: 11px; color: var(--muted); margin: 2px 4px 0; }
   .thread { display:flex; flex-direction:column; gap:6px; }
+  .composer-att { position: sticky; bottom: calc(132px + env(safe-area-inset-bottom, 0px)); display:flex; flex-wrap:wrap; gap:6px; padding:6px 0; background: var(--bg); }
+  .composer-att .ca { display:inline-flex; align-items:center; gap:6px; max-width:100%; border:1px solid var(--line); border-radius:999px; background:var(--surface); padding:4px 6px 4px 10px; font-size:12.5px; }
+  .composer-att .ca button { border:0; background:var(--sunk); border-radius:999px; width:22px; height:22px; font-weight:700; color:var(--muted); }
+  .att { display:block; max-width:min(78%, 320px); margin-bottom:4px; }
+  .msgrow.me .att { margin-left:auto; }
+  .att img { display:block; width:100%; max-height:280px; object-fit:cover; border-radius:14px; border:1px solid var(--line); background:var(--sunk); min-height:80px; }
+  .att .file { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--line); border-radius:14px; background:var(--surface); text-align:left; width:100%; font:inherit; color:var(--fg); }
+  .att .file .ext { flex:none; width:38px; height:44px; border-radius:7px; display:grid; place-items:center; font-size:10.5px; font-weight:800; color:#fff; }
   .composer { position: sticky; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); background: var(--bg); padding-top: 8px; }
   .cbx { accent-color: var(--accent); width: 18px; height: 18px; flex: none; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
@@ -263,17 +271,17 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03h"></script>
-<script src="./ausbildung.js?v=2026-11-03h"></script>
-<script src="./ausbau2.js?v=2026-11-03h"></script>
-<script src="./quali.js?v=2026-11-03h"></script>
-<script src="./quali2.js?v=2026-11-03h"></script>
-<script src="./quali3.js?v=2026-11-03h"></script>
-<script src="./quali4.js?v=2026-11-03h"></script>
-<script src="./quali5.js?v=2026-11-03h"></script>
-<script src="./quali6.js?v=2026-11-03h"></script>
-<script src="./quali7.js?v=2026-11-03h"></script>
-<script src="./quali8.js?v=2026-11-03h"></script>
+<script src="./schule.js?v=2026-11-03j"></script>
+<script src="./ausbildung.js?v=2026-11-03j"></script>
+<script src="./ausbau2.js?v=2026-11-03j"></script>
+<script src="./quali.js?v=2026-11-03j"></script>
+<script src="./quali2.js?v=2026-11-03j"></script>
+<script src="./quali3.js?v=2026-11-03j"></script>
+<script src="./quali4.js?v=2026-11-03j"></script>
+<script src="./quali5.js?v=2026-11-03j"></script>
+<script src="./quali6.js?v=2026-11-03j"></script>
+<script src="./quali7.js?v=2026-11-03j"></script>
+<script src="./quali8.js?v=2026-11-03j"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -441,7 +449,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03h';
+const APP_VERSION = '2026-11-03j';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -500,7 +508,7 @@ const I = {
   arrow: '<path d="m9 6 6 6-6 6"/>', left: '<path d="m15 6-6 6 6 6"/>',
   spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
   copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
-  send: '<path d="M4 12 20 4l-6 16-3-7z"/>', chev: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  send: '<path d="M4 12 20 4l-6 16-3-7z"/>', clip: '<path d="m20 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.4 8.4a1.7 1.7 0 0 1-2.4-2.4l7.7-7.7"/>', chev: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>',
   check: '<path d="m5 12 5 5 9-10"/>', file: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
   shield: '<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
   pin: '<path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v8"/>',
@@ -3119,11 +3127,85 @@ function bubbleHTML(m, prev) {
   const day = d.toLocaleDateString(LOCALE(), { weekday: 'long', day: 'numeric', month: 'long' });
   const sep = !prev || new Date(prev.created_at).toDateString() !== d.toDateString() ? `<div class="text-center text-[11px] text-muted font-semibold my-2">${day}</div>` : '';
   const who = m.gruppe_id && !mine && (!prev || prev.sender_id !== m.sender_id || sep) ? `<div class="text-[11px] font-semibold text-muted mx-1 mb-0.5">${esc(nameOf(m.sender_id))}</div>` : '';
-  return `${sep}<div class="msgrow ${mine ? 'me' : ''}">${who}<div class="bubble ${mine ? 'me' : 'bot'} whitespace-pre-line" style="overflow-wrap:anywhere">${esc(m.body)}</div><div class="msgtime tnum">${d.toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit' })}${mine && m.read_at ? ' · gelesen' : ''}</div></div>`;
+  const att = m.anhang && m.anhang.path ? chatAttHTML(m.anhang, mine) : '', txt = att && m.body === '📎 ' + m.anhang.name ? '' : m.body;
+  return `${sep}<div class="msgrow ${mine ? 'me' : ''}">${who}${att}${txt ? `<div class="bubble ${mine ? 'me' : 'bot'} whitespace-pre-line" style="overflow-wrap:anywhere">${esc(txt)}</div>` : ''}<div class="msgtime tnum">${d.toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit' })}${mine && m.read_at ? ' · gelesen' : ''}</div></div>`;
+}
+/* ---------- Chat-Anhänge: Bilder, PDF, Word, Excel, PowerPoint, Text, ZIP, Audio, Video bis 25 MB ---------- */
+const CHAT_ACCEPT = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.zip,.mp4,.mov,.webm,.mp3,.m4a,.wav,.ogg';
+const CHAT_MAX = 25 * 1024 * 1024;
+const chatSize = n => n >= 1048576 ? (n / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+const chatExt = name => (String(name).split('.').pop() || '').toLowerCase().slice(0, 4);
+const CHAT_EXT_COL = { pdf: '#c0392b', doc: '#2b579a', docx: '#2b579a', odt: '#2b579a', xls: '#217346', xlsx: '#217346', ods: '#217346', csv: '#217346', ppt: '#d24726', pptx: '#d24726', odp: '#d24726', zip: '#6b6b6b', txt: '#5d6d7e', mp4: '#7d3c98', mov: '#7d3c98', webm: '#7d3c98', mp3: '#1f7a8c', m4a: '#1f7a8c', wav: '#1f7a8c', ogg: '#1f7a8c' };
+const chatMime = f => f.type || ({ pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', odt: 'application/vnd.oasis.opendocument.text', ods: 'application/vnd.oasis.opendocument.spreadsheet', odp: 'application/vnd.oasis.opendocument.presentation', txt: 'text/plain', csv: 'text/csv', zip: 'application/zip', mp4: 'video/mp4', mov: 'video/quicktime', mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg', heic: 'image/heic' }[chatExt(f.name)] || '');
+S.msg.urls ||= {}; S.msg.local ||= {};
+function chatAttHTML(a, mine) {
+  const img = /^image\/(jpeg|png|webp|gif)$/.test(a.mime || '');
+  if (img) return `<a class="att" href="#" data-att="${esc(a.path)}" data-attname="${esc(a.name)}" data-attimg="1" aria-label="Bild ${esc(a.name)} öffnen"><img alt="${esc(a.name)}" data-attsrc="${esc(a.path)}"></a>`;
+  const ext = chatExt(a.name);
+  return `<div class="att"><button type="button" class="file" data-att="${esc(a.path)}" data-attname="${esc(a.name)}"><span class="ext" style="background:${CHAT_EXT_COL[ext] || '#5d6d7e'}">${esc(ext.toUpperCase() || 'DATEI')}</span><span class="flex-1 min-w-0"><span class="block text-[13.5px] font-semibold truncate">${esc(a.name)}</span><span class="block text-[11.5px] text-muted">${a.size ? chatSize(a.size) + ' · ' : ''}antippen zum Öffnen</span></span></button></div>`;
+}
+async function chatUrl(path, name, download) {
+  if (S.msg.local[path]) return S.msg.local[path];
+  const key = path + (download ? '|d' : '');
+  if (S.msg.urls[key] && S.msg.urls[key].t > Date.now() - 50 * 60e3) return S.msg.urls[key].u;
+  const { data, error } = await sb.storage.from('chat').createSignedUrl(path, 3600, download ? { download: name } : undefined);
+  if (error || !data?.signedUrl) throw error || new Error('Datei nicht gefunden');
+  S.msg.urls[key] = { u: data.signedUrl, t: Date.now() }; return data.signedUrl;
+}
+function chatAttHydrate(root) {
+  root.querySelectorAll('img[data-attsrc]').forEach(async im => { try { im.src = await chatUrl(im.dataset.attsrc); } catch { im.replaceWith(Object.assign(document.createElement('div'), { className: 'text-[12px] text-muted p-3', textContent: 'Bild nicht verfügbar' })); } });
+  root.querySelectorAll('[data-att]').forEach(b => b.onclick = async e => {
+    e.preventDefault();
+    const img = b.dataset.attimg, w = img ? null : window.open('', '_blank');
+    try { const u = await chatUrl(b.dataset.att, b.dataset.attname, !img && !/\.pdf$/i.test(b.dataset.attname));
+      if (img) sheetShell(b.dataset.attname, `<img src="${esc(u)}" alt="${esc(b.dataset.attname)}" style="width:100%;border-radius:12px"><a class="btn ghost w-full mt-3" href="${esc(await chatUrl(b.dataset.att, b.dataset.attname, true))}">Herunterladen</a>`);
+      else if (w) w.location = u; else location.href = u;
+    } catch (er) { if (w) w.close(); toast(S.demo ? 'In der Demo werden keine Dateien gespeichert.' : errText(er)); }
+  });
+}
+function chatAttState(t) { const el = $('#chAtt'); if (el) { el.hidden = false; el.innerHTML = `<span class="text-[12.5px] text-muted">${esc(t)}</span>`; } }
+function chatAttPaint() {
+  const el = $('#chAtt'); if (!el) return; const list = S.msg.pending || [];
+  el.hidden = !list.length;
+  el.innerHTML = list.map((f, i) => `<span class="ca">${svg('clip', 'w-3.5 h-3.5')}<span class="truncate" style="max-width:190px">${esc(f.name)}</span><span class="text-muted">${chatSize(f.size)}</span><button type="button" data-carm="${i}" aria-label="${esc(f.name)} entfernen">×</button></span>`).join('');
+  el.querySelectorAll('[data-carm]').forEach(b => b.onclick = () => { S.msg.pending.splice(+b.dataset.carm, 1); chatAttPaint(); });
+}
+function chatAttBind() {
+  S.msg.pending = []; chatAttPaint();
+  const add = files => {
+    for (const f of files) {
+      if (f.size > CHAT_MAX) { toast(`${f.name} ist größer als 25 MB.`); continue; }
+      if (!chatMime(f) || /\.(exe|bat|cmd|com|js|msi|scr|ps1|sh|apk|dmg|html?)$/i.test(f.name)) { toast(`${f.name}: Dieser Dateityp ist nicht erlaubt.`); continue; }
+      if ((S.msg.pending || []).length >= 10) { toast('Höchstens 10 Dateien auf einmal.'); break; }
+      S.msg.pending.push(f);
+    }
+    chatAttPaint();
+  };
+  $('#chClip').onclick = () => $('#chFile').click();
+  $('#chFile').onchange = () => { add([...$('#chFile').files]); $('#chFile').value = ''; };
+  const th = $('#thread'), comp = $('#chForm');
+  [th, comp].forEach(z => z && (z.ondragover = e => { e.preventDefault(); }, z.ondrop = e => { e.preventDefault(); add([...(e.dataTransfer?.files || [])]); }));
+  $('#chIn').onpaste = e => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) { e.preventDefault(); add(fs); } };
+}
+async function chatUpload(f0) {
+  let f = f0;
+  // Große Fotos verkleinern, damit sie schnell ankommen
+  if (/^image\/(jpeg|png|webp)$/.test(f.type) && f.size > 2.5 * 1048576) {
+    try { const bm = await createImageBitmap(f), sc = Math.min(1, 2400 / Math.max(bm.width, bm.height)), c = document.createElement('canvas'); c.width = Math.round(bm.width * sc); c.height = Math.round(bm.height * sc); c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85)); if (blob && blob.size < f.size) f = new File([blob], f.name.replace(/\.(png|webp)$/i, '.jpg'), { type: 'image/jpeg' }); } catch {}
+  }
+  const safe = f.name.normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^\w.\-]+/g, '_').slice(-80) || 'datei';
+  const path = `${S.betrieb?.id || S.me.betrieb_id}/${S.me.id}/${crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)}-${safe}`;
+  const mime = chatMime(f);
+  const { error } = await sb.storage.from('chat').upload(path, f, { contentType: mime, upsert: false });
+  if (error) throw new Error(/mime|type/i.test(error.message) ? `${f.name}: Dieser Dateityp ist nicht erlaubt.` : /size|large/i.test(error.message) ? `${f.name} ist zu groß.` : error.message);
+  if (S.demo) S.msg.local[path] = URL.createObjectURL(f);
+  return { path, name: f.name.slice(0, 160), mime, size: f.size };
 }
 function paintThread() {
   const el = $('#thread'); if (!el) return;
   el.innerHTML = S.msg.thread.length ? S.msg.thread.map((m, i) => bubbleHTML(m, S.msg.thread[i - 1])).join('') : '<p class="text-[14px] text-muted text-center py-6">Noch keine Nachrichten. Schreib die erste.</p>';
+  chatAttHydrate(el);
   requestAnimationFrame(() => scrollTo({ top: document.body.scrollHeight }));
 }
 const GROUP_RULES = { alle: 'Alle im Betrieb', azubis: 'Alle Azubis', team: 'Ausbildungsteam', abteilung: 'Eine Abteilung', manuell: 'Ausgewählte Personen' };
@@ -3150,7 +3232,10 @@ const Chat = {
   },
   html() {
     const composer = name => `<div id="thread" class="thread mt-3 px-1"></div>
+      <div id="chAtt" class="composer-att" hidden></div>
       <form id="chForm" class="composer flex items-end gap-2">
+        <input type="file" id="chFile" multiple hidden accept="${CHAT_ACCEPT}">
+        <button type="button" class="btn ghost px-3 py-3" id="chClip" aria-label="Anhang hinzufügen" title="Bild, PDF, Word, Excel … (bis 25 MB)">${svg('clip', 'w-5 h-5')}</button>
         <textarea id="chIn" rows="1" class="field flex-1 min-w-0 text-[15px]" maxlength="2000" placeholder="Nachricht an ${esc(name)}" aria-label="Nachricht" style="max-height:140px"></textarea>
         <button class="btn px-3 py-3" aria-label="Senden">${svg('send', 'w-5 h-5')}</button>
       </form>`;
@@ -3201,17 +3286,27 @@ const Chat = {
       const grow = () => { inp.style.height = 'auto'; inp.style.height = Math.min(140, inp.scrollHeight) + 'px'; };
       inp.oninput = grow;
       inp.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !matchMedia('(pointer:coarse)').matches) { e.preventDefault(); f.requestSubmit(); } };
+      chatAttBind();
       f.onsubmit = async e => {
         e.preventDefault();
-        const body = inp.value.trim(); if (!body) return;
-        const btn = f.querySelector('button'); btn.disabled = true;
+        const body = inp.value.trim(), files = S.msg.pending || []; if (!body && !files.length) return;
+        const btn = f.querySelector('button[aria-label="Senden"]'); btn.disabled = true;
+        const target = S.msg.group ? { gruppe_id: S.msg.group } : { recipient_id: S.msg.open };
         try {
-          const row = S.msg.group ? { gruppe_id: S.msg.group, body } : { recipient_id: S.msg.open, body };
-          const m = await q(sb.from('messages').insert(row).select().single());
-          m.sender_id = m.sender_id || S.me.id;
-          inp.value = ''; grow();
-          if (!S.msg.thread.some(x => x.id === m.id)) { S.msg.thread.push(m); paintThread(); }
-        } catch {} finally { btn.disabled = false; inp.focus(); }
+          for (const [i, file] of files.entries()) {
+            chatAttState(`Lädt hoch: ${file.name} (${i + 1}/${files.length}) …`);
+            const anhang = await chatUpload(file);
+            const m = await q(sb.from('messages').insert({ ...target, body: i === files.length - 1 && body ? body : '📎 ' + anhang.name, anhang }).select().single());
+            m.sender_id = m.sender_id || S.me.id;
+            if (!S.msg.thread.some(x => x.id === m.id)) S.msg.thread.push(m);
+          }
+          if (!files.length) {
+            const m = await q(sb.from('messages').insert({ ...target, body }).select().single());
+            m.sender_id = m.sender_id || S.me.id;
+            if (!S.msg.thread.some(x => x.id === m.id)) S.msg.thread.push(m);
+          }
+          S.msg.pending = []; chatAttPaint(); inp.value = ''; grow(); paintThread();
+        } catch (er) { toast(errText(er)); chatAttPaint(); } finally { btn.disabled = false; inp.focus(); }
       };
     }
   }

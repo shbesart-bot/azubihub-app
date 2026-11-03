@@ -67,12 +67,13 @@ function orgEinHTML() {
     <div class="flex items-center justify-between gap-2 mt-3"><button class="btn ghost py-2 px-3" id="einPrev" aria-label="Voriger Monat">‹</button>
       <div class="text-center"><div class="text-[15px] font-bold">${esc(mName)}</div><div class="text-[12px] text-muted">${esc(tr?.full_name || '')}</div></div>
       <button class="btn ghost py-2 px-3" id="einNext" aria-label="Nächster Monat">›</button></div>
-    <div class="ein-cal mt-3">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(w => `<div class="wd">${w}</div>`).join('')}${cells.join('')}</div>
+    <div class="ein-cal mt-3">${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(w => `<div class="wd">${w}</div>`).join('')}${dpWeeksWithBars(cells, qAddDays(m0, -off), S.org.einT)}</div>
+    ${dpTqLegend(S.org.einT)}
     <p class="text-[12px] text-muted mt-2">Tag antippen: eintragen und sehen, was die anderen Trainer machen und wer frei hat.</p>
     <details class="mt-2"><summary class="text-[12.5px] font-semibold text-accent cursor-pointer">Kürzel anzeigen</summary><div class="flex flex-wrap gap-x-3 gap-y-1.5 mt-2 text-[12px] text-muted">${ord.map(a => `<span>${ekChip({ art: a, anteil: 1 })} ${esc(DP_CODES[a][1])}</span>`).join('')}<span>½ = halber Tag</span></div></details>`;
   const restPart = `
     <div class="card p-3.5 mt-3 grid grid-cols-3 gap-1 text-center"><div><div class="text-[18px] font-bold tnum">${orgNum(ms.sum)}</div><div class="text-[11px] text-muted">Einsatztage</div></div><div><div class="text-[18px] font-bold tnum">${orgNum(ms.frei)}</div><div class="text-[11px] text-muted">frei / Urlaub</div></div><div><div class="text-[18px] font-bold tnum">${mon.filter(e => e.art === 'K').length}</div><div class="text-[11px] text-muted">kritisch</div></div></div>
-    <div class="grid grid-cols-2 gap-2 mt-3"><button class="btn ghost" id="einRange">Zeitraum eintragen</button><button class="btn ghost" id="einTeamToday">Trainer DP Übersicht</button></div>
+    <div class="grid grid-cols-2 gap-2 mt-3"><button class="btn ghost" id="einRange">Zeitraum eintragen</button><button class="btn ghost" id="einTeamToday">Trainer DP Übersicht</button><button class="btn ghost col-span-2" id="einXlsx">Planung als Excel-Tabelle exportieren</button></div>
     ${qTlHTML()}
     ${secTitle('Zähler für Audits')}
     <div class="card p-4">
@@ -96,6 +97,7 @@ function orgEinBind() {
   $$('[data-dpv]').forEach(b => b.onclick = () => { S.org.dpView = b.dataset.dpv; try { localStorage.setItem('desk.dpView', S.org.dpView); } catch {} go(S.view); });
   $('#einRange').onclick = () => orgEinRangeSheet();
   $('#einTeamToday').onclick = () => qTeamDaySheet(localDate());
+  $('#einXlsx') && ($('#einXlsx').onclick = () => dpXlsxSheet());
   const upd = () => { const v = $('#cV').value, b = $('#cB').value, min = qAddDays(localDate(), -3653); if (!v || !b) return; if (b < v) return toast('„Bis“ liegt vor „Von“.'); S.org.cV = v < min ? min : v; S.org.cB = b; go(S.view); };
   $('#cV').onchange = upd; $('#cB').onchange = upd;
   $$('[data-cpre]').forEach(b => b.onclick = () => {
@@ -697,3 +699,148 @@ orgLoad = async function () {
   if (S.org?.tab === 'ein') { if (!S.org.dpView) { try { S.org.dpView = localStorage.getItem('desk.dpView') || 'kal'; } catch { S.org.dpView = 'kal'; } }
     if (S.org.dpView === 'grid') { const m0 = S.org.einM + '-01', m1 = qAddDays(orgAddMonths(m0, 1), -1); S.org.einAll = await orgFetch('quali_einsatz', 'datum', m0, m1, 'id,trainer_id,datum,art,anteil,gruppe_id,notiz'); } }
 };
+
+/* =====================================================================
+   TQ-Balken über jeder Woche im Trainer-Kalender (TQ1–TQ7 farbig) und Excel-Export der Planung
+   ===================================================================== */
+const TQ_COL = { 1: '#2e86de', 2: '#10ac84', 3: '#8854d0', 4: '#e67e22', 5: '#0fb9b1', 6: '#eb3b5a', 7: '#4b6584' };
+const tqColor = p => p.typ === 'tq' && p.modul ? (TQ_COL[p.modul] || '#2f6fb3') : (AB_TYP[p.typ]?.[1] || '#888');
+const tqName = p => p.typ === 'tq' ? (p.modul ? `TQ${p.modul}` : (p.titel || 'TQ')) : p.typ === 'pause' ? 'TQ-Pause' : p.typ === 'pruefung' ? 'Prüfung' : p.typ === 'praktikum' ? 'Praktikum' : p.typ === 'gk' ? 'GK' : p.typ === 'urlaub' ? 'Ferien' : (p.titel || 'Sonstiges');
+/* Gruppen, deren Ablauf über dem Kalender eines Trainers steht: eigene Gruppen, sonst aktive Vertretungen */
+function dpTqGroups(tid) {
+  const g = (S.qgr?.g || []).filter(x => abSorted(x).length);
+  const own = g.filter(x => x.trainer_id === tid);
+  if (own.length) return own;
+  const vt = (S.qgr?.v || []).filter(v => v.trainer_id === tid).map(v => v.gruppe_id);
+  return g.filter(x => vt.includes(x.id));
+}
+(() => {
+  const css = `
+  .ein-cal .tqbar{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:4px}
+  .ein-cal .tqbar + .tqbar{margin-top:1px}
+  .ein-cal .tqbar i{display:flex;align-items:center;height:15px;border-radius:4px;color:#fff;font-style:normal;font-size:9.5px;font-weight:800;padding:0 5px;white-space:nowrap;overflow:hidden;letter-spacing:.02em}
+  .ein-cal .tqbar i.none{background:transparent}
+  .tq-leg{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:8px;font-size:11.5px;color:var(--muted)}
+  .tq-leg span{display:inline-flex;align-items:center;gap:5px}.tq-leg b{display:inline-block;width:18px;height:9px;border-radius:3px}
+  `;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+})();
+function dpWeeksWithBars(cells, start, tid) {
+  const gs = dpTqGroups(tid), out = [];
+  for (let w = 0; w < cells.length; w += 7) {
+    const ds = Array.from({ length: 7 }, (_, i) => qAddDays(start, w + i));
+    gs.forEach(g => {
+      const list = abSorted(g), segs = [];
+      ds.forEach((d, i) => { const ph = abAm(list, d), key = ph ? tqName(ph) + '|' + tqColor(ph) : ''; const last = segs[segs.length - 1];
+        if (last && last.key === key) last.n++; else segs.push({ key, n: 1, ph, i }); });
+      if (!segs.some(x => x.ph)) return;
+      out.push(`<div class="tqbar" aria-label="${esc(g.name)}">${segs.map(x => x.ph ? `<i style="grid-column:span ${x.n};background:${tqColor(x.ph)}" title="${esc(g.name)}: ${esc(abLabel(x.ph))} (${fmtDate(x.ph.von)}–${fmtDate(x.ph.bis)})">${esc((gs.length > 1 ? g.name.split(' ').slice(-1)[0] + ' · ' : '') + tqName(x.ph))}</i>` : `<i class="none" style="grid-column:span ${x.n}"></i>`).join('')}</div>`);
+    });
+    out.push(cells.slice(w, w + 7).join(''));
+  }
+  return out.join('');
+}
+function dpTqLegend(tid) {
+  const gs = dpTqGroups(tid); if (!gs.length) return '';
+  const used = new Map(); gs.forEach(g => abSorted(g).forEach(p => used.set(tqName(p), tqColor(p))));
+  return `<div class="tq-leg">${gs.length ? `<span>Balken: ${esc(gs.map(g => g.name).join(', '))}</span>` : ''}${[...used].sort((a, b) => a[0].localeCompare(b[0], 'de', { numeric: true })).map(([n, c]) => `<span><b style="background:${c}"></b>${esc(n)}</span>`).join('')}</div>`;
+}
+
+/* ---------- Excel-Export (.xlsx, ohne Fremddienst; gebaut mit JSZip) ---------- */
+function dpXlsxSheet() {
+  const t = localDate(), m0 = S.org.einM + '-01';
+  sheetShell('Planung als Excel exportieren', `<form id="xlForm" class="card p-4 flex flex-col gap-3">
+    <div class="seg">${[['m', 'Dieser Monat'], ['3', '3 Monate'], ['6', '6 Monate'], ['12', '12 Monate']].map(([k, l], i) => `<button type="button" data-xlp="${k}" aria-pressed="${i === 0}">${l}</button>`).join('')}</div>
+    <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="xlV">Von</label><input id="xlV" type="date" class="field" value="${m0}"></div><div><label class="lbl" for="xlB">Bis</label><input id="xlB" type="date" class="field" value="${qAddDays(orgAddMonths(m0, 1), -1)}"></div></div>
+    <label class="flex items-center gap-2 text-[14px]"><input type="checkbox" id="xlTq" checked style="width:17px;height:17px;accent-color:var(--accent)">TQ-Ablauf der Gruppen als farbige Zeilen</label>
+    <label class="flex items-center gap-2 text-[14px]"><input type="checkbox" id="xlSum" checked style="width:17px;height:17px;accent-color:var(--accent)">Blatt „Zähler“ mit Tagen je Kürzel</label>
+    <button class="btn" id="xlGo">Excel-Datei erstellen</button>
+    <p class="text-[12px] text-muted">Ein Blatt je Monat: Trainer in Zeilen, Tage in Spalten, Kürzel farbig wie in der App. ${qCanTeam() ? 'Enthalten sind alle Trainer.' : 'Enthalten sind alle Trainer, die du sehen darfst.'}</p></form>`);
+  $$('[data-xlp]').forEach(b => b.onclick = () => { $$('[data-xlp]').forEach(x => x.setAttribute('aria-pressed', x === b)); const k = b.dataset.xlp; $('#xlV').value = m0; $('#xlB').value = qAddDays(orgAddMonths(m0, k === 'm' ? 1 : +k), -1); });
+  $('#xlForm').onsubmit = async e => {
+    e.preventDefault(); const v = $('#xlV').value, bis = $('#xlB').value, btn = $('#xlGo');
+    if (!v || !bis || bis < v) return toast('Bitte den Zeitraum prüfen.');
+    if (orgDays(v, bis) > 400) return toast('Höchstens 13 Monate auf einmal.');
+    btn.disabled = true; btn.textContent = 'Wird erstellt …';
+    try { const blob = await dpXlsx(v, bis, $('#xlTq').checked, $('#xlSum').checked);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Dienstplan_${orgAscii(S.hotel || 'Desk')}_${v}_${bis}.xlsx`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+      closeSheet(); toast('Excel-Datei erstellt'); }
+    catch (er) { toast(errText(er)); } finally { const b2 = $('#xlGo'); if (b2) { b2.disabled = false; b2.textContent = 'Excel-Datei erstellen'; } }
+  };
+}
+async function dpXlsx(v, bis, withTq, withSum) {
+  await loadScript('./vendor/jszip.min.js');
+  const rows = await orgFetch('quali_einsatz', 'datum', v, bis, 'trainer_id,datum,art,anteil,gruppe_id,notiz');
+  const staff = orgStaff().sort((a, b) => a.full_name.localeCompare(b.full_name));
+  const groups = withTq ? (S.qgr?.g || []).filter(g => abSorted(g).length).sort((a, b) => a.name.localeCompare(b.name)) : [];
+  const x = s0 => String(s0 ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
+  const argb = h => 'FF' + h.replace('#', '').toUpperCase().padStart(6, '0');
+  const light = h => { const n = parseInt(h.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255; return (r * 299 + g * 587 + b * 114) / 1000 > 160; };
+  /* Stile: 0 Standard, 1 fett, 2 Kopf grau, 3 Wochenende, 4 Titel; danach je Farbe ein Stil */
+  const fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>', `<fill><patternFill patternType="solid"><fgColor rgb="FFE8ECF1"/></patternFill></fill>`, `<fill><patternFill patternType="solid"><fgColor rgb="FFF3F5F8"/></patternFill></fill>`];
+  const fonts = ['<font><sz val="10"/><name val="Calibri"/></font>', '<font><b/><sz val="10"/><name val="Calibri"/></font>', '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>', '<font><b/><sz val="14"/><name val="Calibri"/></font>'];
+  const bd = '<border><left style="thin"><color rgb="FFD2D9E3"/></left><right style="thin"><color rgb="FFD2D9E3"/></right><top style="thin"><color rgb="FFD2D9E3"/></top><bottom style="thin"><color rgb="FFD2D9E3"/></bottom><diagonal/></border>';
+  const xfs = ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>', '<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"/>',
+    '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>',
+    '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>',
+    '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>',
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'];
+  const colStyle = {};
+  const styleFor = hex => { if (colStyle[hex] != null) return colStyle[hex]; fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="${argb(hex)}"/></patternFill></fill>`);
+    xfs.push(`<xf numFmtId="0" fontId="${light(hex) ? 1 : 2}" fillId="${fills.length - 1}" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>`); return colStyle[hex] = xfs.length - 1; };
+  const colName = n => { let s0 = ''; n++; while (n) { const m = (n - 1) % 26; s0 = String.fromCharCode(65 + m) + s0; n = Math.floor((n - 1) / 26); } return s0; };
+  const cell = (r, c, val, st) => { const ref = colName(c) + r; if (val === '' || val == null) return `<c r="${ref}" s="${st || 0}"/>`; return typeof val === 'number' ? `<c r="${ref}" s="${st || 0}"><v>${val}</v></c>` : `<c r="${ref}" s="${st || 0}" t="inlineStr"><is><t xml:space="preserve">${x(val)}</t></is></c>`; };
+  const sheets = [];
+  const months = []; for (let m = v.slice(0, 7) + '-01'; m <= bis; m = orgAddMonths(m, 1)) months.push(m);
+  months.forEach(m => {
+    const f = new Date(m + 'T12:00:00'), n = new Date(f.getFullYear(), f.getMonth() + 1, 0).getDate();
+    const days = Array.from({ length: n }, (_, i) => `${m.slice(0, 8)}${String(i + 1).padStart(2, '0')}`).filter(d => d >= v && d <= bis);
+    if (!days.length) return;
+    const title = f.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }), out = [], merges = [];
+    let r = 1;
+    out.push(`<row r="${r}" ht="22" customHeight="1">${cell(r, 0, `Dienstplan Trainer · ${title}`, 4)}</row>`); r++;
+    out.push(`<row r="${r}">${cell(r, 0, `${S.hotel || ''} · erstellt am ${fmtDate(localDate())}`, 0)}</row>`); r += 2;
+    out.push(`<row r="${r}" ht="28" customHeight="1">${cell(r, 0, 'Trainer/in', 2)}${days.map((d, i) => cell(r, i + 1, `${orgWd(d)}\n${+d.slice(8)}.`, 2)).join('')}${cell(r, days.length + 1, 'Einsatz', 2)}${cell(r, days.length + 2, 'Frei', 2)}</row>`);
+    const headRow = r; r++;
+    groups.forEach(g => { const list = abSorted(g); let cs = []; days.forEach((d, i) => { const ph = abAm(list, d); cs.push(ph); });
+      if (!cs.some(Boolean)) return;
+      const line = [cell(r, 0, g.name, 1)]; let i = 0;
+      while (i < cs.length) { let j = i; const key = cs[i] ? tqName(cs[i]) + tqColor(cs[i]) : ''; while (j + 1 < cs.length && (cs[j + 1] ? tqName(cs[j + 1]) + tqColor(cs[j + 1]) : '') === key) j++;
+        const st = cs[i] ? styleFor(tqColor(cs[i])) : 5; for (let k = i; k <= j; k++) line.push(cell(r, k + 1, k === i && cs[i] ? tqName(cs[i]) : '', st));
+        if (j > i && cs[i]) merges.push(`${colName(i + 1)}${r}:${colName(j + 1)}${r}`); i = j + 1; }
+      out.push(`<row r="${r}" ht="16" customHeight="1">${line.join('')}</row>`); r++; });
+    staff.forEach(p => {
+      const mine = rows.filter(e => e.trainer_id === p.id), sm = orgEinSum(mine.filter(e => days.includes(e.datum)));
+      const line = [cell(r, 0, p.full_name, 1)];
+      days.forEach((d, i) => { const es = mine.filter(e => e.datum === d && e.art !== 'K'), k = mine.some(e => e.datum === d && e.art === 'K'), wd = new Date(d + 'T12:00:00').getDay();
+        const txt = es.map(e => (Number(e.anteil) < 1 ? '½' : '') + (DP_CODES[e.art]?.[0] || e.art)).join('/') + (k ? (es.length ? ' K' : 'K') : '');
+        const st = es.length ? styleFor(DP_CODES[es[0].art]?.[3] || '#888888') : k ? styleFor('#e74c3c') : (wd === 0 || wd === 6) ? 3 : 5;
+        line.push(cell(r, i + 1, txt, st)); });
+      line.push(cell(r, days.length + 1, sm.sum, 5), cell(r, days.length + 2, sm.frei, 5));
+      out.push(`<row r="${r}" ht="18" customHeight="1">${line.join('')}</row>`); r++;
+    });
+    r++;
+    const leg = Object.keys(DP_CODES).map(k => `${DP_CODES[k][0]} = ${DP_CODES[k][1]}`).join(' · ') + ' · ½ = halber Tag';
+    out.push(`<row r="${r}">${cell(r, 0, 'Kürzel: ' + leg, 0)}</row>`);
+    const cols = `<cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="${days.length + 1}" width="6.2" customWidth="1"/><col min="${days.length + 2}" max="${days.length + 3}" width="8" customWidth="1"/></cols>`;
+    sheets.push({ name: f.toLocaleDateString('de-DE', { month: 'short', year: 'numeric' }).replace(/[\\/?*\[\]:]/g, ''), xml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"><pane xSplit="1" ySplit="${headRow}" topLeftCell="B${headRow + 1}" activePane="bottomRight" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols}<sheetData>${out.join('')}</sheetData>${merges.length ? `<mergeCells count="${merges.length}">${merges.map(mm => `<mergeCell ref="${mm}"/>`).join('')}</mergeCells>` : ''}<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>` });
+  });
+  if (withSum) {
+    const codes = Object.keys(DP_CODES), out = []; let r = 1;
+    out.push(`<row r="${r}" ht="22" customHeight="1">${cell(r, 0, `Zähler ${fmtDate(v)} bis ${fmtDate(bis)} (Tage, halbe Tage = 0,5)`, 4)}</row>`); r += 2;
+    out.push(`<row r="${r}">${cell(r, 0, 'Trainer/in', 2)}${codes.map((k, i) => cell(r, i + 1, `${DP_CODES[k][0]}`, styleFor(DP_CODES[k][3]))).join('')}${cell(r, codes.length + 1, 'Einsatz', 2)}${cell(r, codes.length + 2, 'Frei', 2)}</row>`); r++;
+    staff.forEach(p => { const sm = orgEinSum(rows.filter(e => e.trainer_id === p.id)); out.push(`<row r="${r}">${cell(r, 0, p.full_name, 1)}${codes.map((k, i) => cell(r, i + 1, sm[k], 5)).join('')}${cell(r, codes.length + 1, sm.sum, 5)}${cell(r, codes.length + 2, sm.frei, 5)}</row>`); r++; });
+    r++; codes.forEach(k => { out.push(`<row r="${r}">${cell(r, 0, DP_CODES[k][0], styleFor(DP_CODES[k][3]))}${cell(r, 1, DP_CODES[k][1], 0)}</row>`); r++; });
+    sheets.push({ name: 'Zähler', xml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetFormatPr defaultRowHeight="15"/><cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="${codes.length + 3}" width="8" customWidth="1"/></cols><sheetData>${out.join('')}</sheetData></worksheet>` });
+  }
+  if (!sheets.length) throw new Error('Im Zeitraum gibt es keine Tage.');
+  const names = new Set(); sheets.forEach(sh => { let n0 = sh.name.slice(0, 31) || 'Blatt', n1 = n0, i = 2; while (names.has(n1)) n1 = n0.slice(0, 28) + ' ' + i++; names.add(n1); sh.name = n1; });
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`);
+  zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+  zip.file('xl/workbook.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((sh, i) => `<sheet name="${x(sh.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')}</sheets></workbook>`);
+  zip.file('xl/_rels/workbook.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  sheets.forEach((sh, i) => zip.file(`xl/worksheets/sheet${i + 1}.xml`, sh.xml));
+  zip.file('xl/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>${bd}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Standard" xfId="0" builtinId="0"/></cellStyles></styleSheet>`);
+  return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', compression: 'DEFLATE' });
+}
