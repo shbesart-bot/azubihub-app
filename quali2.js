@@ -45,14 +45,14 @@ Rechtsgrundlagen: die Durchführung deines Arbeits- bzw. Qualifizierungsverhält
 Profilfoto und Push-Benachrichtigungen nur mit deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit in der App zurücknehmen.
 
 ## Welche Daten werden gespeichert?
-Name, E-Mail-Adresse, Beruf bzw. Maßnahme, Gruppe, Kurs, Einsatzort, Beginn, Prüfungstermine, gewählte Sprache, freiwillig ein Profilfoto; deine Wochennachweise mit Rückmeldungen und Abzeichnung; Modulstand und Zertifikate; Testergebnisse; Anwesenheit mit Status (z. B. anwesend, verspätet, entschuldigt, frei, Urlaub) und ggf. einer kurzen Begründung; Praktika mit der Rückmeldung der Abteilung; Lernzeiten; Unterweisungsbestätigungen mit Unterschrift; Nachrichten und Dateianhänge im Chat; Lesebestätigungen; falls aktiviert: technische Daten für Benachrichtigungen.
-Bei Trainerinnen und Trainern zusätzlich: Einträge im Dienstplan (z. B. Werkstatt, Urlaub, Audit) und im Klassenbuch.
+Name, E-Mail-Adresse, Beruf bzw. Maßnahme, Gruppe, Kurs, Einsatzort, Beginn, Prüfungstermine, gewählte Sprache, freiwillig ein Profilfoto; deine Wochennachweise mit Rückmeldungen und Abzeichnung; Modulstand und Zertifikate; Testergebnisse; Anwesenheit mit Status (z. B. anwesend, verspätet, entschuldigt, frei, Urlaub) und ggf. einer kurzen Begründung; Praktika mit der Rückmeldung der Abteilung; Lernzeiten; deine Antworten im Fragebogen am Modulende; Unterweisungsbestätigungen mit Unterschrift; Nachrichten und Dateianhänge im Chat; Lesebestätigungen; falls aktiviert: technische Daten für Benachrichtigungen.
+Bei Trainerinnen und Trainern zusätzlich: Einträge im Dienstplan (z. B. Werkstatt, Urlaub, Audit) mit dem daraus berechneten Stundenkonto, Raumbuchungen, Klassenbuch-Einträge mit Abzeichnung und hochgeladenes Lernmaterial.
 Gesundheitsdaten speichern wir nicht: Bei Krankheit wird nur „entschuldigt“ eingetragen, ohne Diagnose. Bitte schreib auch in Begründungen und Nachrichten keine Diagnosen.
 
 ## Wer hat Zugriff?
 Du siehst deine eigenen Daten. Deine Trainerinnen und Trainer sehen die Daten ihrer Gruppe, eine Vertretung nur für die Dauer der Vertretung. Die Koordination sieht alle Teilnehmenden des Standorts. Ein Qualifizierungs-Guide sieht nur die Personen, die er begleitet. Für ein Praktikum bekommt die Abteilungsleitung einen befristeten Link, über den sie nur dieses Praktikum sieht und eine Rückmeldung gibt. Nachrichten sehen nur Absender und Empfänger bzw. die Mitglieder der Gruppe.
 [Falls zutreffend: An den Kostenträger bzw. die IHK geben wir nur die Daten weiter, die für Förderung bzw. Prüfungszulassung nötig sind, z. B. Anwesenheitslisten oder Tätigkeitsnachweise.]
-Auswertungen wie Stimmungs-Check, Frühwarnung oder Stationsfeedback sind ausgeschaltet, solange [der Betriebsrat] nicht zugestimmt hat.
+Den Fragebogen am Modulende werten wir nur zusammengefasst und erst ab 3 Antworten aus, ohne Namen. Auswertungen je Trainer sowie Stimmungs-Check, Frühwarnung oder Stationsfeedback sind ausgeschaltet, solange [der Betriebsrat] nicht zugestimmt hat.
 
 ## Dienstleister
 Die App wird in unserem Auftrag von NovaWorks (Inhaber Besart Shehu, Am Hang 2, 34414 Warburg) betrieben. Mit NovaWorks besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO).
