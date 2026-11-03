@@ -33,7 +33,7 @@
    Eigenes Erscheinungsbild im Qualifizierungsmodus: Name „Desk“, neutrales Logo, Farben
    Gilt nur, solange der Betrieb Name und Farben nicht selbst geändert hat.
    ===================================================================== */
-const Q_BRAND = { name: 'Desk', brand: '#2f3539', brand2: '#e08a00', old: ['Stufenwerk', '#1d3c6e', '#b8643a'], oldNames: ['Stufenwerk', 'C1TT Desk'], text: 'Lern- und Tätigkeitsnachweis, Module, Anwesenheit und Tests für die Qualifizierung.' };
+const Q_BRAND = { name: 'Desk', brand: '#2f3539', brand2: '#e08a00', old: ['Stufenwerk', '#1d3c6e', '#b8643a'], oldNames: ['Stufenwerk'], text: 'Lern- und Tätigkeitsnachweis, Module, Anwesenheit und Tests für die Qualifizierung.' };
 function qLogoSVG(bg = Q_BRAND.brand, ring = '#ffffff', last = '#e08a00') {
   const cx = 256, cy = 256, r1 = 150, r2 = 112, n = 5, gap = 7 * Math.PI / 180, pt = (r, a) => `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`;
   let seg = '';
@@ -68,7 +68,7 @@ function qBrand(on) {
     return;
   }
   root.classList.add('quali');
-  if (BR.appName === DEFAULT_BRANDING.appName || Q_BRAND.oldNames.includes(BR.appName)) BR.appName = Q_BRAND.name;
+  if (BR.appName === DEFAULT_BRANDING.appName || Q_BRAND.oldNames.includes(BR.appName) || / Desk$/.test(BR.appName || '')) BR.appName = Q_BRAND.name;
   if ((BR.brand === DEFAULT_BRANDING.brand && BR.brand2 === DEFAULT_BRANDING.brand2) || (BR.brand === Q_BRAND.old[1] && BR.brand2 === Q_BRAND.old[2])) { BR.brand = Q_BRAND.brand; BR.brand2 = Q_BRAND.brand2; }
   if (!BR.loginText || BR.loginText === DEFAULT_BRANDING.loginText) BR.loginText = Q_BRAND.text;
   root.style.setProperty('--brand', BR.brand); root.style.setProperty('--brand2', BR.brand2);

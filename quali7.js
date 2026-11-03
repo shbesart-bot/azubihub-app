@@ -435,7 +435,7 @@ function deskLogin() {
   $('#bPos')?.setAttribute('placeholder', 'z. B. Koordination, Trainer/in');
   const fix = () => setTimeout(() => { const btn = $('#authBtn'); if (btn && /Betrieb anlegen/.test(btn.textContent)) btn.textContent = 'Lernstandort anlegen'; }, 0);
   $$('[data-auth]').forEach(x => x.addEventListener('click', fix)); fix();
-  const demo = $('#demoBtn'); if (demo) demo.onclick = () => { location.href = './?app=desk&demo=c1tt-trainer'; };
+  const demo = $('#demoBtn'); if (demo) demo.onclick = () => { location.href = './?app=desk&demo=desk-trainer'; };
 }
 document.addEventListener('DOMContentLoaded', deskLogin);
 

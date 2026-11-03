@@ -307,7 +307,7 @@
   }
 
   /* ---------- Desk-Demo: Qualifizierung für Erwachsene (Teilqualifizierung, Intensivkurs). Alle Personen sind erfunden. ---------- */
-  function c1ttApply() {
+  function qualiApply() {
     const KUK = 'Kunststoff- und Kautschuktechnologe/-in', MAF = 'Maschinen- und Anlagenführer/-in', IEL = 'Industrieelektriker/-in Betriebstechnik', LAG = 'Fachkraft für Lagerlogistik';
     const LO = ['Theorie virtuell (iPad)', 'Theorie Schulungsraum', 'Lernwerkstatt', 'Arbeitsplatz im Werk'];
     const Q = {
@@ -696,8 +696,8 @@
   }
 
   window.makeDemoClient = function (role) {
-    const QM = String(role || '').startsWith('c1tt');
-    const meId = QM ? ({ c1tt: 'demo-q-dennis', 'c1tt-trainer': 'demo-q-trainer', 'c1tt-koord': 'demo-q-koord', 'c1tt-guide': 'demo-q-guide', 'c1tt-elektro': 'demo-q-tobias', 'c1tt-lager': 'demo-q-svetlana', 'c1tt-maf': 'demo-q-mehmet' })[role] || 'demo-q-dennis'
+    role = String(role || '').replace(/^c\w+?(?=$|-)/, m => /^c1/i.test(m) ? 'desk' : m); const QM = role.startsWith('desk');
+    const meId = QM ? ({ desk: 'demo-q-dennis', 'desk-trainer': 'demo-q-trainer', 'desk-koord': 'demo-q-koord', 'desk-guide': 'demo-q-guide', 'desk-elektro': 'demo-q-tobias', 'desk-lager': 'demo-q-svetlana', 'desk-maf': 'demo-q-mehmet' })[role] || 'demo-q-dennis'
       : ({ azubi: P.lena.id, ausbilder: P.koch.id, leitung: P.lei.id, mitarbeiter: P.piotr.id })[role] || P.lena.id;
     const me = () => DB.profiles.find(p => p.id === meId);
     const RPC = {
@@ -831,7 +831,7 @@
       storage: { from: () => ({ upload: async p => ({ data: { path: p }, error: null }), remove: async () => ({ error: null }), createSignedUrls: async () => ({ data: [], error: null }), createSignedUrl: async () => ({ data: null, error: { message: 'In der Demo nicht verfügbar' } }) }) },
       auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({ data: {} }), signOut: async () => { location.href = location.pathname; return {}; }, updateUser: async () => ({ data: {}, error: null }), resetPasswordForEmail: async () => ({ error: null }) }
     };
-    client.ready = loadContent().then(() => { if (QM) c1ttApply(); });
+    client.ready = loadContent().then(() => { if (QM) qualiApply(); });
     client.userId = meId;
     return client;
   };

@@ -271,17 +271,17 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03j"></script>
-<script src="./ausbildung.js?v=2026-11-03j"></script>
-<script src="./ausbau2.js?v=2026-11-03j"></script>
-<script src="./quali.js?v=2026-11-03j"></script>
-<script src="./quali2.js?v=2026-11-03j"></script>
-<script src="./quali3.js?v=2026-11-03j"></script>
-<script src="./quali4.js?v=2026-11-03j"></script>
-<script src="./quali5.js?v=2026-11-03j"></script>
-<script src="./quali6.js?v=2026-11-03j"></script>
-<script src="./quali7.js?v=2026-11-03j"></script>
-<script src="./quali8.js?v=2026-11-03j"></script>
+<script src="./schule.js?v=2026-11-03l"></script>
+<script src="./ausbildung.js?v=2026-11-03l"></script>
+<script src="./ausbau2.js?v=2026-11-03l"></script>
+<script src="./quali.js?v=2026-11-03l"></script>
+<script src="./quali2.js?v=2026-11-03l"></script>
+<script src="./quali3.js?v=2026-11-03l"></script>
+<script src="./quali4.js?v=2026-11-03l"></script>
+<script src="./quali5.js?v=2026-11-03l"></script>
+<script src="./quali6.js?v=2026-11-03l"></script>
+<script src="./quali7.js?v=2026-11-03l"></script>
+<script src="./quali8.js?v=2026-11-03l"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -449,7 +449,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03j';
+const APP_VERSION = '2026-11-03l';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -661,7 +661,7 @@ async function startApp(user) {
     S.betrieb = await q(sb.rpc('my_betrieb_status'));
     if (!S.betrieb) { await sb.auth.signOut(); authMsg('Zu diesem Konto gibt es kein Profil. Bitte melde dich bei deiner Ausbildungsleitung.'); return; }
     if (S.betrieb.status === 'pausiert' && !S.betrieb.plattform) { await sb.auth.signOut(); authMsg(`Der Zugang für „${S.betrieb.name}“ ist pausiert. Bitte wende dich an deine Leitung.`); return; }
-    if (S.betrieb.status === 'abgelaufen' && !S.betrieb.plattform) { const me = await q(sb.from('profiles').select('*').eq('id', user.id).maybeSingle()); S.me = me; setLang(me?.sprache); return showExpired(me); }
+    if (S.betrieb.status === 'abgelaufen' && !S.betrieb.plattform) { const me = await q(sb.from('profiles').select('*').eq('id', user.id).maybeSingle()); S.me = me; setLang(me?.sprache); try { await loadAppConfig(); } catch {} return showExpired(me); }
     const [profiles] = await Promise.all([q(sb.from('profiles').select('*')), loadContent(), loadAppConfig()]);
     S.profiles = Object.fromEntries(profiles.map(p => [p.id, p]));
     S.me = S.profiles[user.id];
@@ -3440,11 +3440,16 @@ function trialBannerHTML() {
   const b = S.betrieb; if (!b || b.status !== 'test' || !isAdmin()) return '';
   const left = Math.max(0, daysUntil(b.testphase_bis));
   return `<div class="card p-4 mt-4" style="border-color:var(--brass)"><div class="flex items-center gap-2"><span class="chip brass tnum">${left} ${left === 1 ? 'Tag' : 'Tage'}</span><div class="font-semibold text-[15px]">Testphase läuft</div></div>
-    <p class="text-[13px] text-muted mt-1">Alles ist freigeschaltet. Nach der Testphase bleiben eure Daten erhalten, die App wird aber gesperrt, bis ihr freischaltet.${b.preis_text ? ' ' + esc(b.preis_text) : ''}</p>
-    <div class="grid grid-cols-2 gap-2 mt-3">${b.zahl_link ? payBtns() : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">Freischalten anfragen</a>`}<button class="btn ghost" data-redeem>Code eingeben</button></div></div>`;
+    <p class="text-[13px] text-muted mt-1">Alles ist freigeschaltet${deskPay() ? ` bis ${fmtDate(b.testphase_bis)}` : ''}. Danach bleiben eure Daten erhalten, die App wird aber gesperrt, bis ihr freischaltet.${deskPay() ? ' ' + DESK_PREIS + ' Wer schon jetzt zahlt, verliert keinen Tag.' : b.preis_text ? ' ' + esc(b.preis_text) : ''}</p>
+    <div class="grid grid-cols-2 gap-2 mt-3">${b.zahl_link || deskPay() ? payBtns() : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent(BR.appName + ' freischalten: ' + b.name)}">Freischalten anfragen</a>`}<button class="btn ghost" data-redeem>Code eingeben</button></div></div>`;
 }
 const payLink = (jahr) => { const b = S.betrieb, u = new URL(jahr && b.zahl_link_jahr ? b.zahl_link_jahr : b.zahl_link); u.searchParams.set('client_reference_id', b.id); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
-const payBtns = () => { const b = S.betrieb; if (!b?.zahl_link) return '';
+/* Qualifizierungsmodus (Desk): nur die Jahreslizenz – 490 € je Jahr, jede Zahlung verlängert um 12 Monate */
+const deskPay = () => { try { return isQuali() || (typeof deskOn === 'function' && deskOn()); } catch { return false; } };
+const DESK_PREIS = '490 € pro Jahr (Endpreis, Kleinunternehmer nach § 19 UStG). Jede Zahlung verlängert um ein Jahr – Resttage bleiben erhalten.';
+const payBtns = () => { const b = S.betrieb;
+  if (deskPay()) return b?.zahl_link_jahr ? `<a class="btn" href="${esc(payLink(true))}" target="_blank" rel="noopener">Jahreslizenz bezahlen – 490 €</a>` : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('Jahreslizenz 490 €: ' + (b?.name || ''))}">Jahreslizenz bestellen – 490 €</a>`;
+  if (!b?.zahl_link) return '';
   return b.zahl_link_jahr ? `<a class="btn" href="${esc(payLink(true))}" target="_blank" rel="noopener">Jährlich zahlen – 2 Monate geschenkt</a><a class="btn ghost" href="${esc(payLink())}" target="_blank" rel="noopener">Monatlich zahlen</a>` : `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>`; };
 const portalLink = () => { const u = new URL(S.betrieb.portal_link); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
 function aboCardHTML() {
@@ -3452,9 +3457,9 @@ function aboCardHTML() {
   const paid = b.bezahlt_bis && new Date(b.bezahlt_bis) > new Date();
   const line = paid ? `Freigeschaltet bis ${fmtDate(b.bezahlt_bis)}${b.abo ? ' · verlängert sich automatisch, solange das Abo läuft' : ''}.` : b.status === 'test' ? `Testphase bis ${fmtDate(b.testphase_bis)}.` : 'Noch nicht freigeschaltet.';
   const portal = b.abo && b.portal_link ? `<a class="btn ghost" href="${esc(portalLink())}" target="_blank" rel="noopener">Abo verwalten</a><p class="text-[12px] text-muted">Rechnungen herunterladen, Zahlungsart oder Rechnungsadresse ändern oder kündigen (zum Ende des laufenden Monats). Anmeldung mit der E-Mail-Adresse, die beim Bezahlen angegeben wurde.</p>` : '';
-  const pay = !paid && b.zahl_link ? payBtns() : '';
+  const pay = deskPay() && !b.abo ? payBtns() : !paid && b.zahl_link ? payBtns() : '';
   return `${secTitle('Abo und Rechnungen')}
-      <div class="card p-4 flex flex-col gap-3"><p class="text-[14px]">${esc(line)}${b.preis_text && !paid ? ' ' + esc(b.preis_text) : ''}</p>${pay}${portal}${!portal && !pay ? `<p class="text-[12px] text-muted">Fragen zur Rechnung: <a class="text-accent font-semibold" href="mailto:info@novaworks-it.de">info@novaworks-it.de</a></p>` : ''}</div>`;
+      <div class="card p-4 flex flex-col gap-3"><p class="text-[14px]">${esc(line)}${deskPay() ? ' ' + esc(DESK_PREIS) : b.preis_text && !paid ? ' ' + esc(b.preis_text) : ''}</p>${pay}${portal}${!portal && !pay ? `<p class="text-[12px] text-muted">Fragen zur Rechnung: <a class="text-accent font-semibold" href="mailto:info@novaworks-it.de">info@novaworks-it.de</a></p>` : ''}</div>`;
 }
 function openRedeem() {
   sheetShell('Freischalt-Code eingeben', `<form id="rdForm" class="card p-4 flex flex-col gap-3"><p class="text-[14px] text-muted">Den Code bekommst du von NovaWorks nach der Bestellung.</p><input id="rdCode" class="field tracking-wider" placeholder="AH-XXXX-XXXX" autocapitalize="characters"><button class="btn">Freischalten</button></form>`);
@@ -3472,8 +3477,8 @@ function showExpired(me) {
   $('#hotelName').textContent = b.name;
   $('#app').innerHTML = `<div class="card p-5 mt-4">
     <div class="eyebrow">${esc(b.name)}</div><h1 class="text-[24px] font-bold mt-1">Die Testphase ist abgelaufen</h1>
-    <p class="text-[14px] text-muted mt-2">${boss ? 'Eure Daten sind sicher gespeichert. Schalte AzubiHub frei, dann geht es sofort weiter.' + (b.preis_text ? ' ' + esc(b.preis_text) : '') : 'Eure Daten sind sicher gespeichert. Sobald die Leitung freischaltet, geht es weiter.'}</p>
-    ${boss ? `<div class="flex flex-col gap-2 mt-4">${b.zahl_link ? payBtns() : ''}<button class="btn ghost" data-redeem>Freischalt-Code eingeben</button><a class="btn ghost" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">NovaWorks kontaktieren</a></div>` : ''}
+    <p class="text-[14px] text-muted mt-2">${boss ? `Eure Daten sind sicher gespeichert. Schalte ${esc(BR.appName || 'die App')} frei, dann geht es sofort weiter.` + (deskPay() ? ' ' + DESK_PREIS : b.preis_text ? ' ' + esc(b.preis_text) : '') : 'Eure Daten sind sicher gespeichert. Sobald die Leitung freischaltet, geht es weiter.'}</p>
+    ${boss ? `<div class="flex flex-col gap-2 mt-4">${b.zahl_link || deskPay() ? payBtns() : ''}<button class="btn ghost" data-redeem>Freischalt-Code eingeben</button><a class="btn ghost" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('AzubiHub freischalten: ' + b.name)}">NovaWorks kontaktieren</a></div>` : ''}
     <button class="btn danger w-full mt-4" id="expOut">Abmelden</button></div>`;
   $('#expOut').onclick = async () => { await releasePush(); sb.auth.signOut(); };
 }
@@ -4617,14 +4622,14 @@ try { const t = localStorage.getItem('azubihub.theme'); if (t) document.document
 
 /* ---------- Demo ---------- */
 const DEMO_ROLES = [['azubi', 'Azubi', 'Lena, 1. Lehrjahr Hotelfach: Berichtsheft, Unterweisungen, Chat'], ['ausbilder', 'Ausbilder', 'Marco, Küchenchef: zeichnet Küchen-Berichte ab, Ampel, Urlaub'], ['leitung', 'Leitung', 'Sabine, Inhaberin: Verwaltung, Rechte, Karriereseite'], ['mitarbeiter', 'Mitarbeiter', 'Piotr, Service: Pinnwand, Unterweisungen, Übergabe']];
-const DEMO_Q_ROLES = [['c1tt', 'Teilnehmer', 'Dennis, Teilqualifizierung Kunststoff/Kautschuk, Modul 3'], ['c1tt-trainer', 'Trainer', 'Michael: seine Gruppe, Anwesenheit, Tests, Praktika'], ['c1tt-elektro', 'Teilnehmer Elektro', 'Tobias, Teilqualifizierung Betriebselektriker, Modul 2'], ['c1tt-lager', 'Teilnehmerin Lager', 'Svetlana, Teilqualifizierung Lagerlogistik, Modul 4'], ['c1tt-maf', 'Teilnehmer Intensivkurs', 'Mehmet, Maschinen- und Anlagenführer, Prüfung in 5 Wochen mit Lernplan'], ['c1tt-koord', 'Koordination', 'Katrin: alle Teilnehmenden – Kautschuk, Elektro, Lager, Maschinenführer'], ['c1tt-guide', 'Qualifizierungs-Guide', 'Sandra: begleitet drei Kolleg:innen']];
+const DEMO_Q_ROLES = [['desk', 'Teilnehmer', 'Dennis, Teilqualifizierung Kunststoff/Kautschuk, Modul 3'], ['desk-trainer', 'Trainer', 'Michael: seine Gruppe, Anwesenheit, Tests, Praktika'], ['desk-elektro', 'Teilnehmer Elektro', 'Tobias, Teilqualifizierung Betriebselektriker, Modul 2'], ['desk-lager', 'Teilnehmerin Lager', 'Svetlana, Teilqualifizierung Lagerlogistik, Modul 4'], ['desk-maf', 'Teilnehmer Intensivkurs', 'Mehmet, Maschinen- und Anlagenführer, Prüfung in 5 Wochen mit Lernplan'], ['desk-koord', 'Koordination', 'Katrin: alle Teilnehmenden – Kautschuk, Elektro, Lager, Maschinenführer'], ['desk-guide', 'Qualifizierungs-Guide', 'Sandra: begleitet drei Kolleg:innen']];
 function openDemoPicker() {
   const list = rs => `<div class="card">${rs.map(([k, l, d], i) => `<a class="flex items-center gap-3 p-3.5 ${i ? 'border-t border-line' : ''}" href="?demo=${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${l}</div><div class="text-[12px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted')}</a>`).join('')}</div>`;
-  const qOnly = new URLSearchParams(location.search).get('demo')?.startsWith('c1tt');
+  const qOnly = /^(desk|c1)/.test(new URLSearchParams(location.search).get('demo') || '');
   sheetShell('Demo ansehen', `<p class="text-[14px] text-muted -mt-1 mb-3">Mit Beispieldaten. Du kannst alles ausprobieren, nichts wird gespeichert.</p>
     ${qOnly ? '' : `<div class="eyebrow mb-2">Ausbildung · Hotel Seeblick</div>${list(DEMO_ROLES)}`}
     <div class="eyebrow mt-4 mb-2">Qualifizierung (Teilqualifizierung, Intensivkurs)</div>${list(DEMO_Q_ROLES)}
-    <p class="text-[12px] text-muted mt-2">Alle Personen sind erfunden. Maßnahmen nach den öffentlichen Angaben auf c1tt.de.</p>`);
+    <p class="text-[12px] text-muted mt-2">Alle Personen sind erfunden.</p>`);
 }
 $('#demoBtn').onclick = openDemoPicker;
 $('#demoRole').onclick = openDemoPicker;
@@ -4643,7 +4648,7 @@ async function startDemo(role) {
   applyConfig(); loadBranding();
   if (CAREER_SLUG) return showCareer(CAREER_SLUG);
   if (PRAKTIKUM_TOKEN) {
-    if (PRAKTIKUM_TOKEN === 'demo') { try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('c1tt'); await sb.ready; }
+    if (PRAKTIKUM_TOKEN === 'demo') { try { await loadScript('demo.js?v=' + APP_VERSION); } catch { return toast('Die Demo konnte nicht geladen werden.'); } window.__realSb = sb; S.demo = true; sb = window.makeDemoClient('desk'); await sb.ready; }
     return showPraktikum(PRAKTIKUM_TOKEN);
   }
   if (SCHOOL_SLUG === 'demo') {

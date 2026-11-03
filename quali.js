@@ -12,7 +12,7 @@ const Q_KUK = 'Kunststoff- und Kautschuktechnologe/-in', Q_MAF = 'Maschinen- und
 const Q_IEL = 'Industrieelektriker/-in Betriebstechnik', Q_LAG = 'Fachkraft für Lagerlogistik';
 const Q_STD = { zeit: 'Vollzeit, 37,5 Std./Woche, Mo–Fr', zert: 'IHK-Zertifikat nach jedem Modul', abschluss: 'IHK-Berufsabschluss über die Externenprüfung',
   lernorte: 'Je Modul mindestens ein Drittel Praxis in der Lernwerkstatt, zwei Drittel Theorie virtuell auf dem iPad oder im Schulungsraum.' };
-/* Maßnahmen nach den öffentlichen Angaben auf c1tt.de (Stand Oktober 2026). Modulnamen gekürzt; die genaue Zuordnung
+/* Maßnahmen nach öffentlich zugänglichen Angaben (Stand Oktober 2026). Modulnamen gekürzt; die genaue Zuordnung
    der Rahmenplan-Positionen zu den Modulen ist ein Vorschlag und muss vom Träger bestätigt werden. */
 const Q_KATALOG = {
   'tq-kuk': {
