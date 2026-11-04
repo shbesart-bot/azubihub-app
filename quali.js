@@ -170,16 +170,45 @@ function qApplyConfig() {
     const i = ABS_TYPES.indexOf('Berufsschule'); if (i >= 0) ABS_TYPES.splice(i, 1);
   } catch {}
 }
+
+/* Desk-Vorgaben für „Aufbau & Texte“: ersetzen die Hotel-Vorgaben, solange diese unverändert sind */
+const Q_APP = {
+  modules: {
+    wiki: { tab: 'Wissen', title: 'Lern-Wiki & Micro-Learning', sub: 'Arbeitsanweisungen und Sicherheitsregeln nachschlagen, Lernkarten üben, Wissen testen.' },
+    buddy: { tab: 'Einstieg', title: 'Einstieg & Ansprechpartner', sub: 'Die ersten Tage in der Maßnahme, wichtige Kontakte und schnelle Hilfe.' },
+    uebergabe: { tab: 'Übergabe', title: 'Übergabe im Trainerteam', sub: 'Was Vertretung und nächste Gruppe wissen müssen. Neue Einträge sehen alle sofort.' }
+  },
+  plan: {
+    1: [['Theorie virtuell (iPad)', '4 Wochen'], ['Theorie Schulungsraum', '4 Wochen'], ['Lernwerkstatt', '6 Wochen'], ['Arbeitsplatz im Werk', '6 Wochen']],
+    2: [['Theorie Schulungsraum', '4 Wochen'], ['Lernwerkstatt', '6 Wochen'], ['Arbeitsplatz im Werk', '8 Wochen']],
+    3: [['Lernwerkstatt', '4 Wochen'], ['Arbeitsplatz im Werk', '8 Wochen'], ['Prüfungsvorbereitung', '4 Wochen']]
+  },
+  wikiChips: ['Arbeitsschutz', 'PSA', 'Erste Hilfe', 'Prüfung', 'Anwesenheit'],
+  botHello: 'Hallo {name}! Frag mich zu deiner Maßnahme, zum Beispiel zu Modulen, Prüfung oder Lernzeiten.',
+  botAsks: ['Ich bin krank, was tun?', 'Wann ist meine Prüfung?', 'Wo finde ich mein Lernmaterial?', 'Was gehört in den Wochennachweis?'],
+  botFallback: 'Das weiß ich leider noch nicht. Frag am besten deine Trainerin, deinen Trainer oder die Koordination.'
+};
+function qAppDefaults(APP, DEF) {
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  for (const k of Object.keys(Q_APP.modules)) {
+    const m = APP.modules?.[k], d = DEF.modules[k]; if (!m) continue;
+    for (const f of ['tab', 'title', 'sub']) if (!m[f] || m[f] === d[f]) m[f] = Q_APP.modules[k][f];
+  }
+  if (!APP.plan || same(APP.plan, DEF.plan)) APP.plan = JSON.parse(JSON.stringify(Q_APP.plan));
+  for (const f of ['wikiChips', 'botHello', 'botAsks', 'botFallback']) if (!APP[f] || !String(APP[f]).length || same(APP[f], DEF[f])) APP[f] = JSON.parse(JSON.stringify(Q_APP[f]));
+}
 /* Begriffe im Qualifizierungsmodus: Teilnehmende statt Azubis, Trainer statt Ausbilder, Modul statt Lehrjahr */
 const Q_TERMS = [
   [/Inhaber, Ausbildungsleitung(, Front Office Manager)?/g, 'Koordination, Trainer/in'], [/Servicekraft, Rezeptionist\/in/g, 'Elektroniker/in, Lagerist/in'], [/\bHotel Sonnenhof\b/g, 'Lernstandort Nord'],
   [/das ganze Berichtsheft/g, 'alle Nachweise'], [/Nachweise \(Berichtsheft\)/g, 'Nachweise'], [/Krankheit und Berufsschule/g, 'Krankheit und sonstige Fehlzeiten'],
   [/\bAzubiHub\b/g, 'Desk'],
+  [/Abteilungen & Ausbildungsplan/g, 'Lernorte & Ablaufplan'], [/\bAusbildungsplan\b/g, 'Ablaufplan'], [/\bHotel-Wiki\b/g, 'Wiki'], [/Ausbildungsnachweis als PDF/g, 'Nachweis als PDF'], [/Abgleich mit dem Ausbildungsrahmenplan/g, 'Abgleich mit dem Rahmenplan'], [/^Ausbildungsrahmenplan$/g, 'Rahmenplan der Module'],
   [/\bAzubis\b/g, 'Teilnehmende'], [/\bAzubi\b/g, 'Teilnehmer/in'],
   [/\bAusbilder\/innen\b/g, 'Trainer/innen'], [/\bAusbilder\/in\b/g, 'Trainer/in'], [/\bAusbilderin oder deines Ausbilders\b/g, 'Trainerin oder deines Trainers'], [/\bdeine Ausbilderin oder dein Trainer\b/g, 'deine Trainerin oder dein Trainer'], [/\bAusbilderin\b/g, 'Trainerin'], [/\bAktuelle Abteilung\b/g, 'Aktueller Lernort'], [/\bAusbilder\b/g, 'Trainer'],
   [/\bAusbildungsleitung\b/g, 'Koordination'], [/\bAusbildungsteam\b/g, 'Trainerteam'],
   [/(\d)\. LJ\b/g, 'Modul $1'], [/(\d)\. Ausbildungsjahr(es)?\b/g, 'Modul $1'], [/\bAusbildungsjahr(es)?\b/g, 'Modul'], [/\bLehrjahr\b/g, 'Modul'],
-  [/\bim Haus\b/g, 'in der Maßnahme'], [/\bDein Berichtsheft\b/g, 'Dein Nachweis'], [/\bStand Berichtsheft\b/g, 'Stand Nachweis']
+  [/\bim Haus\b/g, 'in der Maßnahme'], [/\bDein Berichtsheft\b/g, 'Dein Nachweis'], [/\bStand Berichtsheft\b/g, 'Stand Nachweis'],
+  [/\bAbteilungen\b/g, 'Lernorte'], [/\bAbteilung\b/g, 'Lernort'], [/\bBerichtsheft\b/g, 'Nachweis']
 ];
 /* Einzelner Text (Hinweise, PDFs): im Desk-Modus gleiche Begriffe wie in der Oberfläche; nameOnly nur den App-Namen */
 function qTermStr(t, nameOnly) {

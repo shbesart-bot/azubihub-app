@@ -107,6 +107,7 @@ function qBrand(on) {
   if (BR.appName === DEFAULT_BRANDING.appName || Q_BRAND.oldNames.includes(BR.appName) || / Desk$/.test(BR.appName || '')) BR.appName = Q_BRAND.name;
   if ((BR.brand === DEFAULT_BRANDING.brand && BR.brand2 === DEFAULT_BRANDING.brand2) || (BR.brand === Q_BRAND.old[1] && BR.brand2 === Q_BRAND.old[2])) { BR.brand = Q_BRAND.brand; BR.brand2 = Q_BRAND.brand2; }
   if (!BR.loginText || BR.loginText === DEFAULT_BRANDING.loginText) BR.loginText = Q_BRAND.text;
+  if (!BR.berufe?.length || JSON.stringify(BR.berufe) === JSON.stringify(DEFAULT_BRANDING.berufe)) BR.berufe = [...new Set(Object.values(Q_KATALOG).map(k => k.beruf))];
   /* Datenschutzhinweis: Hotel-Vorlage (noch nicht ausgefüllt) durch die Desk-Vorlage ersetzen */
   if (!BR.datenschutz || (BR.datenschutz.startsWith('VORLAGE') && BR.datenschutz.includes('[Name des Hotels'))) BR.datenschutz = Q_DS;
   root.style.setProperty('--brand', BR.brand); root.style.setProperty('--brand2', BR.brand2);

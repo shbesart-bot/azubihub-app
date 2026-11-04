@@ -277,19 +277,19 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-04a"></script>
-<script src="./ausbildung.js?v=2026-11-04a"></script>
-<script src="./ausbau2.js?v=2026-11-04a"></script>
-<script src="./quali.js?v=2026-11-04a"></script>
-<script src="./quali2.js?v=2026-11-04a"></script>
-<script src="./quali3.js?v=2026-11-04a"></script>
-<script src="./quali4.js?v=2026-11-04a"></script>
-<script src="./quali5.js?v=2026-11-04a"></script>
-<script src="./quali6.js?v=2026-11-04a"></script>
-<script src="./quali7.js?v=2026-11-04a"></script>
-<script src="./quali8.js?v=2026-11-04a"></script>
-<script src="./quali9.js?v=2026-11-04a"></script>
-<script src="./quali10.js?v=2026-11-04a"></script>
+<script src="./schule.js?v=2026-11-04b"></script>
+<script src="./ausbildung.js?v=2026-11-04b"></script>
+<script src="./ausbau2.js?v=2026-11-04b"></script>
+<script src="./quali.js?v=2026-11-04b"></script>
+<script src="./quali2.js?v=2026-11-04b"></script>
+<script src="./quali3.js?v=2026-11-04b"></script>
+<script src="./quali4.js?v=2026-11-04b"></script>
+<script src="./quali5.js?v=2026-11-04b"></script>
+<script src="./quali6.js?v=2026-11-04b"></script>
+<script src="./quali7.js?v=2026-11-04b"></script>
+<script src="./quali8.js?v=2026-11-04b"></script>
+<script src="./quali9.js?v=2026-11-04b"></script>
+<script src="./quali10.js?v=2026-11-04b"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -419,6 +419,7 @@ function applyConfig() {
     const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     if (!APP.genPhrases?.length || same(APP.genPhrases, DEFAULT_APP.genPhrases)) APP.genPhrases = clone(Q_GEN.phrases);
     if (!APP.genLinks?.length || same(APP.genLinks, DEFAULT_APP.genLinks)) APP.genLinks = Q_GEN.links.slice();
+    if (typeof qAppDefaults === 'function') { qAppDefaults(APP, DEFAULT_APP); PLAN_JAHRE = APP.plan; }
   }
   PHRASES = APP.genPhrases.map(p => [p.keys.map(k => k.toLowerCase()).filter(Boolean), p.satz]);
   LINKS = APP.genLinks.length ? APP.genLinks : DEFAULT_APP.genLinks;
@@ -477,7 +478,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-04a';
+const APP_VERSION = '2026-11-04b';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -1860,7 +1861,7 @@ const Admin = {
     return `
     ${head(esc(S.hotel), 'Verwaltung', isAdmin() ? 'Team, Rechte, Inhalte und Einstellungen.' : 'Die Leitung hat dir diese Bereiche freigegeben.')}
     <div class="grid grid-cols-3 gap-2">
-      ${[['Azubis', counts.azubi], ['Ausbildung', counts.staff], ['Gesperrt', counts.locked]].map(([l, n]) => `<div class="card p-3"><div class="font-display font-bold text-[24px] tnum">${n}</div><div class="text-[12px] text-muted">${l}</div></div>`).join('')}
+      ${[['Azubis', counts.azubi], [isQuali() ? 'Trainer & Team' : 'Ausbildung', counts.staff], ['Gesperrt', counts.locked]].map(([l, n]) => `<div class="card p-3"><div class="font-display font-bold text-[24px] tnum">${n}</div><div class="text-[12px] text-muted">${l}</div></div>`).join('')}
     </div>
     <div class="seg mt-4" role="group" aria-label="Bereich">${adminTabs().map(([k, l]) => `<button data-atab="${k}" aria-pressed="${A.tab === k}">${l}</button>`).join('')}</div>
     ${body}`;
@@ -1948,7 +1949,7 @@ function cfgFormHTML() {
       ${f('cAppName', 'Name der App', BR.appName, '', 'text', 'maxlength="30"')}
       ${f('cLoginText', 'Text auf der Anmeldeseite', BR.loginText, '', 'area', 2)}
       <div class="grid grid-cols-2 gap-3">${f('cBrand', 'Hauptfarbe', BR.brand, '', 'color')}${f('cBrand2', 'Akzentfarbe', BR.brand2, '', 'color')}</div>
-      ${f('cBerufe', 'Ausbildungsberufe bei der Registrierung', linesOf(BR.berufe), 'einer pro Zeile', 'area', 4)}
+      ${f('cBerufe', isQuali() ? 'Berufe der Qualifizierungen' : 'Ausbildungsberufe bei der Registrierung', linesOf(BR.berufe), 'einer pro Zeile', 'area', 4)}
       ${save}
     </section>
     <section class="card p-4 flex flex-col gap-4">
@@ -1988,7 +1989,7 @@ function cfgFormHTML() {
       ${f('cPrivacy', 'Text', BR.datenschutz, '„## “ am Zeilenanfang = Zwischenüberschrift', 'area', 14)}
       <p class="text-[12px] text-muted">Wird auf der Anmeldeseite und im Profil unter „Datenschutz“ angezeigt.</p>
       <div><label class="lbl" for="cLoesch">Ehemalige automatisch löschen</label><select id="cLoesch" class="field">${[[0, 'Aus (nur von Hand)'], [1, 'nach 1 Jahr'], [2, 'nach 2 Jahren'], [3, 'nach 3 Jahren'], [5, 'nach 5 Jahren'], [10, 'nach 10 Jahren']].map(([v, l]) => `<option value="${v}" ${(+APP.loeschfrist_jahre || 0) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <p class="text-[12px] text-muted mt-1">Gilt für Konten, die abgeschlossen oder deaktiviert sind: Nach Ablauf der Frist löscht die App das Konto mit allen Daten (Nachweise, Nachrichten, Dateien) endgültig – nachts automatisch. Trag die gleiche Frist im Datenschutzhinweis unter „Wie lange?“ ein. Achtung bei Aufbewahrungspflichten: Ausbildungs- und Tätigkeitsnachweise ggf. vorher als PDF sichern (Verwaltung › Export).${(+APP.loeschfrist_jahre || 0) ? ` Derzeit betroffen: ${Object.values(S.profiles || {}).filter(p => p.aktiv === false && p.deaktiviert_am && new Date(p.deaktiviert_am) < new Date(Date.now() - APP.loeschfrist_jahre * 365.25 * 864e5)).length} Konten.` : ''}</p></div>
+        <p class="text-[12px] text-muted mt-1">Gilt für Konten, die abgeschlossen oder deaktiviert sind: Nach Ablauf der Frist löscht die App das Konto mit allen Daten (Nachweise, Nachrichten, Dateien) endgültig – nachts automatisch. Trag die gleiche Frist im Datenschutzhinweis unter „Wie lange?“ ein. Achtung bei Aufbewahrungspflichten: ${isQuali() ? 'Anwesenheit, Tätigkeitsnachweise und Zertifikate' : 'Ausbildungs- und Tätigkeitsnachweise'} ggf. vorher als PDF sichern (Verwaltung › Export).${(+APP.loeschfrist_jahre || 0) ? ` Derzeit betroffen: ${Object.values(S.profiles || {}).filter(p => p.aktiv === false && p.deaktiviert_am && new Date(p.deaktiviert_am) < new Date(Date.now() - APP.loeschfrist_jahre * 365.25 * 864e5)).length} Konten.` : ''}</p></div>
       ${save}
     </section>
     <section class="card p-4 flex flex-col gap-3">
@@ -3517,12 +3518,13 @@ function trialBannerHTML() {
     <p class="text-[13px] text-muted mt-1">Alles ist freigeschaltet${deskPay() ? ` bis ${fmtDate(b.testphase_bis)}` : ''}. Danach bleiben eure Daten erhalten, die App wird aber gesperrt, bis ihr freischaltet.${deskPay() ? ' ' + DESK_PREIS + ' Wer schon jetzt zahlt, verliert keinen Tag.' : b.preis_text ? ' ' + esc(b.preis_text) : ''}</p>
     <div class="grid grid-cols-2 gap-2 mt-3">${b.zahl_link || deskPay() ? payBtns() : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent(BR.appName + ' freischalten: ' + b.name)}">Freischalten anfragen</a>`}<button class="btn ghost" data-redeem>Code eingeben</button></div></div>`;
 }
-const payLink = (jahr) => { const b = S.betrieb, u = new URL(jahr && b.zahl_link_jahr ? b.zahl_link_jahr : b.zahl_link); u.searchParams.set('client_reference_id', b.id); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
+const DESK_JAHR_LINK = 'https://buy.stripe.com/aFa5kDgE3g3BfPVbbncV203';
+const payLink = (jahr) => { const b = S.betrieb, u = new URL(jahr ? (b.zahl_link_jahr || (deskPay() ? DESK_JAHR_LINK : b.zahl_link)) : b.zahl_link); u.searchParams.set('client_reference_id', b.id); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
 /* Qualifizierungsmodus (Desk): nur die Jahreslizenz – 490 € je Jahr, jede Zahlung verlängert um 12 Monate */
 const deskPay = () => { try { return isQuali() || (typeof deskOn === 'function' && deskOn()); } catch { return false; } };
 const DESK_PREIS = '490 € pro Jahr (Endpreis, Kleinunternehmer nach § 19 UStG). Jede Zahlung verlängert um ein Jahr – Resttage bleiben erhalten.';
 const payBtns = () => { const b = S.betrieb;
-  if (deskPay()) return b?.zahl_link_jahr ? `<a class="btn" href="${esc(payLink(true))}" target="_blank" rel="noopener">Jahreslizenz bezahlen – 490 €</a>` : `<a class="btn" href="mailto:info@novaworks-it.de?subject=${encodeURIComponent('Jahreslizenz 490 €: ' + (b?.name || ''))}">Jahreslizenz bestellen – 490 €</a>`;
+  if (deskPay()) return S.demo ? `<button class="btn" type="button" onclick="toast('In der Demo wird nichts bezahlt. Mit eurem eigenen Lernstandort führt dieser Knopf direkt zur Zahlung bei Stripe.')">Jahreslizenz bezahlen – 490 €</button>` : `<a class="btn" href="${esc(payLink(true))}" target="_blank" rel="noopener">Jahreslizenz bezahlen – 490 €</a>`;
   if (!b?.zahl_link) return '';
   return b.zahl_link_jahr ? `<a class="btn" href="${esc(payLink(true))}" target="_blank" rel="noopener">Jährlich zahlen – 2 Monate geschenkt</a><a class="btn ghost" href="${esc(payLink())}" target="_blank" rel="noopener">Monatlich zahlen</a>` : `<a class="btn" href="${esc(payLink())}" target="_blank" rel="noopener">Jetzt freischalten</a>`; };
 const portalLink = () => { const u = new URL(S.betrieb.portal_link); const mail = S.me?.kontakt_email; if (mail) u.searchParams.set('prefilled_email', mail); return u.toString(); };
