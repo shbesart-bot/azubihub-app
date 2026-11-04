@@ -277,19 +277,19 @@
 <div id="sheet" class="sheet-scrim" hidden></div>
 <div id="toast" class="toast" hidden role="status"></div>
 
-<script src="./schule.js?v=2026-11-03s"></script>
-<script src="./ausbildung.js?v=2026-11-03s"></script>
-<script src="./ausbau2.js?v=2026-11-03s"></script>
-<script src="./quali.js?v=2026-11-03s"></script>
-<script src="./quali2.js?v=2026-11-03s"></script>
-<script src="./quali3.js?v=2026-11-03s"></script>
-<script src="./quali4.js?v=2026-11-03s"></script>
-<script src="./quali5.js?v=2026-11-03s"></script>
-<script src="./quali6.js?v=2026-11-03s"></script>
-<script src="./quali7.js?v=2026-11-03s"></script>
-<script src="./quali8.js?v=2026-11-03s"></script>
-<script src="./quali9.js?v=2026-11-03s"></script>
-<script src="./quali10.js?v=2026-11-03s"></script>
+<script src="./schule.js?v=2026-11-04a"></script>
+<script src="./ausbildung.js?v=2026-11-04a"></script>
+<script src="./ausbau2.js?v=2026-11-04a"></script>
+<script src="./quali.js?v=2026-11-04a"></script>
+<script src="./quali2.js?v=2026-11-04a"></script>
+<script src="./quali3.js?v=2026-11-04a"></script>
+<script src="./quali4.js?v=2026-11-04a"></script>
+<script src="./quali5.js?v=2026-11-04a"></script>
+<script src="./quali6.js?v=2026-11-04a"></script>
+<script src="./quali7.js?v=2026-11-04a"></script>
+<script src="./quali8.js?v=2026-11-04a"></script>
+<script src="./quali9.js?v=2026-11-04a"></script>
+<script src="./quali10.js?v=2026-11-04a"></script>
 <script>
 /* =====================================================================
    Konfiguration
@@ -477,7 +477,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-03s';
+const APP_VERSION = '2026-11-04a';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -2112,32 +2112,32 @@ function openUserSheet(id) {
       ${isAdmin() ? `<div id="uRights" class="flex flex-col gap-3" ${p.role === 'ausbilder' ? '' : 'hidden'}>
         <div class="rounded-xl p-3" style="background:var(--sunk)">
           <div class="text-[14px] font-semibold">Was darf diese Person?</div>
-          <p class="text-[12px] text-muted mb-2">Zum Beispiel: Der Küchenchef zeichnet nur Küchen-Berichte ab.</p>
+          <p class="text-[12px] text-muted mb-2">${isQuali() ? 'Zum Beispiel: Der Werkstatt-Trainer zeichnet nur Nachweise aus der Lernwerkstatt ab.' : 'Zum Beispiel: Der Küchenchef zeichnet nur Küchen-Berichte ab.'}</p>
           <div class="flex flex-col gap-2.5">${RIGHTS.map(([k, l, d]) => `<label class="flex items-start gap-2.5 text-[14px]"><input type="checkbox" class="cbx mt-0.5" data-right="${k}" ${(p.rechte || []).includes(k) ? 'checked' : ''}><span><b class="font-semibold">${l}</b><span class="block text-[12px] text-muted">${d}</span></span></label>`).join('')}</div>
         </div>
         <div class="rounded-xl p-3" style="background:var(--sunk)">
-          <div class="text-[14px] font-semibold">Zuständig für Abteilungen</div>
-          <p class="text-[12px] text-muted mb-2">Gilt für Berichte. Nichts angehakt = alle Abteilungen.</p>
-          <div class="grid grid-cols-2 gap-2">${[...new Set([...ABTEILUNGEN, 'Berufsschule', ...(p.bereiche || [])])].map(a => `<label class="flex items-center gap-2 text-[14px]"><input type="checkbox" class="cbx" data-scope="${esc(a)}" ${(p.bereiche || []).includes(a) ? 'checked' : ''}>${esc(a)}</label>`).join('')}</div>
+          <div class="text-[14px] font-semibold">${isQuali() ? 'Zuständig für Lernorte' : 'Zuständig für Abteilungen'}</div>
+          <p class="text-[12px] text-muted mb-2">${isQuali() ? 'Gilt für Nachweise. Nichts angehakt = alle Lernorte.' : 'Gilt für Berichte. Nichts angehakt = alle Abteilungen.'}</p>
+          <div class="grid grid-cols-2 gap-2">${[...new Set([...ABTEILUNGEN, ...(isQuali() ? [] : ['Berufsschule']), ...(p.bereiche || [])])].map(a => `<label class="flex items-center gap-2 text-[14px]"><input type="checkbox" class="cbx" data-scope="${esc(a)}" ${(p.bereiche || []).includes(a) ? 'checked' : ''}>${esc(a)}</label>`).join('')}</div>
         </div>
       </div>` : ''}
       <div id="uStaff" class="flex flex-col gap-3" ${p.role === 'azubi' ? 'hidden' : ''}>
         <div><label class="lbl" for="uPos">Funktion</label><input id="uPos" class="field" value="${esc(p.position)}" maxlength="60" placeholder="z. B. Inhaber, Ausbildungsleitung"></div>
         <div><label class="lbl" for="uMail">Kontakt-E-Mail</label><input id="uMail" type="email" class="field" value="${esc(p.kontakt_email)}" maxlength="120"></div>
         <div><label class="lbl" for="uTel">Telefon</label><input id="uTel" type="tel" class="field" value="${esc(p.telefon)}" maxlength="40"></div>
-        <div><label class="lbl" for="uAbt2">Abteilung <span class="font-normal text-muted">(für Gruppen-Chats und Pinnwand)</span></label><select id="uAbt2" class="field">${[...new Set([...ABTEILUNGEN, p.abteilung].filter(Boolean))].map(a => `<option ${p.abteilung === a ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
+        <div><label class="lbl" for="uAbt2">${isQuali() ? 'Lernort' : 'Abteilung'} <span class="font-normal text-muted">(für Gruppen-Chats und Pinnwand)</span></label><select id="uAbt2" class="field">${[...new Set([...ABTEILUNGEN, p.abteilung].filter(Boolean))].map(a => `<option ${p.abteilung === a ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
       </div>
       <div id="uAzubi" class="flex flex-col gap-3" ${p.role === 'azubi' ? '' : 'hidden'}>
       <div class="grid grid-cols-2 gap-2">
         <div><label class="lbl" for="uJahr">Lehrjahr</label><select id="uJahr" class="field">${(isQuali() ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3]).map(j => `<option value="${j}" ${p.lehrjahr === j ? 'selected' : ''}>${isQuali() ? 'Modul ' + j : j + '. Jahr'}</option>`).join('')}</select></div>
-        <div><label class="lbl" for="uAbt">Abteilung</label><select id="uAbt" class="field">${ABTEILUNGEN.map(a => `<option ${p.abteilung === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+        <div><label class="lbl" for="uAbt">${isQuali() ? 'Lernort' : 'Abteilung'}</label><select id="uAbt" class="field">${ABTEILUNGEN.map(a => `<option ${p.abteilung === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
       </div>
       <div><label class="lbl" for="uBetreuer">Ansprechpartner/in</label><select id="uBetreuer" class="field"><option value="">– noch keine/r –</option>${Object.values(S.profiles).filter(x => x.role !== 'azubi' && x.aktiv !== false && x.id !== p.id).sort((a, b) => a.full_name.localeCompare(b.full_name)).map(x => `<option value="${x.id}" ${p.betreuer_id === x.id ? 'selected' : ''}>${esc(x.full_name)} · ${esc(staffLine(x))}</option>`).join('')}</select>
         <p class="text-[12px] text-muted mt-1">Der Azubi sieht diese Person auf der Startseite und kann ihr direkt schreiben.</p></div>
-      <div><label class="lbl" for="uBeruf">Ausbildung</label><input id="uBeruf" class="field" value="${esc(p.beruf)}" maxlength="60"></div>
-      <div><label class="lbl" for="uStart">Erster Arbeitstag</label><input id="uStart" type="date" class="field" value="${p.start_datum}"></div>
+      <div><label class="lbl" for="uBeruf">${isQuali() ? 'Beruf der Qualifizierung' : 'Ausbildung'}</label><input id="uBeruf" class="field" value="${esc(p.beruf)}" maxlength="60"></div>
+      <div><label class="lbl" for="uStart">${isQuali() ? 'Beginn der Maßnahme' : 'Erster Arbeitstag'}</label><input id="uStart" type="date" class="field" value="${p.start_datum}"></div>
       <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="uZp">${EXN(p.beruf)[0]}</label><input id="uZp" type="date" class="field" value="${p.zp_datum || ''}"></div><div><label class="lbl" for="uAp">${EXN(p.beruf)[1]}</label><input id="uAp" type="date" class="field" value="${p.ap_datum || ''}"></div></div>
-      <label class="flex items-start gap-2 text-[14px]" ${isQuali() ? 'hidden' : ''}><input type="checkbox" id="uU18" ${p.unter18 ? 'checked' : ''} style="accent-color:var(--accent);width:20px;height:20px;margin-top:1px"><span>Unter 18 Jahre <span class="block text-[12px] text-muted">Berichtsheft warnt dann ab 8 Std am Tag und 40 Std in der Woche (Jugendarbeitsschutz).</span></span></label>
+      ${isQuali() ? '<input type="checkbox" id="uU18" hidden>' : `<label class="flex items-start gap-2 text-[14px]" ><input type="checkbox" id="uU18" ${p.unter18 ? 'checked' : ''} style="accent-color:var(--accent);width:20px;height:20px;margin-top:1px"><span>Unter 18 Jahre <span class="block text-[12px] text-muted">Berichtsheft warnt dann ab 8 Std am Tag und 40 Std in der Woche (Jugendarbeitsschutz).</span></span></label>`}
       </div>
       <button class="btn">Speichern</button>
     </form>
@@ -2149,10 +2149,10 @@ function openUserSheet(id) {
     </form>
     ${!self && S.betrieb?.gruppen_leitung && p.role !== 'admin' && (S.betrieb.haeuser || []).length > 1 ? `<h3 class="text-[17px] font-bold mt-6 mb-2">In anderes Haus versetzen</h3>
     <div class="card p-4 flex flex-col gap-3"><p class="text-[13px] text-muted">Konto, Berichte, Abwesenheiten, Gespräche und Unterweisungen ziehen mit um.</p><div class="flex gap-2"><select id="uHaus" class="field flex-1 min-w-0">${S.betrieb.haeuser.filter(h => h.id !== S.betrieb.id).map(h => `<option value="${h.id}">${esc(h.name)}</option>`).join('')}</select><button id="uMove" class="btn ghost">Versetzen</button></div></div>` : ''}
-    ${!self && p.role === 'azubi' && can('team') ? `<h3 class="text-[17px] font-bold mt-6 mb-2">Ausbildung abgeschlossen</h3>
+    ${!self && p.role === 'azubi' && can('team') ? `<h3 class="text-[17px] font-bold mt-6 mb-2">${isQuali() ? 'Teilnahme abgeschlossen' : 'Ausbildung abgeschlossen'}</h3>
     <div class="card p-4 flex flex-col gap-3">${p.abgeschlossen_am
       ? `<p class="text-[14px]">Abgeschlossen am <b>${fmtDate(p.abgeschlossen_am)}</b>. Das Konto ist gesperrt, Berichte, Unterweisungen und Nachweise bleiben erhalten.</p><button id="uDoneUndo" class="btn ghost">Rückgängig machen</button>`
-      : `<p class="text-[14px] text-muted">Nach der Abschlussprüfung: Das Konto wird gesperrt und unter „Alle Konten“ als abgeschlossen geführt. Berichtsheft, Unterweisungen und Nachweise bleiben für die Aufbewahrung erhalten, das PDF kannst du jederzeit erstellen.</p>
+      : `<p class="text-[14px] text-muted">${isQuali() ? 'Nach Ende der Maßnahme: Das Konto wird gesperrt und unter „Alle Konten“ als abgeschlossen geführt. Anwesenheit, Nachweise, Unterweisungen und Zertifikate bleiben für die Aufbewahrung erhalten.' : 'Nach der Abschlussprüfung: Das Konto wird gesperrt und unter „Alle Konten“ als abgeschlossen geführt. Berichtsheft, Unterweisungen und Nachweise bleiben für die Aufbewahrung erhalten, das PDF kannst du jederzeit erstellen.'}</p>
       <div class="flex gap-2 items-end"><div class="flex-1"><label class="lbl" for="uDoneDate">Datum</label><input id="uDoneDate" type="date" class="field" value="${p.ap_datum && p.ap_datum <= localDate() ? p.ap_datum : localDate()}" max="${localDate()}"></div><button id="uDone" class="btn">Abschließen</button></div>`}</div>` : ''}
     ${self ? '' : `<h3 class="text-[17px] font-bold mt-6 mb-2">Zugang</h3>
     <div class="card p-4 flex flex-col gap-3">
@@ -2200,7 +2200,7 @@ function openUserSheet(id) {
     const d = $('#uDoneDate').value || localDate();
     await q(sb.from('profiles').update({ abgeschlossen_am: d }).eq('id', id));
     if (p.aktiv !== false) await q(sb.rpc('admin_set_active', { p_user: id, p_active: false }));
-    S.profiles[id] = { ...p, abgeschlossen_am: d, aktiv: false }; closeSheet(); render(); toast('Ausbildung abgeschlossen – Glückwunsch!');
+    S.profiles[id] = { ...p, abgeschlossen_am: d, aktiv: false }; closeSheet(); render(); toast(isQuali() ? 'Teilnahme abgeschlossen – Glückwunsch!' : 'Ausbildung abgeschlossen – Glückwunsch!');
   });
   if ($('#uDoneUndo')) $('#uDoneUndo').onclick = () => confirmInline($('#uDoneUndo'), async () => {
     await q(sb.from('profiles').update({ abgeschlossen_am: null }).eq('id', id));
@@ -4547,7 +4547,7 @@ async function openProfile() {
         <div><label class="lbl" for="pJahr">Lehrjahr</label><select id="pJahr" class="field">${(isQuali() ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3]).map(j => `<option value="${j}" ${me.lehrjahr === j ? 'selected' : ''}>${isQuali() ? 'Modul ' + j : j + '. Jahr'}</option>`).join('')}</select></div>
         <div><label class="lbl" for="pAbt">Aktuelle Abteilung</label><select id="pAbt" class="field">${ABTEILUNGEN.map(a => `<option ${me.abteilung === a ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
       </div>
-      <div><label class="lbl" for="pBeruf">Ausbildung</label><input id="pBeruf" class="field" value="${esc(me.beruf)}" maxlength="60"></div>
+      <div><label class="lbl" for="pBeruf">${isQuali() ? 'Beruf der Qualifizierung' : 'Ausbildung'}</label><input id="pBeruf" class="field" value="${esc(me.beruf)}" maxlength="60"></div>
       <div><label class="lbl" for="pStart">Erster Arbeitstag</label><input id="pStart" type="date" class="field" value="${me.start_datum}"></div>
       <div class="grid grid-cols-2 gap-2"><div><label class="lbl" for="pZp">${EXN(me.beruf)[0]}</label><input id="pZp" type="date" class="field" value="${me.zp_datum || ''}"></div><div><label class="lbl" for="pAp">${EXN(me.beruf)[1]}</label><input id="pAp" type="date" class="field" value="${me.ap_datum || ''}"></div></div>`}
       <button class="btn">Speichern</button>
