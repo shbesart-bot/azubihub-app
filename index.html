@@ -478,7 +478,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-04b';
+const APP_VERSION = '2026-11-23a';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -1004,6 +1004,32 @@ function exportIcs() {
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
   toast(`${ev.length} Termine exportiert – Datei öffnen, um sie in den Kalender zu übernehmen`);
 }
+/* GuestFlow (Hotel-App): Tätigkeiten aus dem Arbeitsalltag als Vorschläge fürs Berichtsheft */
+function gfWoche(w) {
+  const tage = weekDates(w).map(localDate);
+  return (S.rep.gf || []).filter(v => tage.includes(v.datum) && (v.eintraege || []).length).map(v => ({ ...v, tag: tage.indexOf(v.datum) }));
+}
+function gfVorschlagHTML(w) {
+  const v = gfWoche(w);
+  if (!v.length) return '';
+  return `<button id="gfTake" class="btn ghost w-full mt-3">${svg('spark', 'w-4 h-4')} Aus GuestFlow übernehmen (${v.length} ${v.length === 1 ? 'Tag' : 'Tage'})</button>
+    <p class="text-[12px] text-muted mt-1">Was du in der Hotel-App erledigt hast (HACCP, Zimmer, Aufgaben, Gäste). Danach Zeiten prüfen und gern ausformulieren.</p>`;
+}
+function gfUebernehmen(w, days) {
+  let n = 0;
+  gfWoche(w).forEach(v => {
+    const d = days[v.tag]; if (!d || OFF.includes(d.bereich)) return;
+    const vorhanden = new Set(d.eintraege.map(e => (e.text || '').trim()));
+    const neu = v.eintraege.map(e => String(e.text || '').trim().slice(0, 200)).filter(t => t && !vorhanden.has(t));
+    if (!neu.length) return;
+    const frei = Math.max(0, (+v.minuten || 0) - dayMin(d));
+    const je = Math.floor(frei / neu.length / 5) * 5;
+    d.eintraege = d.eintraege.filter(e => (e.text || '').trim() || e.min);
+    neu.forEach((t, i) => d.eintraege.push({ text: t, min: i === neu.length - 1 ? Math.max(0, Math.round((frei - je * (neu.length - 1)) / 5) * 5) : je }));
+    n += neu.length;
+  });
+  return n;
+}
 function initDays(r, w, abs, prof) {
   if (r?.tage?.length === 7) return r.tage.map(d => ({ tag: d.tag, bereich: d.bereich, ...(d.fotos?.length ? { fotos: d.fotos.slice() } : {}), eintraege: OFF.includes(d.bereich) ? [] : (d.eintraege?.length ? d.eintraege.map(e => ({ text: e.text || '', min: +e.min || 0, ...(e.rp ? { rp: +e.rp } : {}), ...(e.lf ? { lf: +e.lf } : {}) })) : [{ text: '', min: 0 }]) }));
   return weekDates(w).map((dt, i) => {
@@ -1125,6 +1151,32 @@ document.addEventListener('click', e => {
 });
 const STATUS = { entwurf: ['warn', 'Entwurf'], eingereicht: ['brass', 'Eingereicht'], abgezeichnet: ['ok', 'Abgezeichnet'], zurueck: ['crit', 'Zum Überarbeiten'] };
 
+async function gfKarte(neuerKey) {
+  const el = $('#gfCard'); if (!el) return;
+  let st = null; try { st = S.demo ? null : (await sb.rpc('guestflow_status')).data; } catch {}
+  if (!$('#gfCard')) return;
+  const v = st?.verbunden;
+  el.innerHTML = `
+    <p class="text-[14px] text-muted">Verbindet ${esc(S.hotel)} mit GuestFlow: Azubis, Berufsschultage und Wiki erscheinen in der Hotel-App, die Schichtübergabe läuft in beide Richtungen, und was Azubis in GuestFlow erledigen, kommt als Vorschlag ins Berichtsheft. Zuordnung über die E-Mail-Adresse – in beiden Apps dieselbe verwenden.</p>
+    ${v ? `<div class="text-[14px]"><span class="chip ok">Verbunden</span> ${st.hotel ? esc(st.hotel) + ' · ' : ''}Schlüssel …${esc(st.hint)}<br><span class="text-muted text-[13px]">${st.letzter_sync ? 'Letzter Abgleich: ' + when(st.letzter_sync) : 'Noch kein Abgleich – Schlüssel in GuestFlow eintragen.'}</span></div>` : ''}
+    ${neuerKey ? `<div class="p-3 rounded-xl" style="background:var(--sunk)"><div class="eyebrow mb-1">Dein Schlüssel – wird nur jetzt angezeigt</div><div class="font-mono text-[13px] break-all select-all">${esc(neuerKey)}</div>
+      <button type="button" class="btn ghost w-full mt-2" data-copycode="${esc(neuerKey)}">${svg('copy', 'w-4 h-4')} Kopieren</button>
+      <p class="text-[12px] text-muted mt-2">In GuestFlow: Admin-Dashboard → Einstellungen → AzubiHub → Schlüssel einfügen → Verbinden. Nicht per E-Mail verschicken.</p></div>` : ''}
+    <div class="grid ${v ? 'grid-cols-2' : 'grid-cols-1'} gap-2">
+      <button type="button" class="btn" id="gfGen">${v ? 'Neuer Schlüssel' : 'Schlüssel erzeugen'}</button>
+      ${v ? '<button type="button" class="btn ghost" id="gfOff">Trennen</button>' : ''}
+    </div>`;
+  $$('#gfCard [data-copycode]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copycode); toast('Kopiert'); } catch { toast(b.dataset.copycode); } });
+  $('#gfGen').onclick = async () => {
+    if (v && !confirm('Neuen Schlüssel erzeugen? Der alte wird sofort ungültig und muss in GuestFlow ersetzt werden.')) return;
+    const k = await q(sb.rpc('guestflow_schluessel_erzeugen'));
+    gfKarte(k);
+  };
+  if ($('#gfOff')) $('#gfOff').onclick = async () => {
+    if (!confirm('GuestFlow trennen? Bereits übernommene Übergaben und Vorschläge bleiben erhalten.')) return;
+    await q(sb.rpc('guestflow_trennen')); toast('Getrennt'); gfKarte();
+  };
+}
 const Bericht = {
   async load() {
     if (isAusbilder()) return Review.load();
@@ -1141,6 +1193,7 @@ const Bericht = {
     [S.rep.beu, S.rep.plan] = await Promise.all([q(sb.from('beurteilungen').select('*').eq('azubi_id', S.me.id).eq('sichtbar', true).order('bis', { ascending: false })).catch(() => []),
       q(sb.from('plan_stationen').select('*').eq('azubi_id', S.me.id).order('von')).catch(() => [])]);
     S.rep.draftText = null;
+    try { S.rep.gf = S.demo ? [] : await sb.from('guestflow_vorschlaege').select('datum,minuten,bereich,eintraege').eq('user_id', S.me.id).gte('datum', localDate(new Date(Date.now() - 42 * 864e5))).then(r => r.data || [], () => []); } catch { S.rep.gf = []; }
     await Promise.all([loadSchool(S.me.id).catch(() => { S.school = null; }), pxLoad()]);
   },
   current() { const w = S.rep.week; return S.rep.list.find(r => r.jahr === w.jahr && r.kw === w.kw); },
@@ -1173,6 +1226,7 @@ const Bericht = {
       <div class="flex items-center justify-between gap-2 mt-3"><span class="chip ${st[0]}">${st[1]}</span>${r?.signed_by ? `<span class="text-[12px] text-muted truncate">von ${esc(nameOf(r.signed_by))}</span>` : ''}</div>
       ${r?.feedback ? `<div class="mt-3 p-3 rounded-xl text-[14px]" style="background:${r.status === 'zurueck' ? 'var(--crit-soft)' : 'var(--ok-soft)'}"><div class="eyebrow mb-1">Rückmeldung</div>${esc(r.feedback)}</div>` : ''}
       ${locked ? (r.tage?.length ? weekTableHTML(r.tage, w) : '') : weekEditorHTML(S.rep.days, w)}
+      ${locked ? '' : gfVorschlagHTML(w)}
       ${locked && !text ? '' : `<div class="mt-4"><div class="flex items-center justify-between gap-2"><label class="lbl" for="repText">Zusammenfassung & Gelerntes <span class="font-normal text-muted">(optional)</span></label>${locked ? '' : dkMicBtn('data-dkfield="#repText"', 'Zusammenfassung einsprechen')}</div><textarea id="repText" rows="4" class="field text-[14px]" ${locked ? 'disabled' : ''} placeholder="Was hast du diese Woche gelernt? Der Generator unten hilft beim Formulieren.">${esc(text)}</textarea></div>`}
       ${locked ? `<p class="text-[13px] text-muted mt-2">${r.status === 'eingereicht' ? 'Eingereicht und wartet auf Abzeichnung.' : 'Abgezeichnet und gesperrt.'}</p>${r.status === 'eingereicht' ? '<button id="repWithdraw" class="btn ghost w-full mt-2">Zurückziehen und bearbeiten</button>' : ''}` : `
       <div class="grid grid-cols-2 gap-2 mt-3"><button id="repSave" class="btn ghost">Entwurf speichern</button><button id="repSubmit" class="btn">Einreichen</button></div>
@@ -1290,6 +1344,13 @@ const Bericht = {
       S.rep.list = [saved, ...S.rep.list.filter(x => x.id !== saved.id)].sort((a, b) => b.jahr - a.jahr || b.kw - a.kw);
       S.rep.draftText = null; S.rep.days = null; render();
       toast(status === 'eingereicht' ? 'Eingereicht' : 'Entwurf gespeichert');
+    };
+    if ($('#gfTake')) $('#gfTake').onclick = () => {
+      const n = gfUebernehmen(S.rep.week, S.rep.days);
+      if (!n) return toast('Keine neuen Tätigkeiten aus GuestFlow für diese Woche.');
+      localDraft.set(S.rep.daysKey, S.rep.days, $('#repText')?.value);
+      const y = scrollY; render(); scrollTo(0, y);
+      toast(`${n} Tätigkeiten aus GuestFlow übernommen – bitte Zeiten prüfen und speichern.`);
     };
     if ($('#repSave')) $('#repSave').onclick = () => save('entwurf');
     if ($('#repSubmit')) $('#repSubmit').onclick = () => save('eingereicht');
@@ -1843,6 +1904,8 @@ const Admin = {
         <button class="btn" id="expAll">${svg('book', 'w-4 h-4')} ZIP-Datei erstellen</button>
         <p id="expState" class="text-[13px] text-muted" aria-live="polite"></p>
       </div>` : ''}
+      ${isAdmin() && !isQuali() ? `${secTitle('GuestFlow verbinden (Hotel-App)')}
+      <div class="card p-4 flex flex-col gap-3" id="gfCard"><p class="text-[14px] text-muted">Wird geladen …</p></div>` : ''}
       ${isQuali() ? '' : `      ${secTitle('Übergabebuch aufräumen')}
       <div class="card p-4 flex flex-col gap-3">
         <p class="text-[14px] text-muted">Hält die Listen übersichtlich. Gelöscht wird nur, was älter ist als angegeben.</p>
@@ -1907,6 +1970,7 @@ const Admin = {
       $('#sCode').value = pre + '-' + Array.from({ length: 4 }, () => c[Math.floor(Math.random() * c.length)]).join('');
     };
     if ($('#expAll')) $('#expAll').onclick = () => exportAll($('#expAll'));
+    if ($('#gfCard')) gfKarte();
     if ($('#admSet')) $('#admSet').onsubmit = async e => {
       e.preventDefault();
       const code = $('#sCode').value.trim().toUpperCase(), hotel = $('#sHotel').value.trim();
