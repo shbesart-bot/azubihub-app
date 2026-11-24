@@ -478,7 +478,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-23a';
+const APP_VERSION = '2026-11-23b';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -1005,6 +1005,31 @@ function exportIcs() {
   toast(`${ev.length} Termine exportiert – Datei öffnen, um sie in den Kalender zu übernehmen`);
 }
 /* GuestFlow (Hotel-App): Tätigkeiten aus dem Arbeitsalltag als Vorschläge fürs Berichtsheft */
+/* Praxis-Nachweis aus GuestFlow für die Ausbilder: was der Azubi im Hotelalltag wie oft gemacht hat */
+const GF_ARTEN = [
+  ['HACCP-Kontrolle', 'HACCP-Kontrollen', /hygien|haccp|temperatur|lebensmittel/i],
+  ['Zimmer vorbereitet', 'Tage im Housekeeping', /zimmer|housekeeping|etage|reinig/i],
+  ['Gäste in der App', 'Tage mit Gästebetreuung (App)', /gast|gäste|empfang|rezeption|check|beratung|service/i],
+  ['Aufgabe erledigt', 'erledigte Aufgaben', null],
+  ['Mangel gemeldet', 'gemeldete Mängel', /technik|instand|wartung/i],
+];
+function gfPraxisHTML(uid) {
+  const rows = (S.rev?.gf || []).filter(v => v.user_id === uid);
+  if (!rows.length) return '';
+  const tage = new Set(rows.map(r => r.datum)).size, min = rows.reduce((s, r) => s + (+r.minuten || 0), 0);
+  const zaehl = GF_ARTEN.map(([pre, label, re]) => {
+    let n = 0;
+    rows.forEach(r => (r.eintraege || []).forEach(e => { const t = String(e.text || ''); if (t.startsWith(pre)) { const m = t.match(/\((\d+)×\)/); n += pre === 'HACCP-Kontrolle' && m ? +m[1] : 1; } }));
+    const ziel = re ? (S.content.goals || []).find(g => re.test(g.titel)) : null;
+    return { label, n, ziel };
+  }).filter(x => x.n);
+  return `${secTitle('Praxis aus GuestFlow', '<span class="text-[12px] text-muted">letzte 4 Monate</span>')}
+    <div class="card p-4 flex flex-col gap-2 text-[14px]">
+      <div class="text-muted text-[13px]">${tage} Arbeitstage mit Einträgen in der Hotel-App${min ? ' · ' + fmtMin(min) + ' gestempelt' : ''}</div>
+      ${zaehl.map(x => `<div class="flex items-baseline justify-between gap-3"><span>${esc(x.label)}${x.ziel ? `<br><span class="text-[12px] text-muted">passt zu Lernziel „${esc(x.ziel.titel)}“</span>` : ''}</span><b class="tnum">${x.n}</b></div>`).join('')}
+      <p class="text-[12px] text-muted">Nur ein Hinweis aus dem Alltag – die Bewertung der Lernziele bleibt bei dir.</p>
+    </div>`;
+}
 function gfWoche(w) {
   const tage = weekDates(w).map(localDate);
   return (S.rep.gf || []).filter(v => tage.includes(v.datum) && (v.eintraege || []).length).map(v => ({ ...v, tag: tage.indexOf(v.datum) }));
@@ -1405,6 +1430,7 @@ const Review = {
       q(sb.from('absences').select('*').order('von', { ascending: false }).limit(300)),
       q(sb.from('talks').select('*').order('datum', { ascending: false }))
     ]);
+    try { S.rev.gf = S.demo ? [] : await sb.from('guestflow_vorschlaege').select('user_id,datum,minuten,bereich,eintraege').gte('datum', localDate(new Date(Date.now() - 120 * 864e5))).limit(3000).then(r => r.data || [], () => []); } catch { S.rev.gf = []; }
     [S.rev.beu, S.rev.plan] = await Promise.all([can('gespraeche') ? q(sb.from('beurteilungen').select('*').order('bis', { ascending: false })).catch(() => []) : [],
       q(sb.from('plan_stationen').select('*').order('von')).catch(() => [])]);
     if (!S.rev.selUser || !S.profiles[S.rev.selUser]) { const az = azubis(); S.rev.selUser = (az.find(a => a.betreuer_id === S.me.id) || az.find(a => inScope(a.abteilung)) || az[0])?.id || null; }
@@ -1446,6 +1472,7 @@ const Review = {
     ${list.length ? `<div class="seg" role="group" aria-label="Azubi">${list.slice().sort((a, b) => (b.betreuer_id === S.me.id || inScope(b.abteilung)) - (a.betreuer_id === S.me.id || inScope(a.abteilung))).map(p => `<button data-sel="${p.id}" aria-pressed="${p.id === sel}">${esc(p.full_name || 'Ohne Namen')}</button>`).join('')}</div>` : empty('Noch keine Azubis registriert.')}
     ${sel ? `
     <div class="card p-3.5 mt-3 flex items-center gap-3">${avatar(S.profiles[sel], 40)}<div class="flex-1 min-w-0"><div class="text-[14px] font-semibold truncate">${esc(nameOf(sel))}</div><div class="text-[12px] text-muted truncate">${esc(S.profiles[sel]?.abteilung || '')} · Ansprechpartner: ${esc(betreuerOf(S.profiles[sel])?.full_name || 'noch keiner')}</div></div><button class="btn ghost py-2 text-[13px]" data-chat="${sel}">Nachricht</button></div>
+    ${gfPraxisHTML(sel)}
     ${isQuali() && !S.content.goals.length ? '' : `${secTitle('Lernziele', `<span class="text-[12px] text-muted">${can('lernziele') ? 'Schieberegler speichert sofort' : 'nur ansehen'}</span>`)}
     <div class="card p-4 flex flex-col gap-4">${S.content.goals.map(g => { const p = gp[g.id] || 0; return `<div><div class="flex items-baseline justify-between gap-3"><label for="g${g.id}" class="text-[14px] font-semibold min-w-0">${esc(g.titel)}</label><div class="text-[13px] font-bold tnum" id="gv${g.id}">${p}%</div></div>${can('lernziele') ? `<input type="range" id="g${g.id}" min="0" max="100" step="5" value="${p}" data-goal="${g.id}">` : `<div class="bar mt-1.5"><i style="width:${p}%"></i></div>`}</div>`; }).join('')}</div>`}
     ${secTitle('Stand Berichtsheft')}
