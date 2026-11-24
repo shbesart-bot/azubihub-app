@@ -478,7 +478,7 @@ async function pwLeaked(pw) {
 }
 const PW_LEAK_MSG = 'Dieses Passwort ist aus Datenlecks bekannt und daher unsicher. Bitte wähle ein anderes.';
 /* Fehlerprotokoll: unerwartete Fehler gehen anonymisiert an NovaWorks (ohne Eingaben, ohne Adresszeile-Parameter) */
-const APP_VERSION = '2026-11-23b';
+const APP_VERSION = '2026-11-24a';
 let errSent = 0;
 function reportError(msg, stack) {
   try {
@@ -2933,7 +2933,7 @@ let examTimer = null;
 const ZWEIJ = b => /^Fachkraft (Küche|für Gastronomie)/.test(b || '');
 /* Bezeichnung der beiden Prüfungstermine (Feld zp_datum / ap_datum) je nach Beruf */
 const EXN = b => isQuali() ? ['Modulprüfung', 'Externenprüfung'] : ZWEIJ(b) ? ['Zwischenprüfung', 'Abschlussprüfung'] : ['Abschlussprüfung Teil 1', 'Abschlussprüfung Teil 2'];
-const EXAM_LABEL = { teil1: 'Abschlussprüfung Teil 1', teil2: 'Abschlussprüfung Teil 2', zp: 'Zwischenprüfung', ap: 'Abschlussprüfung', schwaechen: 'Schwächen üben', lernfeld: 'Lernfeld üben' };
+const EXAM_LABEL = { teil1: 'Abschlussprüfung Teil 1', teil2: 'Abschlussprüfung Teil 2', zp: 'Zwischenprüfung', ap: 'Abschlussprüfung', schwaechen: 'Schwächen üben', lernfeld: 'Lernfeld üben', praxis: 'Aus dem Alltag (GuestFlow)' };
 const examModes = p => ZWEIJ(p?.beruf)
   ? [['zp', 'Inhalte des 1. Ausbildungsjahres', 1], ['ap', 'Alle Inhalte der Ausbildung', null]]
   : [['teil1', 'Inhalte der ersten beiden Ausbildungsjahre', 2], ['teil2', 'Alle Inhalte, auch das 3. Ausbildungsjahr', null]];
@@ -2964,16 +2964,19 @@ async function fillExamStats() {
 }
 function openExamPicker() {
   if (isQuali()) return qExam(0);
-  const modes = examModes(S.me);
+  const modes = examModes(S.me).concat([['praxis', 'Fragen passend zu dem, was du zuletzt im Betrieb gemacht hast (HACCP, Zimmer, Gäste, Technik)', null]]);
   sheetShell('Prüfungssimulation', `<p class="text-[14px] text-muted -mt-1 mb-3">${ZWEIJ(S.me?.beruf) ? 'Dein Beruf hat eine Zwischenprüfung und eine Abschlussprüfung.' : 'Seit 2022 ist die Abschlussprüfung in zwei Teile gestreckt: Teil 1 am Ende des 2., Teil 2 am Ende des 3. Ausbildungsjahres.'}</p>
     <div class="card">${modes.map(([k, d], i) => `<button class="w-full flex items-center gap-3 p-4 text-left ${i ? 'border-t border-line' : ''}" data-exmode="${k}"><div class="flex-1 min-w-0"><div class="font-semibold text-[15px]">${EXAM_LABEL[k]}</div><div class="text-[13px] text-muted">${d}</div></div>${svg('arrow', 'w-4 h-4 text-muted flex-none')}</button>`).join('')}</div>
     <p class="text-[12px] text-muted mt-3">Übungsfragen aus deinem Betrieb, keine echten IHK-Prüfungsaufgaben. Bestanden ab 50 Punkten, wie bei der IHK.</p>`);
   $$('[data-exmode]').forEach(b => b.onclick = () => { const m = modes.find(x => x[0] === b.dataset.exmode); openExam(m[0], m[2]); });
 }
 async function openExam(mode = 'teil2', maxLj = null, nrs = null, keys = null, title = null) {
-  const n = mode === 'schwaechen' || mode === 'lernfeld' ? 10 : 20;
+  const n = mode === 'schwaechen' || mode === 'lernfeld' || mode === 'praxis' ? 10 : 20;
   let qs;
-  if (mode === 'lernfeld') qs = await q(sb.rpc('exam_questions_lf', { p_nrs: nrs || [], p_keys: keys || [], p_limit: n, p_lf: S.lfExamNr || null })).catch(() => []);
+  if (mode === 'praxis') {
+    qs = await q(sb.rpc('exam_questions_praxis', { p_limit: n })).catch(() => []);
+    if (!qs?.length) return toast('Noch keine Tätigkeiten aus GuestFlow – sobald du dort HACCP-Kontrollen, Zimmer oder Gästeanfragen erledigst, gibt es hier passende Fragen.');
+  } else if (mode === 'lernfeld') qs = await q(sb.rpc('exam_questions_lf', { p_nrs: nrs || [], p_keys: keys || [], p_limit: n, p_lf: S.lfExamNr || null })).catch(() => []);
   else {
     qs = await q(sb.rpc('exam_questions2', { p_limit: n, p_max_lj: maxLj, p_nrs: nrs })).catch(() => null);
     if (!qs) qs = await q(sb.rpc('exam_questions', { p_limit: n })).catch(() => []);
